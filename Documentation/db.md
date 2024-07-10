@@ -7,7 +7,6 @@ Przechowuje informacje o szlakach.
 | Kolumna        | Typ         | Opis                                      |
 |----------------|-------------|-------------------------------------------|
 | id             | BIGINT      | Klucz główny                              |
-| uuid           | UUID        | Unikalny identyfikator                    |
 | river_name     | STRING      | Nazwa rzeki                               |
 | trail_name     | STRING      | Nazwa szlaku                              |
 | description    | TEXT        | Opis szlaku                               |
@@ -27,7 +26,6 @@ Przechowuje punkty trasy rzeki w formacie JSON.
 | Kolumna        | Typ         | Opis                                      |
 |----------------|-------------|-------------------------------------------|
 | id             | BIGINT      | Klucz główny                              |
-| uuid           | UUID        | Unikalny identyfikator                    |
 | trail_id       | BIGINT      | Klucz obcy do tabeli `trails`             |
 | track_points   | JSON        | Punkty trasy w formacie JSON              |
 | created_at     | TIMESTAMP   | Data utworzenia                           |
@@ -40,12 +38,10 @@ Przechowuje informacje o obszarach związanych z rzeką.
 | Kolumna             | Typ         | Opis                                      |
 |---------------------|-------------|-------------------------------------------|
 | id                  | BIGINT      | Klucz główny                              |
-| uuid                | UUID        | Unikalny identyfikator                    |
 | trail_id            | BIGINT      | Klucz obcy do tabeli `trails`             |
 | name                | STRING      | Nazwa sekcji                              |
 | description         | TEXT        | Opis sekcji                               |
 | polygon_coordinates | JSON        | Współrzędne wielokąta w formacie JSON     |
-| image_id            | BIGINT      | Klucz obcy do tabeli `images`             |
 | created_at          | TIMESTAMP   | Data utworzenia                           |
 | updated_at          | TIMESTAMP   | Data ostatniej aktualizacji               |
 
@@ -56,7 +52,6 @@ Przechowuje informacje o punktach związanych z rzeką.
 | Kolumna        | Typ         | Opis                                      |
 |----------------|-------------|-------------------------------------------|
 | id             | BIGINT      | Klucz główny                              |
-| uuid           | UUID        | Unikalny identyfikator                    |
 | trail_id       | BIGINT      | Klucz obcy do tabeli `trails`             |
 | point_type_id  | BIGINT      | Klucz obcy do tabeli `point_types`        |
 | name           | STRING      | Nazwa punktu                              |
@@ -73,10 +68,7 @@ Globalna tabela przechowująca zdjęcia.
 | Kolumna        | Typ         | Opis                                      |
 |----------------|-------------|-------------------------------------------|
 | id             | BIGINT      | Klucz główny                              |
-| uuid           | UUID        | Unikalny identyfikator                    |
 | path           | STRING      | Ścieżka do pliku zdjęcia                  |
-| is_main        | BOOLEAN     | Czy zdjęcie jest główne                   |
-| order          | INTEGER     | Kolejność wyświetlania                    |
 | created_at     | TIMESTAMP   | Data utworzenia                           |
 | updated_at     | TIMESTAMP   | Data ostatniej aktualizacji               |
 
@@ -88,8 +80,10 @@ Pośrednia tabela dla relacji wiele do wielu między `images` a innymi tabelami.
 |------------------|-------------|-------------------------------------------|
 | id               | BIGINT      | Klucz główny                              |
 | image_id         | BIGINT      | Klucz obcy do tabeli `images`             |
-| imageable_id     | UUID        | Unikalny identyfikator powiązanego obiektu|
+| imageable_id     | BIGINT      | Klucz obcy do powiązanego obiektu         |
 | imageable_type   | STRING      | Typ powiązanego obiektu                   |
+| is_main          | BOOLEAN     | Czy jest głównym zdjęciem                 |
+| order            | INTEGER     | Kolejność wyświetlania                    |
 | created_at       | TIMESTAMP   | Data utworzenia                           |
 | updated_at       | TIMESTAMP   | Data ostatniej aktualizacji               |
 
@@ -100,7 +94,6 @@ Przechowuje linki z metadanymi związane z sekcjami.
 | Kolumna        | Typ         | Opis                                      |
 |----------------|-------------|-------------------------------------------|
 | id             | BIGINT      | Klucz główny                              |
-| uuid           | UUID        | Unikalny identyfikator                    |
 | section_id     | BIGINT      | Klucz obcy do tabeli `sections`           |
 | url            | STRING      | URL linku                                 |
 | meta_data      | STRING      | Metadane linku                            |
@@ -124,6 +117,7 @@ Przechowuje typy punktów.
 - `trails` ma wiele `sections`.
 - `trails` ma wiele `points`.
 - `sections` ma wiele `links`.
+- `sections` i `trails` mają wiele `images` przez tabelę `imageables`.
 - `points` mają typy zdefiniowane w `point_types`.
 - `images` mogą być powiązane z wieloma różnymi tabelami poprzez tabelę pośrednią `imageables`.
 
