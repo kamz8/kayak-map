@@ -17,8 +17,10 @@ class CreateTrailsTable extends Migration
             $table->decimal('start_lng', 10, 7);
             $table->decimal('end_lat', 10, 7);
             $table->decimal('end_lng', 10, 7);
-            $table->integer('trail_length');
+            $table->integer('trail_length')->index();
             $table->string('author');
+            $table->enum('difficulty', ['łatwy', 'umiarkowany', 'trudny'])->index();
+            $table->integer('scenery')->default(0)->index(); // wartość domyślna 0
             $table->timestamps();
         });
     }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RiverTrack;
 use Illuminate\Http\Request;
+use phpGPX\phpGPX;
 
 class GPXController extends Controller
 {
