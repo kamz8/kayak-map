@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Section extends Model
 {
@@ -17,22 +20,22 @@ class Section extends Model
         'polygon_coordinates' => 'array',
         'scenery' => 'integer'
     ];
-    /*warości domyślne*/
+
     protected $attributes = [
-        'scenery' => 0 // wartość domyślna
+        'scenery' => 0
     ];
 
-    public function trail(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function trail(): BelongsTo
     {
         return $this->belongsTo(Trail::class);
     }
 
-    public function links(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function links(): HasMany
     {
         return $this->hasMany(Link::class);
     }
 
-    public function images(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    public function images(): MorphToMany
     {
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }

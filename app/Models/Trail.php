@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use App\Enums\Difficulty;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Trail extends Model
 {
@@ -18,31 +23,41 @@ class Trail extends Model
         'start_lng' => 'float',
         'end_lat' => 'float',
         'end_lng' => 'float',
-        'scenery' => 'integer'
+        'scenery' => 'integer',
+        'difficulty' => Difficulty::class,
     ];
 
     protected $attributes = [
-        'difficulty' => 'łatwy', // wartość domyślna
+        'difficulty' => Difficulty::EASY,
         'scenery' => 0
     ];
 
-    public function riverTrack()
+    public function riverTrack(): HasOne
     {
         return $this->hasOne(RiverTrack::class);
     }
 
-    public function sections()
+    public function sections(): HasMany
     {
         return $this->hasMany(Section::class);
     }
 
-    public function points()
+    public function points(): HasMany
     {
         return $this->hasMany(Point::class);
     }
 
-    public function images()
+    public function images(): MorphToMany
     {
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
+    }
+
+    // Define the difficulty accessor and mutator
+    protected function difficulty(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Difficulty::from($value),
+            set: fn (Difficulty $value) => $value->value,
+        );
     }
 }

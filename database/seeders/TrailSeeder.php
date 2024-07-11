@@ -8,6 +8,7 @@ use App\Models\RiverTrack;
 use App\Models\Section;
 use App\Models\Point;
 use App\Models\PointType;
+use App\Enums\Difficulty;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 
@@ -29,7 +30,7 @@ class TrailSeeder extends Seeder
                 'end_lng' => $faker->longitude,
                 'trail_length' => $faker->numberBetween(1000, 100000),
                 'author' => $faker->name,
-                'difficulty' => $faker->randomElement(['łatwy', 'umiarkowany', 'trudny']),
+                'difficulty' => $faker->randomElement([Difficulty::LATWY, Difficulty::UMIARKOWANY, Difficulty::TRUDNY]),
                 'scenery' => $faker->numberBetween(0, 10)
             ]);
 

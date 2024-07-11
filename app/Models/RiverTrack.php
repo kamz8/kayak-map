@@ -4,11 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property mixed $trail_id
- * @property false|mixed|string $track_points
- */
 class RiverTrack extends Model
 {
     use HasFactory;
@@ -21,7 +18,7 @@ class RiverTrack extends Model
         'track_points' => 'array'
     ];
 
-    public function trail()
+    public function trail(): BelongsTo
     {
         return $this->belongsTo(Trail::class);
     }

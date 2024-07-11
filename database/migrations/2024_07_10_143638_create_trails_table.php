@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateTrailsTable extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::create('trails', function (Blueprint $table) {
             $table->id();
@@ -17,10 +17,10 @@ class CreateTrailsTable extends Migration
             $table->decimal('start_lng', 10, 7);
             $table->decimal('end_lat', 10, 7);
             $table->decimal('end_lng', 10, 7);
-            $table->integer('trail_length')->index();
+            $table->integer('trail_length');
             $table->string('author');
-            $table->enum('difficulty', ['łatwy', 'umiarkowany', 'trudny'])->index();
-            $table->integer('scenery')->default(0)->index(); // wartość domyślna 0
+            $table->enum('difficulty', ['łatwy', 'umiarkowany', 'trudny']);
+            $table->integer('scenery')->default(0); // wartość domyślna 0
             $table->timestamps();
         });
     }

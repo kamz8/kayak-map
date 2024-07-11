@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Point extends Model
 {
@@ -18,17 +20,17 @@ class Point extends Model
         'lng' => 'float'
     ];
 
-    public function trail()
+    public function trail(): BelongsTo
     {
         return $this->belongsTo(Trail::class);
     }
 
-    public function pointType()
+    public function pointType(): BelongsTo
     {
         return $this->belongsTo(PointType::class);
     }
 
-    public function images()
+    public function images(): MorphToMany
     {
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
