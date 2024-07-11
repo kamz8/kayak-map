@@ -7,7 +7,6 @@ use App\Models\Trail;
 use App\Models\RiverTrack;
 use App\Models\Section;
 use App\Models\Point;
-use App\Models\Image;
 use App\Models\PointType;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
@@ -17,12 +16,23 @@ class TrailSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create();
+        $pointTypes = PointType::all();
 
-        // Seed Trails
         for ($i = 0; $i < 10; $i++) {
-            $trail = Trail::factory()->create();
+            $trail = Trail::create([
+                'river_name' => $faker->word,
+                'trail_name' => $faker->sentence(3),
+                'description' => $faker->paragraph,
+                'start_lat' => $faker->latitude,
+                'start_lng' => $faker->longitude,
+                'end_lat' => $faker->latitude,
+                'end_lng' => $faker->longitude,
+                'trail_length' => $faker->numberBetween(1000, 100000),
+                'author' => $faker->name,
+                'difficulty' => $faker->randomElement(['łatwy', 'umiarkowany', 'trudny']),
+                'scenery' => $faker->numberBetween(0, 10)
+            ]);
 
-            // Seed River Tracks
             $trackPoints = [];
             for ($j = 0; $j < 100; $j++) {
                 $trackPoints[] = ['lat' => $faker->latitude, 'lng' => $faker->longitude];
@@ -33,33 +43,29 @@ class TrailSeeder extends Seeder
                 'track_points' => json_encode($trackPoints)
             ]);
 
-            // Seed Sections
             for ($k = 0; $k < 5; $k++) {
                 $polygonCoordinates = [];
                 for ($l = 0; $l < 10; $l++) {
                     $polygonCoordinates[] = ['lat' => $faker->latitude, 'lng' => $faker->longitude];
                 }
 
-                $section = Section::factory()->create([
+                Section::create([
                     'trail_id' => $trail->id,
-                    'polygon_coordinates' => json_encode($polygonCoordinates)
-                ]);
-
-                // Seed Links for Sections
-                DB::table('links')->insert([
-                    'section_id' => $section->id,
-                    'url' => $faker->url,
-                    'meta_data' => $faker->sentence,
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    'name' => $faker->sentence(2),
+                    'description' => $faker->paragraph,
+                    'polygon_coordinates' => json_encode($polygonCoordinates),
+                    'scenery' => $faker->numberBetween(0, 10)
                 ]);
             }
 
-            // Seed Points
             for ($m = 0; $m < 20; $m++) {
-                Point::factory()->create([
+                Point::create([
                     'trail_id' => $trail->id,
-                    'point_type_id' => PointType::inRandomOrder()->first()->id
+                    'point_type_id' => $pointTypes->random()->id,
+                    'name' => $faker->sentence(2),
+                    'description' => $faker->paragraph,
+                    'lat' => $faker->latitude,
+                    'lng' => $faker->longitude
                 ]);
             }
         }

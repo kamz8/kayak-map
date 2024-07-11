@@ -10,14 +10,20 @@ class Trail extends Model
     use HasFactory;
 
     protected $fillable = [
-        'river_name', 'trail_name', 'description', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author'
+        'river_name', 'trail_name', 'description', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author', 'difficulty', 'scenery'
     ];
 
     protected $casts = [
         'start_lat' => 'float',
         'start_lng' => 'float',
         'end_lat' => 'float',
-        'end_lng' => 'float'
+        'end_lng' => 'float',
+        'scenery' => 'integer'
+    ];
+
+    protected $attributes = [
+        'difficulty' => 'łatwy', // wartość domyślna
+        'scenery' => 0
     ];
 
     public function riverTrack()
