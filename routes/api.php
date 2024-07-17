@@ -14,6 +14,9 @@ Route::get('/user', function (Request $request) {
 use App\Http\Controllers\Api\V1\TrailController;
 
 Route::prefix('v1')->group(function () {
+    Route::get('/', function () {
+        return ['message'=>'Witamy w naszym api', ];
+    });
     Route::get('trails', [TrailController::class, 'index']);
     Route::post('/upload-gpx', [GPXController::class, 'upload']);
 });

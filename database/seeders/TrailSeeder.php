@@ -19,7 +19,7 @@ class TrailSeeder extends Seeder
         $faker = Faker::create();
         $pointTypes = PointType::all();
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 30; $i++) {
             $trail = Trail::create([
                 'river_name' => $faker->word,
                 'trail_name' => $faker->sentence(3),
@@ -30,12 +30,12 @@ class TrailSeeder extends Seeder
                 'end_lng' => $faker->longitude,
                 'trail_length' => $faker->numberBetween(1000, 100000),
                 'author' => $faker->name,
-                'difficulty' => $faker->randomElement([Difficulty::LATWY, Difficulty::UMIARKOWANY, Difficulty::TRUDNY]),
+                'difficulty' => $faker->randomElement([Difficulty::EASY, Difficulty::MODERATE, Difficulty::HARD]),
                 'scenery' => $faker->numberBetween(0, 10)
             ]);
 
             $trackPoints = [];
-            for ($j = 0; $j < 100; $j++) {
+            for ($j = 0; $j < rand(100,300); $j++) {
                 $trackPoints[] = ['lat' => $faker->latitude, 'lng' => $faker->longitude];
             }
 

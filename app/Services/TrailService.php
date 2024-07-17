@@ -25,7 +25,7 @@ class TrailService
                 ->whereBetween('start_lng', [$filters['start_lng'], $filters['end_lng']])
                 ->whereBetween('end_lng', [$filters['start_lng'], $filters['end_lng']]);
         }
-
-        return $query->get();
+//        If all filters are empty that get 100 trails
+        return $query->limit(100)->get();
     }
 }

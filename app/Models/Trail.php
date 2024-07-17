@@ -28,7 +28,7 @@ class Trail extends Model
     ];
 
     protected $attributes = [
-        'difficulty' => Difficulty::EASY,
+        'difficulty' => Difficulty::EASY->value,
         'scenery' => 0
     ];
 
@@ -52,11 +52,10 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
-    // Define the difficulty accessor and mutator
     protected function difficulty(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => Difficulty::from($value),
+            get: fn ($value) => Difficulty::tryFrom($value),
             set: fn (Difficulty $value) => $value->value,
         );
     }
