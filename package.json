@@ -3,11 +3,23 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "vuetisan": "node resources/vuetisan-scripts/vuetisan.cjs"
     },
     "devDependencies": {
+        "@vitejs/plugin-vue": "^5.0.5",
         "axios": "^1.6.4",
-        "laravel-vite-plugin": "^1.0",
-        "vite": "^5.0"
+        "laravel-vite-plugin": "^1.0.5",
+        "vite": "^5.3.4",
+        "vite-plugin-browser-sync": "^3.0.3"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^6.6.0",
+        "leaflet": "^1.9.4",
+        "vue": "^3.4.32",
+        "vue-leaflet": "^0.1.0",
+        "vue-router": "^4.4.0",
+        "vuetify": "^3.6.13",
+        "vuex": "^4.1.0"
     }
 }
