@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import BaseBtnProgress from "@/componens/BaseBtnProgress.vue";
+import BaseBtnProgress from "@/components/BaseBtnProgress.vue";
 
 export default {
     name: 'SectionOne',

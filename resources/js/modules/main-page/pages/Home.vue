@@ -1,5 +1,5 @@
 <template>
-    <HeroSection />
+    <HeroSection :city="city" :coordinates="coordinates" />
         <v-container fluid class="mt-5 mx-0">
             <v-row>
                 <v-container>
@@ -19,7 +19,7 @@
                     </v-row>
                     <v-row class="mt-5">
                         <v-col cols="12">
-                            <h2>Lokalne szlaki w pobliżu {{cityName}}</h2>
+                            <h2>Lokalne szlaki w pobliżu {{city}}</h2>
                         </v-col>
                         <v-col cols="3" v-for="(trail, index) in trails" :key="index">
                             <v-card>
@@ -47,6 +47,8 @@ import SectionOne from "@/modules/main-page/components/sections/SectionOne.vue";
 import SectionTwo from "@/modules/main-page/components/sections/SectionTwo.vue";
 import SectionThree from "@/modules/main-page/components/sections/SectionThree.vue";
 import HeroSection from "@/modules/main-page/components/Hero.vue";
+import { useGeolocation } from '@vueuse/core'
+import {watchEffect} from "vue";
 
 export default {
     name: 'Home',
@@ -93,8 +95,37 @@ export default {
                     difficulty: 'Moderate'
                 }
             ],
-            cityName: 'Wrocław'
+            city: '',
+            coordinates: {
+                lat: null,
+                lng: null
+            },
         };
+    },
+    created() {
+        const { coords } = useGeolocation();
+
+        watchEffect(() => {
+            if (coords.value) {
+                console.log(coords.value.latitude, coords.value.longitude); // Debugging line
+                this.coordinates.lat = coords.value.latitude;
+                this.coordinates.lng = coords.value.longitude;
+                this.getCityName(coords.value.latitude, coords.value.longitude);
+            }
+        });
+    },
+    methods: {
+        async getCityName(lat, lng) {
+
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                this.city = data.address.city || data.address.town || data.address.village || 'Unknown location';
+            } catch (error) {
+                console.error('Error fetching city name:', error);
+            }
+        }
     }
 };
 </script>

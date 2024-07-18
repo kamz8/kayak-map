@@ -4,7 +4,7 @@
             :show-arrows="false"
             height="100%"
             cycle
-            :interval="10000"
+            :interval="carouselInterval"
             hide-delimiter-background
             hide-delimiters
             v-model="currentSlide"
@@ -20,7 +20,7 @@
 
             <v-row class="carousel-controls" no-gutters>
                 <v-col cols="auto" v-for="(image, i) in images" :key="i" class="my-1">
-                    <base-btn-progress
+                    <BaseBtnProgress
                         :interval="carouselInterval"
                         :is-active="currentSlide === i"
                         @progress-click="currentSlide = i"
@@ -34,49 +34,41 @@
                     <v-col>
                         <h1 class="headline">Znajdź wymarzoną trasę</h1>
 
-                        <v-menu
-                            v-model="menu"
-                            :close-on-content-click="false"
-                            :nudge-width="200"
-                            offset-y
+                        <v-combobox
+                            v-model="search"
+                            class="search-box text-black"
+                            filled
+                            rounded
+                            hide-details
+                            variant="solo"
+                            single-line
+                            placeholder="Szukaj po regionach, miastach, rzekach"
+                            :items="recentSearches"
+                            item-text="name"
+                            item-value="name"
+                            hide-selected
                         >
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-text-field
-                                    class="search-box text-black"
-                                    filled
-                                    rounded
-                                    hide-details
-                                    variant="solo"
-                                    single-line
-                                    placeholder="Szukaj po regionach, miastach, rzekach"
-                                    v-bind="attrs"
-                                    v-on="on"
-                                >
-                                    <template v-slot:prepend-inner>
-                                        <v-icon class="map-search">mdi-map-search</v-icon>
-                                    </template>
-                                </v-text-field>
+                            <template v-slot:prepend-inner>
+                                <v-icon class="map-search">mdi-map-search</v-icon>
                             </template>
-                            <v-list>
-                                <v-list-item
-                                    v-for="(item, index) in recentSearches"
-                                    :key="index"
-                                    @click="selectSearch(item)"
-                                >
-                                    <v-list-item-icon>
-                                        <v-icon>mdi-map-marker</v-icon>
-                                    </v-list-item-icon>
-                                    <v-list-item-content>
-                                        <v-list-item-title v-text="item.name"></v-list-item-title>
-                                        <v-list-item-subtitle v-text="item.details"></v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </v-list-item>
-                            </v-list>
-                        </v-menu>
+                            <template v-slot:item="data">
+                                <template>
+                                    <v-list-item>
+                                        <v-list-item-icon>
+                                            <v-icon>mdi-map-marker</v-icon>
+                                        </v-list-item-icon>
+                                        <v-list-item-content>
+                                            <v-list-item-title v-text="data.item.name"></v-list-item-title>
+                                            <v-list-item-subtitle v-text="data.item.details"></v-list-item-subtitle>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </template>
+                            </template>
+                        </v-combobox>
                     </v-col>
                     <v-row class="pt-4">
                         <v-col>
-                            <router-link class="text-white text-uppercase " style="font-size: 1.2em" :to="'/explore'">Odkryj swoją okolicę</router-link>
+                            <router-link class="text-white text-uppercase" style="font-size: 1.2em" :to="'/explore'">Odkryj swoją okolicę</router-link>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -86,14 +78,24 @@
 </template>
 
 <script>
-import BaseBtnProgress from "@/componens/BaseBtnProgress.vue";
+import BaseBtnProgress from "@/components/BaseBtnProgress.vue";
 
 export default {
     name: 'HeroSection',
     components: { BaseBtnProgress },
+    props: {
+        city: {
+            type: String,
+            default: ''
+        },
+        coordinates: {
+            type: Object,
+            default: () => ({ lat: null, lng: null })
+        }
+    },
     data() {
         return {
-            menu: false,
+            search: '',
             currentSlide: 0,
             carouselInterval: 10000,
             images: [
@@ -110,12 +112,6 @@ export default {
                 { name: 'Wroclaw', details: 'City • Lower Silesian, Poland' },
             ],
         };
-    },
-    methods: {
-        selectSearch(item) {
-            // Add your search logic here
-            console.log(item);
-        },
     },
 };
 </script>
