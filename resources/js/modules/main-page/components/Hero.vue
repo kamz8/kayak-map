@@ -28,6 +28,7 @@
                 </v-col>
             </v-row>
         </v-carousel>
+<!--   end carusel     -->
         <v-container fluid tag="section" class="overlay">
             <v-row>
                 <v-container class="overlay-content d-flex">
@@ -47,6 +48,7 @@
                             item-text="name"
                             item-value="name"
                             hide-selected
+                            no-data-text="Brak ostatnio przeglądanych tras"
                         >
                             <template v-slot:prepend-inner>
                                 <v-icon class="map-search">mdi-map-search</v-icon>

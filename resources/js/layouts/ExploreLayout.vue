@@ -1,46 +1,56 @@
 <template>
     <v-app>
-        <navbar></navbar>
-        <v-navigation-drawer app>
-            <v-list dense>
-                <v-list-item-group>
-                    <v-list-item>
-                        <v-list-item-icon>
-                            <v-icon>mdi-map</v-icon>
-                        </v-list-item-icon>
-                        <v-list-item-title>Map</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item>
-                        <v-list-item-icon>
-                            <v-icon>mdi-compass</v-icon>
-                        </v-list-item-icon>
-                        <v-list-item-title>Explore</v-list-item-title>
-                    </v-list-item>
-                </v-list-item-group>
-            </v-list>
+        <Navbar />
+        <v-navigation-drawer v-model="drawer" app>
+            <router-view />
         </v-navigation-drawer>
         <v-main>
-            <slot></slot>
+            <v-btn icon @click="drawer = !drawer" class="toggle-drawer">
+                <v-icon>mdi-menu</v-icon>
+            </v-btn>
+            <div class="main-content">
+                <Map />
+
+            </div>
         </v-main>
     </v-app>
 </template>
 
 <script>
 import Navbar from "@/modules/main-page/components/Navbar.vue";
+import Map from "@/modules/trails/components/Map.vue";
 
 export default {
-    name: 'ExploreLayout',
-    components: {Navbar},
+    name: "ExploreLayout",
+    components: { Navbar, Map },
     data() {
         return {
-            menuItems: ['Opcja 1', 'Opcja 2', 'Opcja 3']
+            drawer: true,
         };
-    }
+    },
+    methods: {
+        navigateTo(route) {
+            this.$router.push(route);
+            this.drawer = false; // Zamknij drawer po nawigacji
+        },
+    },
 };
 </script>
 
 <style scoped>
 .v-app-bar {
     box-shadow: none;
+}
+
+.toggle-drawer {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.main-content {
+    display: flex;
+    height: 100vh;
 }
 </style>
