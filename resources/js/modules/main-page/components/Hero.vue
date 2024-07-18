@@ -1,0 +1,185 @@
+<template>
+    <v-container class="hero-section ma-0 pa-0" fill-height fluid>
+        <v-carousel
+            :show-arrows="false"
+            height="100%"
+            cycle
+            :interval="10000"
+            hide-delimiter-background
+            hide-delimiters
+            v-model="currentSlide"
+        >
+            <v-carousel-item v-for="(image, i) in images" :key="i">
+                <v-img
+                    gradient="to top right, rgba(102, 117, 206, 0.1), rgba(33, 36, 54, 0.4)"
+                    :src="image"
+                    height="100%"
+                    cover
+                ></v-img>
+            </v-carousel-item>
+
+            <v-row class="carousel-controls" no-gutters>
+                <v-col cols="auto" v-for="(image, i) in images" :key="i" class="my-1">
+                    <base-btn-progress
+                        :interval="carouselInterval"
+                        :is-active="currentSlide === i"
+                        @progress-click="currentSlide = i"
+                    />
+                </v-col>
+            </v-row>
+        </v-carousel>
+        <v-container fluid tag="section" class="overlay">
+            <v-row>
+                <v-container class="overlay-content d-flex">
+                    <v-col>
+                        <h1 class="headline">Znajdź wymarzoną trasę</h1>
+
+                        <v-menu
+                            v-model="menu"
+                            :close-on-content-click="false"
+                            :nudge-width="200"
+                            offset-y
+                        >
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                    class="search-box text-black"
+                                    filled
+                                    rounded
+                                    hide-details
+                                    variant="solo"
+                                    single-line
+                                    placeholder="Szukaj po regionach, miastach, rzekach"
+                                    v-bind="attrs"
+                                    v-on="on"
+                                >
+                                    <template v-slot:prepend-inner>
+                                        <v-icon class="map-search">mdi-map-search</v-icon>
+                                    </template>
+                                </v-text-field>
+                            </template>
+                            <v-list>
+                                <v-list-item
+                                    v-for="(item, index) in recentSearches"
+                                    :key="index"
+                                    @click="selectSearch(item)"
+                                >
+                                    <v-list-item-icon>
+                                        <v-icon>mdi-map-marker</v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-content>
+                                        <v-list-item-title v-text="item.name"></v-list-item-title>
+                                        <v-list-item-subtitle v-text="item.details"></v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </v-col>
+                    <v-row class="pt-4">
+                        <v-col>
+                            <router-link class="text-white text-uppercase " style="font-size: 1.2em" :to="'/explore'">Odkryj swoją okolicę</router-link>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-row>
+        </v-container>
+    </v-container>
+</template>
+
+<script>
+import BaseBtnProgress from "@/componens/BaseBtnProgress.vue";
+
+export default {
+    name: 'HeroSection',
+    components: { BaseBtnProgress },
+    data() {
+        return {
+            menu: false,
+            currentSlide: 0,
+            carouselInterval: 10000,
+            images: [
+                'https://images.pexels.com/photos/2422463/pexels-photo-2422463.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                './storage/assets/pexels-bri-schneiter-28802-346529.jpg',
+                './storage/assets/pexels-jonathan-lassen-1263409-2404667.jpg',
+                'https://images.pexels.com/photos/1522344/pexels-photo-1522344.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+            ],
+            recentSearches: [
+                { name: 'Milicz', details: 'City • Lower Silesian, Poland' },
+                { name: 'Racibórz - Polska Cerekiew', details: 'Trail • Silesian, Poland' },
+                { name: 'Barycz Valley Landscape Park', details: 'Park • Lower Silesian, Poland' },
+                { name: 'Walk along Stara Odra River', details: 'Trail • Lower Silesian, Poland' },
+                { name: 'Wroclaw', details: 'City • Lower Silesian, Poland' },
+            ],
+        };
+    },
+    methods: {
+        selectSearch(item) {
+            // Add your search logic here
+            console.log(item);
+        },
+    },
+};
+</script>
+
+<style scoped>
+.hero-section {
+    position: relative;
+    height: 36vw;
+}
+
+.v-carousel__controls__item {
+    background: transparent;
+}
+
+.v-carousel__control--active .v-icon {
+    color: white;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-content {
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.headline {
+    font-family: 'Poppins', sans-serif;
+    text-shadow: rgba(0, 0, 0, 0.16);
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.search-box {
+    background-color: white;
+    width: 65%;
+    border-radius: 25px;
+    line-height: 2.5em;
+    margin: 0 auto;
+}
+
+.search-box .map-search {
+    font-size: 2em;
+}
+
+.v-field__prepend-inner i {
+    font-size: 1.8em;
+}
+
+.bottom-gradient {
+    background-image: linear-gradient(to top, rgba(102, 117, 206, 0.33), rgba(33, 36, 54, 0.7), transparent 72px);
+}
+</style>

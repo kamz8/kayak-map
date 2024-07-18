@@ -9,11 +9,11 @@
 </template>
 
 <script>
-import Navbar from '../modules/main-page/components/Navbar.vue';
-import Footer from '../modules/main-page/components/Footer.vue';
+import Navbar from '@/modules/main-page/components/Navbar.vue';
+import Footer from '@/modules/main-page/components/Footer.vue';
 
 export default {
-    name: 'BasicLayout',
+    name: 'DefaultLayout',
     components: {
         Navbar,
         Footer

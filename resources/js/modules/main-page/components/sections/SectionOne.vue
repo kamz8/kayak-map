@@ -3,13 +3,26 @@
         <v-container>
             <h2>Sekcja 1</h2>
             <p>Zawartość sekcji 1</p>
+
         </v-container>
     </section>
 </template>
 
 <script>
+import BaseBtnProgress from "@/componens/BaseBtnProgress.vue";
+
 export default {
-    name: 'SectionOne'
+    name: 'SectionOne',
+    components: {BaseBtnProgress},
+    data() {
+        return {
+            progress: 0
+        }
+    },
+    mounted() {
+            this.progress = (this.progress !== 100) ? this.progress++ : 0;
+
+    }
 };
 </script>
 

@@ -2,8 +2,9 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import vuetify from './plugins/vuetify'; // Import Vuetify
+import vuetify from './plugins/vuetify';
 import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS
+import '../css/app.css'; // Import globalnych stylów
 
 const app = createApp(App);
 

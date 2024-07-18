@@ -1,25 +1,6 @@
 <template>
     <v-app>
-        <v-app-bar app flat>
-            <v-toolbar-title>
-                <img src="/path-to-your-logo.png" alt="Logo" height="40">
-            </v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-btn text to="/explore">
-                <v-icon left>mdi-kayak</v-icon>
-                Odkrywaj
-            </v-btn>
-            <v-menu>
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn text v-bind="attrs" v-on="on">Menu</v-btn>
-                </template>
-                <v-list>
-                    <v-list-item v-for="(item, index) in menuItems" :key="index">
-                        <v-list-item-title>{{ item }}</v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </v-menu>
-        </v-app-bar>
+        <navbar></navbar>
         <v-navigation-drawer app>
             <v-list dense>
                 <v-list-item-group>
@@ -45,8 +26,11 @@
 </template>
 
 <script>
+import Navbar from "@/modules/main-page/components/Navbar.vue";
+
 export default {
     name: 'ExploreLayout',
+    components: {Navbar},
     data() {
         return {
             menuItems: ['Opcja 1', 'Opcja 2', 'Opcja 3']

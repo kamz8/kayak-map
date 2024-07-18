@@ -1,5 +1,5 @@
 <template>
-    <v-footer app color="dark-green" class="white--text">
+    <v-footer app color="dark-green" class="white--text" tag="footer">
         <v-container>
             <v-row>
                 <v-col>
@@ -28,8 +28,8 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .dark-green {
-    background-color: #006400;
+    background-color: var(--dark-green);
 }
 </style>

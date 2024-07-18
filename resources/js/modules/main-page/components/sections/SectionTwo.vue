@@ -3,6 +3,7 @@
         <v-container>
             <h2>Sekcja 2</h2>
             <p>Zawartość sekcji 2</p>
+            <v-icon>mdi-home</v-icon>
         </v-container>
     </section>
 </template>
