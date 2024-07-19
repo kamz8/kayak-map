@@ -1,56 +1,61 @@
 <template>
     <v-app>
-        <Navbar />
-        <v-navigation-drawer v-model="drawer" app>
-            <router-view />
-        </v-navigation-drawer>
-        <v-main>
-            <v-btn icon @click="drawer = !drawer" class="toggle-drawer">
-                <v-icon>mdi-menu</v-icon>
-            </v-btn>
-            <div class="main-content">
-                <Map />
+        <v-layout full-height>
+            <!-- Navbar -->
+            <Navbar />
 
-            </div>
-        </v-main>
+            <!-- Toolbar for search and filters -->
+            <v-app-bar>
+                <v-container>
+                    <v-row>
+                        <slot name="search-bar"></slot>
+                    </v-row>
+                </v-container>
+            </v-app-bar>
+            <v-main>
+                <v-container fluid>
+                    <v-row>
+                        <!-- Sidebar Panel -->
+                        <v-col :cols="drawer ? 4 : 0">
+                            <v-navigation-drawer v-model="drawer" app clipped permanent>
+                                <v-list-item title="Wybrane trasy" subtitle="dostępne w okolicy" color="teal-darken-3" ></v-list-item>
+                                <router-view name="sidebar"></router-view>
+                            </v-navigation-drawer>
+                        </v-col>
+                        <!-- Main Content -->
+                        <v-col :cols="drawer ? 8 : 10">
+                            <router-view name="main"></router-view>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-main>
+        </v-layout>
+
     </v-app>
 </template>
 
 <script>
-import Navbar from "@/modules/main-page/components/Navbar.vue";
-import Map from "@/modules/trails/components/Map.vue";
+import Navbar from '@/modules/main-page/components/Navbar.vue';
+import Footer from "@/modules/main-page/components/Footer.vue";
 
 export default {
-    name: "ExploreLayout",
-    components: { Navbar, Map },
+    components: {
+        Footer,
+        Navbar,
+    },
     data() {
         return {
             drawer: true,
         };
     },
     methods: {
-        navigateTo(route) {
-            this.$router.push(route);
-            this.drawer = false; // Zamknij drawer po nawigacji
+        toggleDrawer() {
+            this.drawer = !this.drawer;
         },
     },
 };
 </script>
 
 <style scoped>
-.v-app-bar {
-    box-shadow: none;
-}
-
-.toggle-drawer {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1000;
-}
-
-.main-content {
-    display: flex;
-    height: 100vh;
-}
+/* Dodaj stylizacje, jeśli potrzebne */
 </style>
