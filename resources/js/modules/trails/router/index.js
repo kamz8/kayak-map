@@ -1,5 +1,8 @@
 const explore = () => import('../pages/Explore.vue')
 
+const MapComponent = () => import('../components/Map.vue');
+const SidebarTrails = () => import('../components/sidebarTrails.vue');
+const TrailsFiltersToolbar = () => import('../components/TrailsFiltersToolbar.vue');
 export default [
     {
         path: '/explore',
@@ -17,7 +20,14 @@ export default [
                     content: 'Opis strony odkrywania dla Open Graph'
                 }
             ]
-        }
+        },
+        components: {
+            main: MapComponent,
+            sidebar: SidebarTrails,
+            toolbar: TrailsFiltersToolbar
+        },
+        children: []
+
     },
 
 ];

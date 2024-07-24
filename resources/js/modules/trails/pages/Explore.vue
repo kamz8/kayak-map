@@ -1,12 +1,20 @@
+<template>
+<v-container>
+    <Map></Map>
+</v-container>
+    <template v-slot:toolbar-content>
+        jakaś szukajaka
+    </template>
+</template>
+
 <script>
+import Map from "@/modules/trails/components/Map.vue";
+
 export default {
-    name: "Explore"
+    name: "Explore",
+    components: {Map}
 }
 </script>
-
-<template>
-
-</template>
 
 <style scoped>
 

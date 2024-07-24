@@ -107,7 +107,6 @@ export default {
 
         watchEffect(() => {
             if (coords.value) {
-                console.log(coords.value.latitude, coords.value.longitude); // Debugging line
                 this.coordinates.lat = coords.value.latitude;
                 this.coordinates.lng = coords.value.longitude;
                 this.getCityName(coords.value.latitude, coords.value.longitude);
