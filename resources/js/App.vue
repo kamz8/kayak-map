@@ -2,8 +2,8 @@
     <v-app>
         <component :is="layout">
             <router-view />
-            <AlertMessages />
         </component>
+        <AlertMessages />
     </v-app>
 </template>
 

@@ -1,54 +1,36 @@
-import axios from 'axios';
+import apiClient from '@/plugins/apiClient';
 
 const state = {
     trails: [],
-    loading: false,
-    error: null,
 };
 
 const mutations = {
     SET_TRAILS(state, trails) {
         state.trails = trails;
-    },
-    SET_LOADING(state, loading) {
-        state.loading = loading;
-    },
-    SET_ERROR(state, error) {
-        state.error = error;
     }
 };
 
 const actions = {
-    async fetchTrails({ commit }, { startLat, endLat, startLng, endLng, difficulty, scenery }) {
-        commit('SET_LOADING', true);
-        commit('SET_ERROR', null);
+    async fetchTrails({ commit, dispatch }, bounds) {
         try {
-            const response = await axios.get('http://your-app-url/api/v1/trails', {
+            const response = await apiClient.get('/trails', {
                 params: {
-                    start_lat: startLat,
-                    end_lat: endLat,
-                    start_lng: startLng,
-                    end_lng: endLng,
-                    difficulty: difficulty,
-                    scenery: scenery,
-                },
+                    start_lat: bounds._southWest.lat,
+                    end_lat: bounds._northEast.lat,
+                    start_lng: bounds._southWest.lng,
+                    end_lng: bounds._northEast.lng,
+                }
             });
             commit('SET_TRAILS', response.data.data);
+            dispatch('system_messages/addMessage', { type: 'error', message: 'Failed to fetch trails.' }, { root: true });
         } catch (error) {
-            commit('SET_ERROR', error.message);
-        } finally {
-            commit('SET_LOADING', false);
+            console.error("Error fetching trails:", error);
         }
-    },
-    setTrails({ commit }, trails) {
-        commit('SET_TRAILS', trails);
     }
 };
 
 const getters = {
     trails: state => state.trails,
-    loading: state => state.loading,
-    error: state => state.error,
 };
 
 export default {

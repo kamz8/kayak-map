@@ -1,31 +1,41 @@
-import { useStore } from 'vuex'
-
 export default {
     install(app) {
-        app.config.globalProperties.$alert = function ({ type, text }) {
-            const store = useStore()
-            store.dispatch('system_messages/addMessage', { type, text })
+        const store = app.config.globalProperties.$store;
+        if (!store) {
+            console.error('Vuex store is not initialized');
+            return;
         }
-        app.config.globalProperties.$alertInfo = function (text) {
-            const store = useStore()
-            const messageType = store.getters['system_messages/messageTypes'].INFO
-            this.$alert({ type: messageType, text })
+
+        app.config.globalProperties.$alert = function ({ type, title, text, duration }) {
+            store.dispatch('system-messages/addMessage', {
+                type,
+                title,
+                text,
+                duration: duration || 5000
+            });
         }
-        app.config.globalProperties.$alertWarning = function (text) {
-            const store = useStore()
-            const messageType = store.getters['system_messages/messageTypes'].WARNING
-            this.$alert({ type: messageType, text })
+
+        const createAlertHelper = (type) => {
+            return function (text, title, duration) {
+                const messageTypes = store.getters['system-messages/messageTypes'];
+                if (!messageTypes) {
+                    console.error('Message types are not defined in the store');
+                    return;
+                }
+                const messageType = messageTypes[type.toUpperCase()];
+                this.$alert({
+                    type: messageType,
+                    title: title || type.charAt(0).toUpperCase() + type.slice(1),
+                    text,
+                    duration
+                });
+            }
         }
-        app.config.globalProperties.$alertError = function (text) {
-            const store = useStore()
-            const messageType = store.getters['system_messages/messageTypes'].ERROR
-            this.$alert({ type: messageType, text })
-        }
-        app.config.globalProperties.$logMessage = function (message) {
-            console.log(message)
-        }
-        app.config.globalProperties.$formatDate = function (date) {
-            return this.$moment(date).format('LL') // Użyj polskiego formatu daty
-        }
+
+        app.config.globalProperties.$alertInfo = createAlertHelper('info');
+        app.config.globalProperties.$alertWarning = createAlertHelper('warning');
+        app.config.globalProperties.$alertError = createAlertHelper('error');
+
+        // rejestruj pozosyałe helpery według schematów
     }
 }

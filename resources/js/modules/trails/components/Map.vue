@@ -5,7 +5,7 @@
         style="height: 100%; width: 100%;"
         :zoom="zoom"
         :center="center"
-        :options="{ zoomControl: false }"
+        :options="{ zoomControl: false,preferCanvas: true }"
         :use-global-leaflet="false"
         @ready="onMapReady"
         @moveend="onMapMoveEnd"
@@ -20,7 +20,7 @@
             <v-btn icon="mdi-map" class="layer-button" @click="setTileLayer('default')" v-tooltip="'Mapa domyślna'" />
             <v-btn icon="mdi-terrain" class="layer-button" @click="setTileLayer('terrain')" v-tooltip="'Mapa terenu'" />
             <v-btn icon="mdi-satellite-variant" class="layer-button" @click="setTileLayer('satellite')" v-tooltip="'Mapa satelitarna'" />
-            <v-btn icon="mdi-map-marker-path" class="layer-button" @click="setTileLayer('hybrid')" v-tooltip="'Mapa hybrydowa'" />
+<!--            <v-btn icon="mdi-map-marker-path" class="layer-button" @click="setTileLayer('hybrid')" v-tooltip="'Mapa hybrydowa'" />-->
           </div>
         </transition>
       </div>
@@ -60,7 +60,10 @@ export default {
     ...mapGetters(['trails', 'loading', 'error']),
   },
   methods: {
-    ...mapActions(['fetchTrails']),
+    ...mapActions([
+        'system-messages/addMessage',
+        ''
+    ]),
     onMapReady(map) {
       this.mapInstance = map;
       this.fetchLocalTrails();
@@ -74,7 +77,7 @@ export default {
       const endLat = bounds.getNorthEast().lat;
       const startLng = bounds.getSouthWest().lng;
       const endLng = bounds.getNorthEast().lng;
-      this.fetchTrails({ startLat, endLat, startLng, endLng });
+
     },
     zoomIn() {
       this.zoom++;
@@ -128,6 +131,10 @@ export default {
       }
     },
   },
+  mounted() {
+    this.$alertInfo('Test alertów')
+    this.$alertWarning('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus vitae magna sed risus aliquet rutrum. Nam rutrum mi eu urna fermentum, vitae pulvinar ipsum elementum.','Uwaga!')
+  }
 };
 </script>
 
