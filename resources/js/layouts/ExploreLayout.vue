@@ -49,15 +49,15 @@ export default {
     },
     methods: {
         toggleDrawer() {
-            this.drawer = !this.drawer;
+            this.drawer = !this.drawer
             this.$nextTick(() => {
                 if (this.$refs.map) {
-                    this.$refs.map.mapObject.invalidateSize();
+                    this.$refs.map.mapObject.invalidateSize()
                 }
-            });
+            })
         },
     },
-};
+}
 </script>
 
 <style scoped>

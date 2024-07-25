@@ -8,6 +8,7 @@
         :options="{ zoomControl: false }"
         :use-global-leaflet="false"
         @ready="onMapReady"
+        @moveend="onMapMoveEnd"
     >
       <l-tile-layer :url="url" :attribution="attribution" />
     </l-map>
@@ -19,6 +20,7 @@
             <v-btn icon="mdi-map" class="layer-button" @click="setTileLayer('default')" v-tooltip="'Mapa domyślna'" />
             <v-btn icon="mdi-terrain" class="layer-button" @click="setTileLayer('terrain')" v-tooltip="'Mapa terenu'" />
             <v-btn icon="mdi-satellite-variant" class="layer-button" @click="setTileLayer('satellite')" v-tooltip="'Mapa satelitarna'" />
+            <v-btn icon="mdi-map-marker-path" class="layer-button" @click="setTileLayer('hybrid')" v-tooltip="'Mapa hybrydowa'" />
           </div>
         </transition>
       </div>
@@ -35,6 +37,7 @@
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
 import { useGeolocation } from "@vueuse/core";
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
   name: "Map",
@@ -50,33 +53,47 @@ export default {
       attribution: 'Leaflet.js | © OpenStreetMap contributors',
       selectedLayer: 'default',
       showLayerOptions: false,
-      mapRotation: 0,
       mapInstance: null,
     };
   },
+  computed: {
+    ...mapGetters(['trails', 'loading', 'error']),
+  },
   methods: {
+    ...mapActions(['fetchTrails']),
     onMapReady(map) {
       this.mapInstance = map;
+      this.fetchLocalTrails();
+    },
+    onMapMoveEnd() {
+      this.fetchLocalTrails();
+    },
+    fetchLocalTrails() {
+      const bounds = this.mapInstance.getBounds();
+      const startLat = bounds.getSouthWest().lat;
+      const endLat = bounds.getNorthEast().lat;
+      const startLng = bounds.getSouthWest().lng;
+      const endLng = bounds.getNorthEast().lng;
+      this.fetchTrails({ startLat, endLat, startLng, endLng });
     },
     zoomIn() {
-      this.zoom = Math.min(this.zoom + 1, 18); // Maksymalny poziom zoomu to 18
+      this.zoom++;
     },
     zoomOut() {
-      this.zoom = Math.max(this.zoom - 1, 1); // Minimalny poziom zoomu to 1
+      this.zoom--;
     },
     async locate() {
       const { coords, error } = useGeolocation();
 
       if ("geolocation" in navigator) {
         try {
-          const position = await new Promise((resolve, reject) => {
+          await new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject);
           });
 
-          if (position) {
-            const { latitude, longitude } = position.coords;
-            this.center = [latitude, longitude];
-            this.zoom = 13; // Możesz dostosować poziom zoomu
+          if (coords.value) {
+            this.center = [coords.value.latitude, coords.value.longitude];
+            this.zoom = 13;
           }
         } catch (err) {
           console.log("Użytkownik odmówił dostępu do geolokalizacji");
@@ -99,6 +116,10 @@ export default {
           break;
         case 'satellite':
           this.url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+          this.attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+          break;
+        case 'hybrid':
+          this.url = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
           this.attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
           break;
         default:

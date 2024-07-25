@@ -1,5 +1,7 @@
 <template>
-
+    <v-list>
+        <TrailCard v-for="trail in trails" :key="trail.id" :trail="trail"/>
+    </v-list>
 </template>
 
 <script>

@@ -1,7 +1,7 @@
 const explore = () => import('../pages/Explore.vue')
 
 const MapComponent = () => import('../components/Map.vue');
-const SidebarTrails = () => import('../components/sidebarTrails.vue');
+const SidebarTrails = () => import('../components/SidebarTrailsList.vue');
 const TrailsFiltersToolbar = () => import('../components/TrailsFiltersToolbar.vue');
 export default [
     {
