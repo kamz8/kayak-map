@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class TrailService
 {
-    public function getTrails(array $filters): \Illuminate\Database\Eloquent\Builder
+    public function getTrails(array $filters): \Illuminate\Database\Eloquent\Collection
     {
         $query = Trail::with(['riverTrack', 'sections', 'points']);
 
@@ -27,6 +27,6 @@ class TrailService
         }
 
 
-        return $query->limit(100);
+        return $query->limit(100)->get();
     }
 }

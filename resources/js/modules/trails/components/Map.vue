@@ -5,12 +5,22 @@
         style="height: 100%; width: 100%;"
         :zoom="zoom"
         :center="center"
-        :options="{ zoomControl: false,preferCanvas: true }"
-        :use-global-leaflet="false"
+        :options="{ zoomControl: false, preferCanvas: true }"
         @ready="onMapReady"
         @moveend="onMapMoveEnd"
     >
       <l-tile-layer :url="url" :attribution="attribution" />
+      <l-marker-cluster :options="{ chunkedLoading: true }">
+        <l-marker
+            v-for="trail in trails"
+            :key="trail.id"
+            :lat-lng="[trail.start_lat, trail.start_lng]"
+        >
+          <l-popup>
+            <trail-popup :trail="trail" @view-details="viewTrailDetails" />
+          </l-popup>
+        </l-marker>
+      </l-marker-cluster>
     </l-map>
     <div class="map-controls top-right-controls">
       <div class="layer-control" @mouseenter="showLayerOptions = true" @mouseleave="showLayerOptions = false">
@@ -20,7 +30,6 @@
             <v-btn icon="mdi-map" class="layer-button" @click="setTileLayer('default')" v-tooltip="'Mapa domyślna'" />
             <v-btn icon="mdi-terrain" class="layer-button" @click="setTileLayer('terrain')" v-tooltip="'Mapa terenu'" />
             <v-btn icon="mdi-satellite-variant" class="layer-button" @click="setTileLayer('satellite')" v-tooltip="'Mapa satelitarna'" />
-<!--            <v-btn icon="mdi-map-marker-path" class="layer-button" @click="setTileLayer('hybrid')" v-tooltip="'Mapa hybrydowa'" />-->
           </div>
         </transition>
       </div>
@@ -35,15 +44,23 @@
 
 <script>
 import "leaflet/dist/leaflet.css";
-import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
-import { useGeolocation } from "@vueuse/core";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
+import { useGeolocation } from '@vueuse/core';
 import { mapActions, mapGetters } from 'vuex';
+import LMarkerCluster from "@/modules/trails/components/LMarkerCluster.vue";
+import TrailPopup from "@/modules/trails/components/TrailPopup.vue";
 
 export default {
   name: "Map",
   components: {
+    TrailPopup,
+    LMarkerCluster,
     LMap,
     LTileLayer,
+    LMarker,
+    LPopup,
   },
   data() {
     return {
@@ -54,30 +71,41 @@ export default {
       selectedLayer: 'default',
       showLayerOptions: false,
       mapInstance: null,
+      markersCluster: null,
     };
   },
   computed: {
-    ...mapGetters(['trails', 'loading', 'error']),
+    ...mapGetters({
+      trails: 'trails/trails',
+    }),
+    trailsCount() {
+      console.log('Trails count:', this.trails.length);
+      return this.trails.length;
+    }
   },
   methods: {
-    ...mapActions([
-        'system-messages/addMessage',
-        ''
-    ]),
+    ...mapActions({
+      fetchTrails: 'trails/fetchTrails',
+      addMessage: 'system_messages/addMessage',
+    }),
     onMapReady(map) {
+      console.log('Map is ready');
       this.mapInstance = map;
       this.fetchLocalTrails();
     },
     onMapMoveEnd() {
       this.fetchLocalTrails();
     },
-    fetchLocalTrails() {
+    async fetchLocalTrails() {
+      console.log('Fetching local trails');
       const bounds = this.mapInstance.getBounds();
+      console.log('Map bounds:', bounds);
+
       const startLat = bounds.getSouthWest().lat;
       const endLat = bounds.getNorthEast().lat;
       const startLng = bounds.getSouthWest().lng;
       const endLng = bounds.getNorthEast().lng;
-
+      await this.fetchTrails({ startLat, endLat, startLng, endLng });
     },
     zoomIn() {
       this.zoom++;
@@ -86,7 +114,7 @@ export default {
       this.zoom--;
     },
     async locate() {
-      const { coords, error } = useGeolocation();
+      const { coords } = useGeolocation();
 
       if ("geolocation" in navigator) {
         try {
@@ -104,6 +132,7 @@ export default {
         }
       } else {
         console.log("Geolokalizacja nie jest dostępna");
+        this.addMessage({ type: 'error', message: 'Geolokalizacja nie jest dostępna.' });
         this.setWarszawaLocation();
       }
     },
@@ -130,11 +159,17 @@ export default {
           this.attribution = 'Leaflet.js | © OpenStreetMap contributors';
       }
     },
+    formatDuration(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return `${hours}h ${remainingMinutes}m`;
+    },
+    viewTrailDetails(trailId) {
+      // Implement navigation to trail details page
+      console.log(`Viewing details for trail ${trailId}`);
+      // this.$router.push({ name: 'TrailDetails', params: { id: trailId } });
+    },
   },
-  mounted() {
-    this.$alertInfo('Test alertów')
-    this.$alertWarning('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus vitae magna sed risus aliquet rutrum. Nam rutrum mi eu urna fermentum, vitae pulvinar ipsum elementum.','Uwaga!')
-  }
 };
 </script>
 
@@ -194,5 +229,19 @@ export default {
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+.custom-popup {
+  width: 300px;
+}
+
+:deep(.leaflet-popup-content-wrapper) {
+  padding: 0;
+  overflow: hidden;
+}
+
+:deep(.leaflet-popup-content) {
+  margin: 0;
+  width: 300px !important;
 }
 </style>

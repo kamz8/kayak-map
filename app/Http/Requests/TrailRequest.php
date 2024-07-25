@@ -16,10 +16,10 @@ class TrailRequest extends FormRequest
         return [
             'difficulty' => 'nullable|in:łatwy,umiarkowany,trudny',
             'scenery' => 'nullable|integer|min:0|max:10',
-            'start_lat' => 'nullable|numeric',
-            'end_lat' => 'nullable|numeric',
-            'start_lng' => 'nullable|numeric',
-            'end_lng' => 'nullable|numeric',
+            'start_lat' => 'required|numeric',
+            'end_lat' => 'required|numeric',
+            'start_lng' => 'required|numeric',
+            'end_lng' => 'required|numeric',
         ];
     }
 }

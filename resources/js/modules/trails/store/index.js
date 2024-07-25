@@ -1,39 +1,53 @@
-import apiClient from '@/plugins/apiClient';
+import axios from 'axios';
+import apiClient from "@/plugins/apiClient.js";
 
 const state = {
     trails: [],
+    loading: false,
+    error: null,
 };
 
 const mutations = {
     SET_TRAILS(state, trails) {
         state.trails = trails;
+    },
+    SET_LOADING(state, loading) {
+        state.loading = loading;
+    },
+    SET_ERROR(state, error) {
+        state.error = error;
     }
 };
 
 const actions = {
-    async fetchTrails({ commit, dispatch }, bounds) {
+    async fetchTrails({ commit }, bounds) {
+        commit('SET_LOADING', true);
         try {
-            const response = await apiClient.get('/trails', {
+            const response = await apiClient.get('https://kayak-map.test/api/v1/trails', {
                 params: {
-                    start_lat: bounds._southWest.lat,
-                    end_lat: bounds._northEast.lat,
-                    start_lng: bounds._southWest.lng,
-                    end_lng: bounds._northEast.lng,
+                    start_lat: bounds.startLat,
+                    end_lat: bounds.endLat,
+                    start_lng: bounds.startLng,
+                    end_lng: bounds.endLng,
                 }
             });
             commit('SET_TRAILS', response.data.data);
-            dispatch('system_messages/addMessage', { type: 'error', message: 'Failed to fetch trails.' }, { root: true });
         } catch (error) {
-            console.error("Error fetching trails:", error);
+            commit('SET_ERROR', error);
+        } finally {
+            commit('SET_LOADING', false);
         }
     }
 };
 
 const getters = {
     trails: state => state.trails,
+    loading: state => state.loading,
+    error: state => state.error,
 };
 
 export default {
+    namespaced: true,
     state,
     mutations,
     actions,
