@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class TrailService
 {
-    public function getTrails(array $filters): Collection
+    public function getTrails(array $filters): \Illuminate\Database\Eloquent\Builder
     {
         $query = Trail::with(['riverTrack', 'sections', 'points']);
 
@@ -25,7 +25,8 @@ class TrailService
                 ->whereBetween('start_lng', [$filters['start_lng'], $filters['end_lng']])
                 ->whereBetween('end_lng', [$filters['start_lng'], $filters['end_lng']]);
         }
-//        If all filters are empty that get 100 trails
-        return $query->limit(100)->get();
+
+
+        return $query->limit(100);
     }
 }
