@@ -1,5 +1,5 @@
 <template>
-    <v-footer app color="dark-green" class="white--text" tag="footer">
+    <v-footer app color="footer" class="white--text" tag="footer">
         <v-container>
             <v-row>
                 <v-col>

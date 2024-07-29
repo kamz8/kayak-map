@@ -25,4 +25,9 @@ class Image extends Model
     {
         return $this->morphedByMany(Point::class, 'imageable')->withPivot('is_main', 'order');
     }
+
+    public function imageable()
+    {
+        return $this->morphTo();
+    }
 }

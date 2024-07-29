@@ -5,14 +5,13 @@
             <Navbar />
 
             <!-- Toolbar for search and filters -->
-            <v-app-bar>
+            <v-app-bar elevation="0">
                 <router-view name="toolbar" />
             </v-app-bar>
 
             <v-row class="d-flex flex-grow-1">
                 <!-- Sidebar Panel -->
                 <v-navigation-drawer v-model="drawer" app clipped width="350" elevation="2" class="d-flex flex-column" >
-                    <v-list-item title="Wybrane trasy" subtitle="dostępne w okolicy" color="teal-darken-3"></v-list-item>
                     <router-view name="sidebar"></router-view>
                     <v-btn
                         icon

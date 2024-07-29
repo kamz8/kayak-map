@@ -1,41 +1,50 @@
 <template>
-    <v-card class="trail-popup" width="300">
-        <v-img
-            :src="trail.image_url"
-            height="150"
-            cover
-        >
-            <template v-slot:placeholder>
-                <v-row class="fill-height ma-0" align="center" justify="center">
-                    <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
-                </v-row>
-            </template>
-        </v-img>
-        <v-card-item>
-            <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
-                {{ trail.name }}
-                <v-icon icon="mdi-star" color="amber" size="small"></v-icon>
-                <span class="text-body-2">{{ trail.rating }} ({{ trail.ratingCount }})</span>
-            </v-card-title>
-            <v-card-subtitle class="pa-0 pt-2">
-                <v-icon icon="mdi-map-marker" size="small" start></v-icon>
-                <span class="text-body-2">{{ trail.location }}</span>
-            </v-card-subtitle>
-            <v-card-subtitle class="pa-0">
-                <v-icon icon="mdi-map" size="small" start></v-icon>
-                <span class="text-body-2">{{ trail.length }} km • {{ formatDuration(trail.duration) }}</span>
-            </v-card-subtitle>
-        </v-card-item>
-        <v-card-actions class="pa-4 pt-0">
+    <v-card class="trail-popup" width="300" outlined>
+        <v-row no-gutters>
+            <v-col cols="4">
+                <v-img
+                    :src="trail.main_image ? trail.main_image.path : placeholderImage"
+                    height="100"
+                    width="100"
+                    cover
+                >
+                    <template v-slot:placeholder>
+                        <v-row class="fill-height ma-0" align="center" justify="center">
+                            <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
+                        </v-row>
+                    </template>
+                </v-img>
+            </v-col>
+            <v-col cols="8">
+                <v-card-item>
+<!--                    <v-card-subtitle class="pa-0">{{ trail.difficulty ?? 'Trudność' }}</v-card-subtitle>-->
+                    <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+                        {{ trail.trail_name ?? 'nazwa szlaku' }}
+                        <v-icon icon="mdi-star" color="amber" size="small"></v-icon>
+                        <span class="text-body-2">{{ trail.rating }}</span>
+                    </v-card-title>
+                    <v-card-subtitle class="pa-0 pt-2">
+                        <v-icon icon="mdi-waves" size="small" start></v-icon>
+                        <span class="text-body-2">{{ trail.river_name }}</span>
+                    </v-card-subtitle>
+                    <v-card-subtitle class="pa-0">
+                        <v-icon icon="mdi-map-marker-path" size="small" start></v-icon>
+                        <span class="text-body-2">{{ trail.trail_length }} km </span>
+                    </v-card-subtitle>
+                </v-card-item>
+            </v-col>
+        </v-row>
+<!--        <v-card-actions class="pa-4 pt-0">
             <v-btn
-                variant="tonal"
+                variant="outlined"
                 color="primary"
+                density="compact"
                 block
                 @click="$emit('view-details', trail.id)"
             >
-                View Details
+                Szczegóły
             </v-btn>
-        </v-card-actions>
+        </v-card-actions>-->
     </v-card>
 </template>
 
@@ -46,6 +55,16 @@ export default {
         trail: {
             type: Object,
             required: true
+        }
+    },
+    data() {
+        return {
+            placeholderImage: '/assets/trailsplaceholder.webp' // Ścieżka do placeholder image w public/assets
+        };
+    },
+    computed: {
+        main_image_path() {
+            return this.trail.main_image ? this.trail.main_image.path : this.placeholderImage;
         }
     },
     methods: {

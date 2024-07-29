@@ -11,35 +11,58 @@ const vuetify = createVuetify({
         iconfont: 'mdi'
     },
     theme: {
+        defaultTheme: 'light',
         themes: {
             light: {
-                primary: '#4682B4', // Steel Blue
-                secondary: '#87CEEB', // Sky Blue
-                accent: '#FFD700', // Gold
-                error: '#FF0000', // Strong Red
-                warning: '#FFA500', // Orange
-                info: '#1E90FF', // Dodger Blue
-                success: '#32CD32', // Lime Green
-                background: '#FFFFFF', // White
-                surface: '#F4A460', // Sandy Brown
-                anchor: '#4682B4', // Link color (Steel Blue)
-                footer: '#006400', // Dark Green
+                dark: false,
+                colors: {
+                    primary: '#4682B4',
+                    secondary: '#87CEEB',
+                    accent: '#FFD700',
+                    error: '#FF0000',
+                    warning: '#FFA500',
+                    info: '#1E90FF',
+                    success: '#32CD32',
+                    background: '#FFFFFF',
+                    surface: '#ffffff',
+                    'on-background': '#000000',
+                    'on-surface': '#000000',
+                    'on-primary': '#FFFFFF',
+                    'on-secondary': '#000000',
+                    'on-error': '#FFFFFF',
+                    'on-warning': '#000000',
+                    'on-info': '#FFFFFF',
+                    'on-success': '#FFFFFF',
+                    anchor: '#248996',
+                    footer: '#006400',
+                },
             },
             dark: {
-                primary: '#4682B4', // Steel Blue
-                secondary: '#87CEEB', // Sky Blue
-                accent: '#FFD700', // Gold
-                error: '#FF0000', // Strong Red
-                warning: '#FFA500', // Orange
-                info: '#1E90FF', // Dodger Blue
-                success: '#32CD32', // Lime Green
-                background: '#2C3E50', // Dark background
-                surface: '#34495E', // Dark surface
-                anchor: '#87CEEB', // Link color (Sky Blue)
-                footer: '#006400', // Dark Green
+                dark: true,
+                colors: {
+                    primary: '#3875a2',
+                    secondary: '#305d6c',
+                    accent: '#FFD700',
+                    error: '#FF0000',
+                    warning: '#FFA500',
+                    info: '#1E90FF',
+                    success: '#32CD32',
+                    background: '#2C3E50',
+                    surface: '#34495E',
+                    'on-background': '#FFFFFF',
+                    'on-surface': '#FFFFFF',
+                    'on-primary': '#FFFFFF',
+                    'on-secondary': '#FFFFFF',
+                    'on-error': '#FFFFFF',
+                    'on-warning': '#000000',
+                    'on-info': '#FFFFFF',
+                    'on-success': '#FFFFFF',
+                    anchor: '#87CEEB',
+                    footer: '#006400',
+                },
             },
         },
-    },
+    }
 });
 
 export default vuetify;

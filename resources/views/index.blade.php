@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/icon" href="/favicon.ico"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon-apple.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="public/favicon-32x32.png">
+    <meta name="robots" content="index, follow">
     <title>{{env("APP_NAME")}}</title>
     @vite('resources/js/app.js')
 </head>

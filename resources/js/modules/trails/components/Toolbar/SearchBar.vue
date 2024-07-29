@@ -5,6 +5,8 @@
             label="Wpisz nazwę miasta, parku lub nazwy szlaku"
             prepend-icon="mdi-magnify"
             class="ma-2"
+            elevation="1"
+            flat
             @input="searchTrails"
             clearable
         ></v-text-field>

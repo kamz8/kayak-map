@@ -87,6 +87,18 @@ Pośrednia tabela dla relacji wiele do wielu między `images` a innymi tabelami.
 | created_at       | TIMESTAMP   | Data utworzenia                           |
 | updated_at       | TIMESTAMP   | Data ostatniej aktualizacji               |
 
+### Indexes
+
+#### imageables
+
+- `imageables_imageable_type_imageable_id_index` (imageable_type, imageable_id)
+
+## Foreign Keys
+
+### imageables
+
+- `imageables_image_id_foreign` (image_id) references `images` (id) on delete cascade
+
 ## Tabela `links`
 
 Przechowuje linki z metadanymi związane z sekcjami.

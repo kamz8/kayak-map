@@ -6,6 +6,7 @@
         :zoom="zoom"
         :center="center"
         :options="{ zoomControl: false, preferCanvas: true }"
+
         @ready="onMapReady"
         @moveend="onMapMoveEnd"
     >
@@ -14,6 +15,7 @@
         <l-marker
             v-for="trail in trails"
             :key="trail.id"
+            :icon="createCustomIcon()"
             :lat-lng="[trail.start_lat, trail.start_lng]"
         >
           <l-popup>
@@ -51,6 +53,7 @@ import { useGeolocation } from '@vueuse/core';
 import { mapActions, mapGetters } from 'vuex';
 import LMarkerCluster from "@/modules/trails/components/LMarkerCluster.vue";
 import TrailPopup from "@/modules/trails/components/TrailPopup.vue";
+import {Icon} from "leaflet/src/layer/index.js";
 
 export default {
   name: "Map",
@@ -78,10 +81,6 @@ export default {
     ...mapGetters({
       trails: 'trails/trails',
     }),
-    trailsCount() {
-      console.log('Trails count:', this.trails.length);
-      return this.trails.length;
-    }
   },
   methods: {
     ...mapActions({
@@ -89,7 +88,6 @@ export default {
       addMessage: 'system_messages/addMessage',
     }),
     onMapReady(map) {
-      console.log('Map is ready');
       this.mapInstance = map;
       this.fetchLocalTrails();
     },
@@ -97,9 +95,7 @@ export default {
       this.fetchLocalTrails();
     },
     async fetchLocalTrails() {
-      console.log('Fetching local trails');
       const bounds = this.mapInstance.getBounds();
-      console.log('Map bounds:', bounds);
 
       const startLat = bounds.getSouthWest().lat;
       const endLat = bounds.getNorthEast().lat;
@@ -165,10 +161,21 @@ export default {
       return `${hours}h ${remainingMinutes}m`;
     },
     viewTrailDetails(trailId) {
-      // Implement navigation to trail details page
       console.log(`Viewing details for trail ${trailId}`);
       // this.$router.push({ name: 'TrailDetails', params: { id: trailId } });
     },
+    createCustomIcon() {
+          return new Icon({
+              iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z" fill="${this.$vuetify.theme.current.colors.anchor}" stroke="white" stroke-width="2"/>
+      </svg>
+    `),
+              iconSize: [42, 42],
+              iconAnchor: [21, 42],
+          });
+      }
+
   },
 };
 </script>
@@ -244,4 +251,23 @@ export default {
   margin: 0;
   width: 300px !important;
 }
+
+.custom-marker {
+    background-color: var(--v-theme-secondary);
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-marker-icon {
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+}
+
 </style>

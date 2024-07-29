@@ -9,7 +9,7 @@ class TrailService
 {
     public function getTrails(array $filters): \Illuminate\Database\Eloquent\Collection
     {
-        $query = Trail::with(['riverTrack', 'sections', 'points']);
+        $query = Trail::with(['riverTrack', 'sections', 'points', 'images']);
 
         if (!empty($filters['difficulty'])) {
             $query->where('difficulty', $filters['difficulty']);

@@ -52,11 +52,24 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
+    /*Define attr*/
     protected function difficulty(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Difficulty::tryFrom($value),
             set: fn (Difficulty $value) => $value->value,
         );
+    }
+
+    // get main image for trail
+    public function getMainImageAttribute()
+    {
+        // Sprawdzamy, czy relacja images została załadowana
+        if (!$this->relationLoaded('images')) {
+            $this->load('images');
+        }
+
+        // Filtrujemy obrazki, aby znaleźć główny obrazek
+        return $this->images->firstWhere('pivot.is_main', true);
     }
 }
