@@ -4,7 +4,7 @@
             <v-col cols="4">
                 <v-img
                     :src="trail.main_image ? trail.main_image.path : placeholderImage"
-                    height="100"
+                    height="100%"
                     width="100"
                     cover
                 >
@@ -17,11 +17,13 @@
             </v-col>
             <v-col cols="8">
                 <v-card-item>
-<!--                    <v-card-subtitle class="pa-0">{{ trail.difficulty ?? 'Trudność' }}</v-card-subtitle>-->
-                    <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
-                        {{ trail.trail_name ?? 'nazwa szlaku' }}
+                    <v-card-subtitle class="pa-0">
                         <v-icon icon="mdi-star" color="amber" size="small"></v-icon>
                         <span class="text-body-2">{{ trail.rating }}</span>
+                        <span class="text-grey-darken-1 pl-1 font-weight-light" style="font-size: 0.9em">{{ trail.difficulty ?? 'Trudność' }}</span>
+                    </v-card-subtitle>
+                    <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+                        {{ trail.trail_name ?? 'nazwa szlaku' }}
                     </v-card-title>
                     <v-card-subtitle class="pa-0 pt-2">
                         <v-icon icon="mdi-waves" size="small" start></v-icon>
