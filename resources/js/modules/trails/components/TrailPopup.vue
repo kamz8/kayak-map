@@ -51,6 +51,8 @@
 </template>
 
 <script>
+import appConfig from "@/config/appConfig.js";
+
 export default {
     name: 'TrailPopup',
     props: {
@@ -61,7 +63,7 @@ export default {
     },
     data() {
         return {
-            placeholderImage: '/assets/trailsplaceholder.webp' // Ścieżka do placeholder image w public/assets
+            placeholderImage: appConfig.placeholderImage // Ścieżka do placeholder image w public/assets
         };
     },
     computed: {

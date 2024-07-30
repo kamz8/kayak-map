@@ -8,38 +8,53 @@
                 :show-arrows="false"
                 hide-delimiters
             >
+                <template v-if="sortedImages.length">
                 <v-carousel-item
                     v-for="(image, index) in sortedImages"
                     :key="image.id"
-                    :src="image.path"
                     class="white--text align-end"
-                    cover
-                    alt="Brak zdjęcia"
-                    :lazy-src="image.path"
-
                 >
+                    <v-img :src="(image) ?image.path : appConfig.placeholderImage" cover eager alt="Główne zdjęcie dla trasy"  :lazy-src="image.path">
+
+                    </v-img>
                 </v-carousel-item>
+                </template>
+                <template v-else>
 
-                <v-btn
-                    v-if="showArrows"
-                    icon
-                    small
-                    density="comfortable"
-                    class="custom-arrow left-arrow"
-                    @click="prevSlide"
-                >
-                    <v-icon>mdi-chevron-left</v-icon>
-                </v-btn>
-                <v-btn
-                    v-if="showArrows"
-                    icon
-                    density="comfortable"
-                    small
-                    class="custom-arrow right-arrow"
-                    @click="nextSlide"
-                >
-                    <v-icon>mdi-chevron-right</v-icon>
-                </v-btn>
+                    <v-carousel-item
+                        :src="appConfig.placeholderImage"
+                        class="align-end"
+                        cover
+                    >
+                        <div class="no-images text-grey-lighten-3 overlay">
+                            <v-icon size="large">mdi-image-off</v-icon>
+                            <span>Brak dostępnych zdjęć</span>
+                        </div>
+                    </v-carousel-item>
+                </template>
+                <template  v-if="sortedImages.length">
+                    <v-btn
+                        v-if="showArrows"
+                        icon
+                        small
+                        density="comfortable"
+                        class="custom-arrow left-arrow"
+                        @click="prevSlide"
+                    >
+                        <v-icon>mdi-chevron-left</v-icon>
+                    </v-btn>
+                    <v-btn
+                        v-if="showArrows"
+                        icon
+                        density="comfortable"
+                        small
+                        class="custom-arrow right-arrow"
+                        @click="nextSlide"
+                    >
+                        <v-icon>mdi-chevron-right</v-icon>
+                    </v-btn>
+                </template>
+
             </v-carousel>
 
             <div class="custom-controls">
@@ -186,5 +201,17 @@ export default {
     opacity: 0;
     width: 0;
     margin: 0;
+}
+.no-images {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.no-images v-icon {
+    margin-bottom: 8px;
 }
 </style>
