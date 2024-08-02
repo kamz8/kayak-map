@@ -20,7 +20,7 @@ const vuetify = createVuetify({
                     secondary: '#87CEEB',
                     accent: '#FFD700',
                     error: '#FF0000',
-                    warning: '#FFA500',
+                    warning: '#D19A27',
                     info: '#1E90FF',
                     success: '#32CD32',
                     background: '#FFFFFF',
@@ -33,8 +33,12 @@ const vuetify = createVuetify({
                     'on-warning': '#000000',
                     'on-info': '#FFFFFF',
                     'on-success': '#FFFFFF',
+                    'river-path': '#a5fd1e',
+                    // 'river-path-outline': '#2a4600',
+                    'river-path-outline': '#ff0000',
                     anchor: '#248996',
                     footer: '#006400',
+
                 },
             },
             dark: {

@@ -1,5 +1,5 @@
 <template>
-    <v-card class="trail-popup" width="300" outlined>
+    <v-card class="trail-popup" width="300" max-height="120" outlined>
         <v-row no-gutters>
             <v-col cols="4">
                 <v-img
@@ -30,29 +30,16 @@
                         <span class="text-body-2">{{ trail.river_name }}</span>
                     </v-card-subtitle>
                     <v-card-subtitle class="pa-0">
-                        <v-icon icon="mdi-map-marker-path" size="small" start></v-icon>
-                        <span class="text-body-2">{{ trail.trail_length }} km </span>
+                        <v-icon icon="mdi-clock" size="small" start></v-icon>
+                        <span class="text-body-2">{{ formatAvgDuration(trail.trail_length) }} </span>
                     </v-card-subtitle>
                 </v-card-item>
             </v-col>
         </v-row>
-<!--        <v-card-actions class="pa-4 pt-0">
-            <v-btn
-                variant="outlined"
-                color="primary"
-                density="compact"
-                block
-                @click="$emit('view-details', trail.id)"
-            >
-                Szczegóły
-            </v-btn>
-        </v-card-actions>-->
     </v-card>
 </template>
 
 <script>
-import appConfig from "@/config/appConfig.js";
-
 export default {
     name: 'TrailPopup',
     props: {
@@ -60,11 +47,6 @@ export default {
             type: Object,
             required: true
         }
-    },
-    data() {
-        return {
-            placeholderImage: appConfig.placeholderImage // Ścieżka do placeholder image w public/assets
-        };
     },
     computed: {
         main_image_path() {

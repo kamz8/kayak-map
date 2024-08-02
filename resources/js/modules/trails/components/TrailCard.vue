@@ -69,8 +69,13 @@
         </div>
 
         <v-card-title>{{ trail.trail_name }}</v-card-title>
-        <v-card-subtitle>{{ trail.difficulty }} | {{ formatTrailLength(trail.trail_length) }}</v-card-subtitle>
-        <v-card-subtitle>{{ trail.river_name }}</v-card-subtitle>
+        <v-card-subtitle>
+            <v-rating v-model="trail.rating" readonly size="xs" density="compact"></v-rating>
+        </v-card-subtitle>
+        <v-card-subtitle>{{ formatAvgDuration(trail.trail_length) }} | {{ formatTrailLength(trail.trail_length) }} | {{ trail.difficulty }} |  <span v-tooltip:bottom="'Ocena malowniczości trasy'"><v-icon color="footer" size="xs" icon="mdi-forest" /> {{ trail.scenery }}</span>
+
+        </v-card-subtitle>
+        <v-card-subtitle>Rzeka {{ trail.river_name }}</v-card-subtitle>
 <!--        <v-card-actions>
             <v-btn icon>
                 <v-icon>mdi-star</v-icon>

@@ -18,11 +18,12 @@ moment.locale('pl');
 
 const app = createApp(App);
 app.config.placeholderImage = '/assets/trailsplaceholder.webp'
+app.mixin(AppMixin);
 
 app.use(router);
 app.use(store);
 app.use(vuetify);
 // Use the app helper
 app.use(appHelpers);
-app.mixin(AppMixin);
+
 app.mount('#app');

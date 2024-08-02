@@ -33,6 +33,8 @@ export default {
                     return DefaultLayout
             }
         }
+    },
+    mounted() {
     }
 };
 </script>

@@ -1,10 +1,15 @@
-import appConfig from "@/config/appConfig.js";
+import appConfigFile from "@/config/appConfig.js";
+import unitMixin from "@/Mixin/UnitMixin.js";
 export default {
     computed: {
         appConfig() {
-            return appConfig;
+            return appConfigFile;
         },
+        placeholderImage() {
+            return appConfigFile.placeholderImage
+        }
     },
     methods: {
+    ...unitMixin.methods
     }
 };
