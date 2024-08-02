@@ -15,9 +15,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PointTypeSeeder::class,
-            TrailSeeder::class,
             ImageSeeder::class,
+            TrailSeeder::class,
+
             ImageableSeeder::class,
+            RiverTrailSeeder::class,
         ]);
     }
 }

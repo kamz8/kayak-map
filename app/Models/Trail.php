@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use App\Enums\Difficulty;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
+/**
+ * @method static create(array $array)
+ */
 class Trail extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'river_name', 'trail_name', 'description', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author', 'difficulty', 'scenery'
+        'river_name', 'trail_name', 'slug', 'description', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author', 'difficulty', 'scenery', 'rating'
     ];
 
     protected $casts = [
@@ -25,11 +28,13 @@ class Trail extends Model
         'end_lng' => 'float',
         'scenery' => 'integer',
         'difficulty' => Difficulty::class,
+        'rating' => 'float',
     ];
 
     protected $attributes = [
         'difficulty' => Difficulty::EASY->value,
-        'scenery' => 0
+        'scenery' => 0,
+        'rating' => 0.0
     ];
 
     public function riverTrack(): HasOne
@@ -52,8 +57,8 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
-    /*Define attr*/
-    protected function difficulty(): Attribute
+    /* Define attr */
+    protected function difficulty(): Difficulty
     {
         return Attribute::make(
             get: fn ($value) => Difficulty::tryFrom($value),
@@ -64,12 +69,9 @@ class Trail extends Model
     // get main image for trail
     public function getMainImageAttribute()
     {
-        // Sprawdzamy, czy relacja images została załadowana
         if (!$this->relationLoaded('images')) {
             $this->load('images');
         }
-
-        // Filtrujemy obrazki, aby znaleźć główny obrazek
         return $this->images->firstWhere('pivot.is_main', true);
     }
 }

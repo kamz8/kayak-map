@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @property mixed $main_image
+ * @property mixed $rating
  */
 class TrailResource extends JsonResource
 {
@@ -22,6 +23,7 @@ class TrailResource extends JsonResource
             'id' => $this->id,
             'river_name' => $this->river_name,
             'trail_name' => $this->trail_name,
+            'slug' => $this->slug,
             'description' => $this->description,
             'main_image' => new ImageResource($this->main_image),
             'start_lat' => $this->start_lat,
@@ -32,6 +34,7 @@ class TrailResource extends JsonResource
             'author' => $this->author,
             'difficulty' => $this->difficulty,
             'scenery' => $this->scenery,
+            'rating' => $this->rating,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'images' => ImageResource::collection($this->images),
