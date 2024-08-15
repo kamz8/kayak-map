@@ -6,6 +6,20 @@
 
 Kayak Map is an interactive web application designed to help users explore and discover kayak trails in various regions. Built using **Vue.js (v3)**, **Vuetify**, and **Laravel (v11)**, the application offers a dynamic map interface, detailed trail information, and a seamless user experience for outdoor enthusiasts. It integrates geolocation services, trail visualization, and region-based searching, leveraging **OpenStreetMap** and **Overpass API** for geographical data.
 
+## What We Aim to Achieve
+
+We are working with a dataset of nearly 200 river trails across Poland. These are carefully prepared and verified routes. Our goal is to process GPX (GPS Exchange Format) files, allowing us to modify or add new trails based on this data. Additionally, we aim to enhance the experience by adding **key informational or warning points** along the trails to inform or alert users about hazardous conditions or helpful locations.
+
+Our main objectives include:
+
+- **Gathering comprehensive data** on Polish kayak trails and making it freely available to kayaking enthusiasts in Poland.
+- Providing users with **safe and informed experiences** while exploring the beautiful landscapes of our rivers.
+- **Processing GPX trails** for both modifying existing routes and adding new ones to our growing database.
+- Adding **critical points** to warn users about obstacles, hazards, or other significant markers along their kayaking journey.
+- Developing future **integration with devices** to enhance the kayaking experience, such as GPS trackers or water-level monitoring devices.
+
+This project aspires to become the most comprehensive and user-friendly resource for exploring Polish rivers by kayak, providing detailed routes and information for outdoor enthusiasts.
+
 ## Objectives and Key Features
 
 The main objectives and key aspects of this application are:
