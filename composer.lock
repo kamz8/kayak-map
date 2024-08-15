@@ -1882,16 +1882,16 @@
         },
         {
             "name": "matanyadaev/laravel-eloquent-spatial",
-            "version": "4.3.0",
+            "version": "4.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/MatanYadaev/laravel-eloquent-spatial.git",
-                "reference": "862f599af646ddcedc8b17bd5399a44f54960f6c"
+                "reference": "e3308f50329678ba4f222f1a5811404ff521a362"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/MatanYadaev/laravel-eloquent-spatial/zipball/862f599af646ddcedc8b17bd5399a44f54960f6c",
-                "reference": "862f599af646ddcedc8b17bd5399a44f54960f6c",
+                "url": "https://api.github.com/repos/MatanYadaev/laravel-eloquent-spatial/zipball/e3308f50329678ba4f222f1a5811404ff521a362",
+                "reference": "e3308f50329678ba4f222f1a5811404ff521a362",
                 "shasum": ""
             },
             "require": {
@@ -1936,9 +1936,9 @@
             "homepage": "https://github.com/matanyadaev/laravel-eloquent-spatial",
             "support": {
                 "issues": "https://github.com/MatanYadaev/laravel-eloquent-spatial/issues",
-                "source": "https://github.com/MatanYadaev/laravel-eloquent-spatial/tree/4.3.0"
+                "source": "https://github.com/MatanYadaev/laravel-eloquent-spatial/tree/4.3.1"
             },
-            "time": "2024-07-24T16:19:38+00:00"
+            "time": "2024-08-03T19:40:42+00:00"
         },
         {
             "name": "monolog/monolog",
