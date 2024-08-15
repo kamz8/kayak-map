@@ -3,30 +3,77 @@
 namespace App\Services;
 
 use App\Models\Trail;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class TrailService
 {
-    public function getTrails(array $filters): \Illuminate\Database\Eloquent\Collection
+    public function getTrails(array $filters): Collection
     {
-        $query = Trail::with(['riverTrack', 'sections', 'points', 'images']);
+        $query = Trail::with(['riverTrack', 'sections', 'points', 'images', 'regions']);
 
-        if (!empty($filters['difficulty'])) {
-            $query->where('difficulty', $filters['difficulty']);
+        $this->applyDifficultyFilter($query, $filters);
+        $this->applySceneryFilter($query, $filters);
+        $this->applyRatingFilter($query, $filters);
+        $this->applyLengthFilter($query, $filters);
+        $this->applySearchFilter($query, $filters);
+        $this->applyBoundingBoxFilter($query, $filters);
+
+        return $query->limit(100)->get();
+    }
+
+    private function applyDifficultyFilter(Builder $query, array $filters): void
+    {
+        if (!empty($filters['difficulty']) && is_array($filters['difficulty'])) {
+            $query->whereIn('difficulty', $filters['difficulty']);
         }
+    }
 
+    private function applySceneryFilter(Builder $query, array $filters): void
+    {
         if (!empty($filters['scenery'])) {
             $query->where('scenery', '>=', $filters['scenery']);
         }
+    }
 
-        if (!empty($filters['start_lat']) && !empty($filters['end_lat']) && !empty($filters['start_lng']) && !empty($filters['end_lng'])) {
+    private function applyRatingFilter(Builder $query, array $filters): void
+    {
+        if (!empty($filters['rating'])) {
+            $query->where('rating', '>=', $filters['rating']);
+        }
+    }
+
+    private function applyLengthFilter(Builder $query, array $filters): void
+    {
+        if (!empty($filters['min_length'])) {
+            $query->where('trail_length', '>=', $filters['min_length']);
+        }
+
+        if (!empty($filters['max_length'])) {
+            $query->where('trail_length', '<=', $filters['max_length']);
+        }
+    }
+
+    private function applySearchFilter(Builder $query, array $filters): void
+    {
+        if (!empty($filters['search_query'])) {
+            $searchTerm = '%' . $filters['search_query'] . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('trail_name', 'like', $searchTerm)
+                    ->orWhere('river_name', 'like', $searchTerm)
+                    ->orWhere('description', 'like', $searchTerm);
+            });
+        }
+    }
+
+    private function applyBoundingBoxFilter(Builder $query, array $filters): void
+    {
+        $requiredFields = ['start_lat', 'end_lat', 'start_lng', 'end_lng'];
+        if (count(array_intersect_key(array_flip($requiredFields), $filters)) === count($requiredFields)) {
             $query->whereBetween('start_lat', [$filters['start_lat'], $filters['end_lat']])
                 ->whereBetween('end_lat', [$filters['start_lat'], $filters['end_lat']])
                 ->whereBetween('start_lng', [$filters['start_lng'], $filters['end_lng']])
                 ->whereBetween('end_lng', [$filters['start_lng'], $filters['end_lng']]);
         }
-
-
-        return $query->limit(100)->get();
     }
 }

@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import Map from "@/modules/trails/components/Map.vue";
+import Map from "@/modules/trails/components/MapView.vue";
 
 export default {
     name: "Explore",

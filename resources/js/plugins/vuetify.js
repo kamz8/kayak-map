@@ -19,7 +19,7 @@ const vuetify = createVuetify({
                     primary: '#4682B4',
                     secondary: '#87CEEB',
                     accent: '#FFD700',
-                    error: '#FF0000',
+                    error: '#dc1212',
                     warning: '#D19A27',
                     info: '#1E90FF',
                     success: '#32CD32',
@@ -34,8 +34,9 @@ const vuetify = createVuetify({
                     'on-info': '#FFFFFF',
                     'on-success': '#FFFFFF',
                     'river-path': '#a5fd1e',
-                    // 'river-path-outline': '#2a4600',
-                    'river-path-outline': '#ff0000',
+                    'river-path-outline': '#2a4600',
+                    'marker-active': '#1A6570',
+                    'marker-highlighted': '#2EB3C4',
                     anchor: '#248996',
                     footer: '#006400',
 
@@ -61,8 +62,10 @@ const vuetify = createVuetify({
                     'on-warning': '#000000',
                     'on-info': '#FFFFFF',
                     'on-success': '#FFFFFF',
+                    'marker-active': '#5FAAC7',      // Jaśniejszy pomarańczowy dla trybu ciemnego
+                    'marker-highlighted': '#A8DAEF', // Jaśniejszy żółty dla trybu ciemnego
                     anchor: '#87CEEB',
-                    footer: '#006400',
+                    footer: '#055005',
                 },
             },
         },

@@ -57,8 +57,13 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
+    public function regions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Region::class, 'trail_region');
+    }
+
     /* Define attr */
-    protected function difficulty(): Difficulty
+    protected function difficulty(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Difficulty::tryFrom($value),

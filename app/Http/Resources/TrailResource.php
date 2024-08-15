@@ -39,8 +39,9 @@ class TrailResource extends JsonResource
             'updated_at' => $this->updated_at,
             'images' => ImageResource::collection($this->images),
             'river_track' => new RiverTrackResource($this->riverTrack),
-            'sections' => SectionResource::collection($this->sections),
+            'sections' => SectionResource::collection($this->whenLoaded('sections')),
             'points' => PointResource::collection($this->points),
+            'regions' => RegionResource::collection($this->whenLoaded('regions')),
         ];
     }
 }

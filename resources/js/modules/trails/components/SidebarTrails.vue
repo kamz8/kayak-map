@@ -5,25 +5,24 @@
     <v-divider></v-divider>
     <TrailCard v-for="trail in trails" :key="trail.id" :trail="trail" class="trail-card"/>
     <trails-not-found v-if="trails.length === 0 && !loading"></trails-not-found>
+    <trails-loading v-if="trails.length === 0 && loading"></trails-loading>
 </template>
 
 <script>
 import {mapGetters} from "vuex";
 import TrailCard from "@/modules/trails/components/TrailCard.vue";
 import TrailsNotFound from "@/modules/trails/components/TrailsNotFound.vue";
+import TrailsLoading from "@/modules/trails/components/TrailsLoading.vue";
 
 export default {
     name: "sidebarTrails",
-    components: {TrailsNotFound, TrailCard},
+    components: {TrailsLoading, TrailsNotFound, TrailCard},
     computed: {
         ...mapGetters({
             trails: 'trails/trails',
             loading: 'trails/loading'
         }),
     },
-    mounted() {
-        console.log('sidebar')
-    }
 }
 </script>
 
