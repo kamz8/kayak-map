@@ -2,13 +2,6 @@
   <img src="https://raw.githubusercontent.com/kamz8/kayak-map/feature/api-trails/public/favicon-apple.png" width="100" alt="Kayak Map Logo">
 </p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
 # Kayak Map
 
 Kayak Map is an interactive web application designed to help users explore and discover kayak trails in various regions. Built using **Vue.js (v3)**, **Vuetify**, and **Laravel (v11)**, the application offers a dynamic map interface, detailed trail information, and a seamless user experience for outdoor enthusiasts. It integrates geolocation services, trail visualization, and region-based searching, leveraging **OpenStreetMap** and **Overpass API** for geographical data.
