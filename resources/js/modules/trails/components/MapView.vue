@@ -9,6 +9,7 @@
             @ready="onMapReady"
             @moveend="onMapMoveEnd"
             @update:zoom="updateZoom"
+            @click="handleMapClick"
         >
             <l-tile-layer :url="url" :attribution="attribution"/>
 
@@ -20,6 +21,7 @@
                 @highlight-trail="highlightTrail"
                 @clear-highlight-trail="clearHighlightTrail"
                 @view-trail-details="viewTrailDetails"
+                @clear-active-trail="clearActiveTrail"
             />
 
             <l-polyline
@@ -116,7 +118,8 @@ export default {
             'updateBoundingBox',
             'selectTrail',
             'highlightTrail',
-            'clearHighlightTrail'
+            'clearHighlightTrail',
+            'clearActiveTrail'
         ]),
         onMapReady(mapInstance) {
             this.mapInstance = mapInstance;
@@ -248,6 +251,12 @@ export default {
                 this.zoom = parseInt(zoom);
             } else {
                 this.setWarszawaLocation();
+            }
+        },
+        handleMapClick(event) {
+            const clickedOnMarker = event.originalEvent.target.closest('.leaflet-marker-icon');
+            if (!clickedOnMarker) {
+                this.clearActiveTrail();
             }
         },
     },

@@ -9,7 +9,7 @@
             @mouseover="highlightTrail(trail)"
             @mouseout="clearHighlightTrail"
         >
-            <l-popup :options="popupOptions">
+            <l-popup :options="popupOptions" @close="handlePopupClose">
                 <trail-popup :trail="trail" @view-details="viewTrailDetails" />
             </l-popup>
         </l-marker>
@@ -54,7 +54,7 @@ export default {
                 maxClusterRadius: 40
             },
             popupOptions: {
-                closeButton: true,
+                closeButton: false,
                 className: 'custom-popup'
             }
         };
@@ -85,6 +85,9 @@ export default {
         },
         viewTrailDetails(trailId) {
             this.$emit('view-trail-details', trailId);
+        },
+        handlePopupClose() {
+            this.$emit('clear-active-trail');
         }
     }
 }

@@ -99,7 +99,11 @@ const actions = {
 
     clearHighlightTrail({ commit }) {
         commit('SET_HIGHLIGHTED_TRAIL', null)
-    }
+    },
+
+    clearActiveTrail({ commit }) {
+        commit('SET_ACTIVE_TRAIL', null);
+    },
 }
 
 const getters = {
