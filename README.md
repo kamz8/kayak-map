@@ -1,6 +1,3 @@
-Here is the updated `README.md` file with additional information about the key objectives and aspects of the application, presented as a list with icons:
-
-```md
 <p align="center">
   <img src="https://raw.githubusercontent.com/kamz8/kayak-map/feature/api-trails/public/favicon-apple.png" width="100" alt="Kayak Map Logo">
 </p>
@@ -153,6 +150,4 @@ We welcome contributions! Please follow the guidelines below:
 ## License
 
 This project is open-source and available under the [MIT License](LICENSE).
-```
 
-This updated version includes icons in the objective and key aspects section. Let me know if you'd like further adjustments!
