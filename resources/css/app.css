@@ -8,9 +8,10 @@
     --orange: #FFA500;
     --lime-green: #32CD32;
     --dark-green: #006400;
-    --strong-red: #FF0000;
+    --strong-red: #ec1f1f;
     --sandy-brown: #F4A460;
     --wheat: #F5DEB3;
+    --font-main: 'Poppins', sans-serif;
 }
 
 body {

@@ -1,6 +1,7 @@
 <template>
     <div class="map-container">
         <l-map
+            :use-global-leaflet="true"
             ref="map"
             style="height: 100%; width: 100%;"
             :zoom="zoom"
@@ -12,7 +13,7 @@
             @click="handleMapClick"
         >
             <l-tile-layer :url="url" :attribution="attribution"/>
-
+            <l-marker-cluster-group v-bind="clusterOptions" :icon-create-function="createClusterIcon">
             <map-markers
                 :trails="trails"
                 :active-trail="activeTrail"
@@ -23,7 +24,7 @@
                 @view-trail-details="viewTrailDetails"
                 @clear-active-trail="clearActiveTrail"
             />
-
+            </l-marker-cluster-group>
             <l-polyline
                 v-if="activeTrailCoords.length > 0"
                 :lat-lngs="activeTrailCoords"
@@ -69,8 +70,7 @@
 
 <script>
 import { LMap, LTileLayer, LPolyline } from '@vue-leaflet/vue-leaflet';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import { LMarkerClusterGroup } from 'vue-leaflet-markercluster';
 import { mapActions, mapGetters } from 'vuex';
 import MapControls from './Map/MapControls.vue';
 import MapMarkers from './Map/MapMarkers.vue';
@@ -82,7 +82,8 @@ export default {
         LTileLayer,
         LPolyline,
         MapControls,
-        MapMarkers
+        MapMarkers,
+        LMarkerClusterGroup
     },
     data() {
         return {
@@ -92,8 +93,19 @@ export default {
             attribution: 'Leaflet.js | © OpenStreetMap contributors',
             mapInstance: null,
             showLayerOptions: false,
+            clusterOptions: {
+                maxClusterRadius: 20,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                disableClusteringAtZoom: 12,
+                removeOutsideVisibleBounds: true,
+                chunkedLoading: true,
+                animate: true
+            },
         };
     },
+
     computed: {
         ...mapGetters('trails', ['trails', 'activeTrail', 'highlightedTrail', 'boundingBox']),
         activeTrailCoords() {
@@ -106,6 +118,11 @@ export default {
                 ? this.highlightedTrail.river_track.track_points.map(point => [point[1], point[0]])
                 : [];
         }
+    },
+    provide() {
+        return {
+            getLeafletMap: () => this.mapInstance
+        };
     },
     watch: {
         '$route.query': 'updateMapFromUrl'
@@ -259,6 +276,17 @@ export default {
                 this.clearActiveTrail();
             }
         },
+        createClusterIcon(cluster) {
+            const count = cluster.getChildCount();
+            const size = 32;
+
+            return L.divIcon({
+                html: `<div><span>${count}</span></div>`,
+                className: 'custom-cluster-icon',
+                iconSize: L.point(size, size),
+                iconAnchor: L.point(size/2, size/2)
+            });
+        }
     },
 }
 </script>
@@ -333,4 +361,29 @@ export default {
 .trail-path.active {
     box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.5);
 }
+
+:deep(.custom-cluster-icon) {
+    background-color: v-bind('$vuetify.theme.current.colors.anchor');
+    color: white;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+
+}
+
+:deep(.custom-cluster-icon div) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+:deep(.custom-cluster-icon span) {
+    font-weight: bold;
+    font-size: 14px;
+}
 </style>
+

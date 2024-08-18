@@ -25,6 +25,9 @@ export default defineConfig({
             open: false
         })
     ],
+    optimizeDeps: {
+        include: ['leaflet', 'vue-leaflet-markercluster']
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources/js')

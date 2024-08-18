@@ -5,10 +5,13 @@ import store from './store';
 import vuetify from './plugins/vuetify';
 import '../css/app.css'; // Import globalnych stylów
 import 'leaflet/dist/leaflet.css';
+import 'vue-leaflet-markercluster/dist/style.css';
 import appHelpers from "@/helpers/appHelpers.js";
 import VueMoment from 'vue-moment';
 import moment from 'moment-timezone';
 import AppMixin from "@/Mixin/AppMixin.js";
+import L from 'leaflet'
+
 
 // Ustawienie domyślnej strefy czasowej na Polskę
 moment.tz.setDefault('Europe/Warsaw');
@@ -16,6 +19,7 @@ moment.tz.setDefault('Europe/Warsaw');
 // Ustawienie domyślnego języka na polski
 moment.locale('pl');
 
+window.L = L;
 const app = createApp(App);
 app.config.placeholderImage = '/assets/trailsplaceholder.webp'
 app.mixin(AppMixin);

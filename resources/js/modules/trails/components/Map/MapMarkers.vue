@@ -1,31 +1,27 @@
 <template>
-
-        <l-marker
-            v-for="trail in trails"
-            :key="trail.id"
-            :lat-lng="[trail.start_lat, trail.start_lng]"
-            :icon="createMarkerIcon(trail)"
-            @click="selectTrail(trail)"
-            @mouseover="highlightTrail(trail)"
-            @mouseout="clearHighlightTrail"
-        >
-            <l-popup :options="popupOptions" @close="handlePopupClose">
-                <trail-popup :trail="trail" @view-details="viewTrailDetails" />
-            </l-popup>
-        </l-marker>
-
+    <l-marker
+        v-for="trail in trails"
+        :key="trail.id"
+        :lat-lng="[trail.start_lat, trail.start_lng]"
+        :icon="createMarkerIcon(trail)"
+        @click="selectTrail(trail)"
+        @mouseover="highlightTrail(trail)"
+        @mouseout="clearHighlightTrail"
+    >
+        <l-popup :options="popupOptions" @close="handlePopupClose">
+            <trail-popup :trail="trail" @view-details="viewTrailDetails" />
+        </l-popup>
+    </l-marker>
 </template>
 
 <script>
 import { LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import TrailPopup from '../TrailPopup.vue';
-import { Icon } from "leaflet/src/layer/index.js";
-import LMarkerCluster from './LMarkerCluster.vue';
+import { Icon } from "leaflet";
 
 export default {
     name: "MapMarkers",
     components: {
-        LMarkerCluster,
         LMarker,
         LPopup,
         TrailPopup
@@ -46,19 +42,13 @@ export default {
     },
     data() {
         return {
-            clusterOptions: {
-                chunkedLoading: true,
-                spiderfyOnMaxZoom: false,
-                showCoverageOnHover: false,
-                zoomToBoundsOnClick: true,
-                maxClusterRadius: 40
-            },
             popupOptions: {
                 closeButton: false,
                 className: 'custom-popup'
             }
         };
     },
+    emits: ['select-trail', 'highlight-trail', 'clear-highlight-trail', 'view-trail-details', 'clear-active-trail'],
     methods: {
         createMarkerIcon(trail) {
             const isActive = this.activeTrail && this.activeTrail.id === trail.id;
