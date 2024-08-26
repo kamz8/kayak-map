@@ -1,3 +1,8 @@
+import SidebarTrailsOverview from "@/modules/trails/components/SidebarTrailsOverview.vue";
+import MapOveriew from "@/modules/trails/components/SingleTrailMap.vue";
+import TrailOverviewToolbar from "@/modules/trails/components/TrailOverviewToolbar.vue";
+import store from "@/store/index.js";
+
 const explore = () => import('../pages/Explore.vue')
 
 const MapComponent = () => import('../components/MapView.vue');
@@ -31,14 +36,24 @@ export default [
     },
     {
         path: '/explore/trail/:slug',
+        name: 'trail-overview',
         component: explore,
+        beforeEnter: (to, from, next) => {
+            store.dispatch('trails/fetchTrailDetails', to.params.slug)
+                .then(() => {
+                    next();
+                })
+                .catch(error => {
+
+                });
+        },
         meta: {
             layout: 'ExploreLayout',
-            title: 'Odkrywaj',
+            title: 'Podgląd szlaku',
             metaTags: [
                 {
                     name: 'description',
-                    content: 'Opis strony odkrywania'
+                    content: 'Super trasa'
                 },
                 {
                     property: 'og:description',
@@ -47,9 +62,9 @@ export default [
             ]
         },
         components: {
-            main: MapComponent,
-            sidebar: SidebarTrails,
-            toolbar: TrailsFiltersToolbar
+            main: MapOveriew,
+            sidebar: SidebarTrailsOverview,
+            toolbar: TrailOverviewToolbar
         },
 
 

@@ -127,6 +127,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'trails_import' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/TrailsImport.log'),
+            'level' => 'debug',
+        ],
+
     ],
 
 ];

@@ -23,7 +23,9 @@
                         <span class="text-grey-darken-1 pl-1 font-weight-light" style="font-size: 0.9em">{{ trail.difficulty ?? 'Trudność' }}</span>
                     </v-card-subtitle>
                     <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
-                        {{ trail.trail_name ?? 'nazwa szlaku' }}
+                        <router-link :to="{ name: 'trail-overview', params: { slug: trail.slug } }" class="text-decoration-none">
+                            {{ trail.trail_name ?? 'nazwa szlaku' }}
+                        </router-link>
                     </v-card-title>
                     <v-card-subtitle class="pa-0 pt-2">
                         <v-icon icon="mdi-waves" size="small" start></v-icon>

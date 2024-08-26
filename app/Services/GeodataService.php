@@ -13,7 +13,7 @@ class GeodataService
      * @param float $lng2 Longitude of the second point.
      * @return float Distance in meters.
      */
-    public function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): int
+    public static function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): int
     {
         $earthRadius = 6371000; // Radius of the earth in meters.
 

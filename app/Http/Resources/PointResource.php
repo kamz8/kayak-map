@@ -19,6 +19,7 @@ class PointResource extends JsonResource
             'id' => $this->id,
             'trail_id' => $this->trail_id,
             'point_type_id' => $this->point_type_id,
+            'point_type_key' => $this->pointType->type,
             'name' => $this->name,
             'description' => $this->description,
             'lat' => $this->lat,

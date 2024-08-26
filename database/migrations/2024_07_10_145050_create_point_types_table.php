@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('point_types', function (Blueprint $table) {
             $table->id();
             $table->string('type')->index();
+            $table->string('key')->index()->comment('klucz wywołania typu bez spacji');
+            $table->string('icon')->index()->comment('Nazwa ikony dopasowana do punktu');
             $table->timestamps();
         });
     }

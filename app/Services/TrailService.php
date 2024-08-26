@@ -10,7 +10,7 @@ class TrailService
 {
     public function getTrails(array $filters): Collection
     {
-        $query = Trail::with(['riverTrack', 'sections', 'points', 'images', 'regions']);
+        $query = Trail::with(['riverTrack', 'images', 'regions']);
 
         $this->applyDifficultyFilter($query, $filters);
         $this->applySceneryFilter($query, $filters);
@@ -19,9 +19,35 @@ class TrailService
         $this->applySearchFilter($query, $filters);
         $this->applyBoundingBoxFilter($query, $filters);
 
-        return $query->limit(100)->get();
+        return $query->limit(1000)->get();
     }
 
+    public function getTrailDetails(string $slug): Trail
+    {
+        return Trail::where('slug', $slug)
+            ->with([
+                'riverTrack',
+                'sections.links',
+                'points.pointType',
+                'images',
+                'regions'
+            ])
+            ->firstOrFail();
+    }
+
+    public function getTrailById(int $id): Trail
+    {
+        return Trail::with([
+                'riverTrack',
+                'sections.links',
+                'points.pointType',
+                'images',
+                'regions'
+            ])
+            ->findOrFail($id);
+    }
+
+    /*Filters*/
     private function applyDifficultyFilter(Builder $query, array $filters): void
     {
         if (!empty($filters['difficulty']) && is_array($filters['difficulty'])) {
@@ -70,10 +96,10 @@ class TrailService
     {
         $requiredFields = ['start_lat', 'end_lat', 'start_lng', 'end_lng'];
         if (count(array_intersect_key(array_flip($requiredFields), $filters)) === count($requiredFields)) {
-            $query->whereBetween('start_lat', [$filters['start_lat'], $filters['end_lat']])
-                ->whereBetween('end_lat', [$filters['start_lat'], $filters['end_lat']])
-                ->whereBetween('start_lng', [$filters['start_lng'], $filters['end_lng']])
-                ->whereBetween('end_lng', [$filters['start_lng'], $filters['end_lng']]);
+            $query->whereBetween('start_lat', [$filters['start_lat'], $filters['end_lat'] ])
+                ->whereBetween('end_lat', [$filters['start_lat'] , $filters['end_lat'] ])
+                ->whereBetween('start_lng', [$filters['start_lng'] , $filters['end_lng']])
+                ->whereBetween('end_lng', [$filters['start_lng'] , $filters['end_lng'] ]);
         }
     }
 }

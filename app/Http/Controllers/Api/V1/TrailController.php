@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TrailRequest;
 use App\Http\Resources\TrailCollection;
+use App\Http\Resources\TrailResource;
 use App\Services\TrailService;
 use App\Services\RegionService;
 use Illuminate\Http\JsonResponse;
@@ -57,5 +58,16 @@ class TrailController extends Controller
         ];
 
         return (new TrailCollection($trails, $additionalMeta))->response();
+    }
+
+    public function show($slug)
+    {
+
+        try {
+            $trail = $this->trailService->getTrailDetails($slug);
+            return TrailResource::make($trail);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Trail not found'], 404);
+        }
     }
 }

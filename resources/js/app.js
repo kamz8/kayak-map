@@ -9,7 +9,7 @@ import 'vue-leaflet-markercluster/dist/style.css';
 import appHelpers from "@/helpers/appHelpers.js";
 import VueMoment from 'vue-moment';
 import moment from 'moment-timezone';
-import AppMixin from "@/Mixin/AppMixin.js";
+import AppMixin from "@/mixins/AppMixin.js";
 import L from 'leaflet'
 
 

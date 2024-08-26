@@ -1,4 +1,5 @@
 <template>
+<!-- show details without map   -->
 <v-container>
     <Map></Map>
 </v-container>

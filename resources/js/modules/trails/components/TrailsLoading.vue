@@ -2,7 +2,9 @@
   <v-sheet class="mx-auto my-4 mt-4 text-center" max-width="300">
     <base-progress color="primary" size="200" class="ma-8"/>
 
-    <h2 class="text-h5 font-weight-black">Sprawdzmy trasy w naszej bazie....</h2>
+    <h2 class="text-h5 font-weight-black">
+        Sprawdzmy trasy w naszej bazie....
+    </h2>
   </v-sheet>
 </template>
 

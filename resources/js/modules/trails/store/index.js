@@ -18,7 +18,9 @@ const state = {
         end_lng: null
     },
     activeTrail: null,
-    highlightedTrail: null
+    highlightedTrail: null,
+    currentTrail: null,
+    currentTrailLoading: false
 }
 
 const mutations = {
@@ -42,6 +44,12 @@ const mutations = {
     },
     SET_HIGHLIGHTED_TRAIL(state, trail) {
         state.highlightedTrail = trail
+    },
+    SET_CURRENT_TRAIL(state, trail) {
+        state.currentTrail = trail
+    },
+    SET_CURRENT_TRAIL_LOADING(state, loading) {
+        state.currentTrailLoading = loading
     }
 }
 
@@ -60,8 +68,9 @@ const actions = {
         dispatch('fetchTrails')
     },
 
-    async fetchTrails({ commit, state }) {
+    async fetchTrails({ commit, dispatch, state }) {
         commit('SET_LOADING', true)
+        commit('SET_ERROR', null)
         const params = { ...state.boundingBox }
 
         Object.entries(state.filters).forEach(([key, filter]) => {
@@ -81,14 +90,20 @@ const actions = {
             commit('SET_TRAILS', response.data.data)
         } catch (error) {
             commit('SET_ERROR', error)
+            dispatch('system_messages/addMessage', {
+                type: 'error',
+                text: 'Wystąpił błąd podczas pobierania tras. Spróbuj ponownie później.'
+            }, { root: true })
         } finally {
             commit('SET_LOADING', false)
         }
     },
+
     updateBoundingBox({ commit, dispatch }, boundingBox) {
         commit('SET_BOUNDING_BOX', boundingBox)
         dispatch('fetchTrails')
     },
+
     selectTrail({ commit }, trail) {
         commit('SET_ACTIVE_TRAIL', trail)
     },
@@ -104,6 +119,27 @@ const actions = {
     clearActiveTrail({ commit }) {
         commit('SET_ACTIVE_TRAIL', null);
     },
+
+    async fetchTrailDetails({ commit, dispatch }, slug) {
+        commit('SET_CURRENT_TRAIL_LOADING', true)
+        commit('SET_CURRENT_TRAIL', null)
+        try {
+            const response = await apiClient.get(`/trail/${slug}`)
+            commit('SET_CURRENT_TRAIL', response.data.data)
+        } catch (error) {
+            console.error('Error fetching trail details:', error)
+            dispatch('system_messages/addMessage', {
+                type: 'error',
+                text: 'Nie udało się pobrać szczegółów trasy. Spróbuj ponownie później.'
+            }, { root: true })
+        } finally {
+            commit('SET_CURRENT_TRAIL_LOADING', false)
+        }
+    },
+
+    clearCurrentTrail({ commit }) {
+        commit('SET_CURRENT_TRAIL', null)
+    }
 }
 
 const getters = {
@@ -113,7 +149,9 @@ const getters = {
     filters: state => state.filters,
     activeTrail: state => state.activeTrail,
     highlightedTrail: state => state.highlightedTrail,
-    boundingBox: state => state.boundingBox
+    boundingBox: state => state.boundingBox,
+    currentTrail: state => state.currentTrail,
+    currentTrailLoading: state => state.currentTrailLoading
 }
 
 function getDefaultFilterValue(filterName) {

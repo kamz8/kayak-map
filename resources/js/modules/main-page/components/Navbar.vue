@@ -12,10 +12,10 @@
             <v-icon left class="mr-1">mdi-compass</v-icon>
             Odkrywaj
         </v-btn>
-        <v-btn text class="hidden-sm-and-down">Społeczność</v-btn>
+        <v-btn text class="hidden-sm-and-down">Regiony</v-btn>
         <v-btn text class="hidden-sm-and-down">Zapisane</v-btn>
         <v-spacer class="hidden-sm-and-down"></v-spacer>
-        <v-btn text class="hidden-sm-and-down">Help</v-btn>
+        <v-btn text class="hidden-sm-and-down">Pomoc</v-btn>
         <v-btn color="green" dark class="hidden-sm-and-down">Pobierz app</v-btn>
 
         <!-- Mobile Navbar -->

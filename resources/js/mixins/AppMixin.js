@@ -1,5 +1,5 @@
 import appConfigFile from "@/config/appConfig.js";
-import unitMixin from "@/Mixin/UnitMixin.js";
+import unitMixin from "@/mixins/UnitMixin.js";
 export default {
     computed: {
         appConfig() {

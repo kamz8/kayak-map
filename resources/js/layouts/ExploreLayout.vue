@@ -11,7 +11,7 @@
 
             <v-row class="d-flex flex-grow-1">
                 <!-- Sidebar Panel -->
-                <v-navigation-drawer v-model="drawer" app clipped width="350" elevation="2" class="d-flex flex-column" >
+                <v-navigation-drawer v-model="drawer" app clipped width="400" elevation="2" class="d-flex flex-column" >
                     <router-view name="sidebar"></router-view>
                     <v-btn
                         icon
@@ -67,12 +67,14 @@ export default {
 .drawer-toggle-btn {
     position: absolute;
     top: 10px;
-    right: -20px;
+    right: -25px;
     z-index: 1000;
     background-color: white;
     border-radius: 50%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
+
+    height: 2em !important;
 }
 </style>

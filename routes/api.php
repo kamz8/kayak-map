@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\GPXController;
 use App\Http\Controllers\Api\V1\RegionController;
 use App\Http\Controllers\Api\V1\RiverTrackController;
 use App\Http\Controllers\Api\V1\TrailController;
+use App\Http\Controllers\Api\V1\WeatherProxyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,7 @@ Route::prefix('v1')->group(function () {
         return ['message'=>'Witamy w naszym api', ];
     });
     Route::get('trails', [TrailController::class, 'index']);
+    Route::get('trail/{slug}', [TrailController::class, 'show']);
     Route::get('/river-track/{id}', [RiverTrackController::class, 'show']);
     Route::post('/upload-gpx', [GPXController::class, 'upload']);
 
@@ -26,4 +28,5 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::get('regions/{slug}/trails', [TrailController::class, 'getTrailsByRegion']);
+    Route::get('/weather', [WeatherProxyController::class, 'getWeather']);
 });
