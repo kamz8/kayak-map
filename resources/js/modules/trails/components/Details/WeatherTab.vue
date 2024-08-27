@@ -137,50 +137,94 @@ export default {
         },
         getWeatherIcon(symbolCode) {
             const iconMap = {
-                'clearsky_day': 'mdi-weather-sunny',
-                'fair_day': 'mdi-weather-partly-cloudy',
-                'partlycloudy_day': 'mdi-weather-partly-cloudy',
-                'cloudy': 'mdi-weather-cloudy',
-                'rainshowers_day': 'mdi-weather-rainy',
-                'rain': 'mdi-weather-pouring',
-                'heavyrain': 'mdi-weather-pouring',
-                'thunderstorm': 'mdi-weather-lightning-rainy',
-                'fog': 'mdi-weather-fog',
-                'snow': 'mdi-weather-snowy'
+                clearsky_day: "mdi-weather-sunny",
+                fair_day: "mdi-weather-partly-cloudy",
+                partlycloudy_day: "mdi-weather-partly-cloudy",
+                cloudy: "mdi-weather-cloudy",
+                rainshowers_day: "mdi-weather-rainy",
+                lightrainshowers_day: "mdi-weather-rainy",
+                rain: "mdi-weather-pouring",
+                heavyrain: "mdi-weather-pouring",
+                thunderstorm: "mdi-weather-lightning-rainy",
+                fog: "mdi-weather-fog",
+                snow: "mdi-weather-snowy",
+                sleet: "mdi-weather-snowy-rainy", // Deszcz ze śniegiem
+                clearsky_night: "mdi-weather-night", // Bezchmurna noc
+                fair_night: "mdi-weather-night-partly-cloudy", // Pogodna noc
+                partlycloudy_night: "mdi-weather-night-partly-cloudy", // Częściowe zachmurzenie w nocy
+                rainshowers_night: "mdi-weather-rainy", // Przelotne opady deszczu w nocy
+                lightrainshowers_night: "mdi-weather-rainy", // Lekkie opady deszczu w nocy
+                heavyrainshowers_day: "mdi-weather-pouring", // Silne przelotne opady deszczu
+                heavyrainshowers_night: "mdi-weather-pouring", // Silne przelotne opady deszczu w nocy
+                heavysleet: "mdi-weather-snowy-rainy", // Silny deszcz ze śniegiem
+                heavysnow: "mdi-weather-snowy-heavy", // Silne opady śniegu
+                lightrain: "mdi-weather-rainy", // Lekki deszcz
+                lightsnow: "mdi-weather-snowy", // Lekkie opady śniegu
+                snowshowers_day: "mdi-weather-snowy", // Przelotne opady śniegu w dzień
+                snowshowers_night: "mdi-weather-snowy", // Przelotne opady śniegu w nocy
+                sleetshowers_day: "mdi-weather-snowy-rainy", // Przelotne opady deszczu ze śniegiem w dzień
+                sleetshowers_night: "mdi-weather-snowy-rainy", // Przelotne opady deszczu ze śniegiem w nocy
             };
-            return iconMap[symbolCode] || 'mdi-help-circle-outline';
+            return iconMap[symbolCode] || "mdi-help-circle-outline";
         },
         getWeatherIconColor(symbolCode) {
             const colorMap = {
-                'clearsky_day': 'amber',
-                'fair_day': 'gray darken-4',
-                'partlycloudy_day': 'grey darken-5',
-                'cloudy': 'grey',
-                'rainshowers_day': 'blue-grey',
-                'rain': 'blue',
-                'heavyrain': 'blue darken-2',
-                'thunderstorm': 'deep-purple',
-                'fog': 'grey lighten-1',
-                'snow': 'light-blue lighten-4'
+                clearsky_day: "amber",
+                fair_day: "gray darken-4",
+                partlycloudy_day: "grey darken-5",
+                cloudy: "grey",
+                rainshowers_day: "blue-grey",
+                lightrainshowers_day: "blue-grey",
+                rain: "blue",
+                heavyrain: "blue darken-2",
+                thunderstorm: "deep-purple",
+                fog: "grey lighten-1",
+                snow: "light-blue lighten-4",
+                sleet: "light-blue darken-3", // Deszcz ze śniegiem
+                clearsky_night: "blue-grey darken-4", // Bezchmurna noc
+                fair_night: "blue-grey darken-3", // Pogodna noc
+                partlycloudy_night: "blue-grey darken-2", // Częściowe zachmurzenie w nocy
+                rainshowers_night: "blue-grey", // Przelotne opady deszczu w nocy
+                lightrainshowers_night: "blue-grey lighten-1", // Lekkie opady deszczu w nocy
+                heavyrainshowers_day: "blue darken-3", // Silne przelotne opady deszczu
+                heavyrainshowers_night: "blue darken-4", // Silne przelotne opady deszczu w nocy
+                heavysleet: "light-blue darken-3", // Silny deszcz ze śniegiem
+                heavysnow: "light-blue darken-4", // Silne opady śniegu
             };
-            return colorMap[symbolCode] || 'grey';
+            return colorMap[symbolCode] || "grey";
         },
         getWeatherDescription(symbolCode) {
             const descriptions = {
-                'clearsky_day': 'Bezchmurnie',
-                'fair_day': 'Pogodnie',
-                'partlycloudy_day': 'Częściowe zachmurzenie',
-                'cloudy': 'Pochmurno',
-                'rainshowers_day': 'Przelotne opady',
-                'rain': 'Deszcz',
-                'heavyrain': 'Silny deszcz',
-                'snow': 'Śnieg',
-                'sleet': 'Deszcz ze śniegiem',
-                'fog': 'Mgła',
-                'thunderstorm': 'Burza'
+                clearsky_day: 'Bezchmurnie',
+                fair_day: 'Pogodnie',
+                partlycloudy_day: 'Częściowe zachmurzenie',
+                cloudy: 'Pochmurno',
+                rainshowers_day: 'Przelotne opady',
+                rain: 'Deszcz',
+                heavyrain: 'Silny deszcz',
+                snow: 'Śnieg',
+                sleet: 'Deszcz ze śniegiem',
+                fog: 'Mgła',
+                thunderstorm: 'Burza',
+                lightrainshowers_day: 'Lekkie opady deszczu',
+                clearsky_night: 'Bezchmurna noc',
+                fair_night: 'Pogodna noc',
+                partlycloudy_night: 'Częściowe zachmurzenie w nocy',
+                rainshowers_night: 'Przelotne opady deszczu w nocy',
+                lightrainshowers_night: 'Lekkie opady deszczu w nocy',
+                heavyrainshowers_day: 'Silne przelotne opady deszczu',
+                heavyrainshowers_night: 'Silne przelotne opady deszczu w nocy',
+                heavysleet: 'Silny deszcz ze śniegiem',
+                heavysnow: 'Silne opady śniegu',
+                lightsnow: 'Lekkie opady śniegu',
+                snowshowers_day: 'Przelotne opady śniegu w dzień',
+                snowshowers_night: 'Przelotne opady śniegu w nocy',
+                sleetshowers_day: 'Przelotne opady deszczu ze śniegiem w dzień',
+                sleetshowers_night: 'Przelotne opady deszczu ze śniegiem w nocy'
             };
             return symbolCode ? (descriptions[symbolCode] || symbolCode) : 'Brak danych';
         },
+
         cacheData(data) {
             localStorage.setItem(this.cacheKey, JSON.stringify({
                 data: data,
