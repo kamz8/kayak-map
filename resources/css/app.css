@@ -19,3 +19,26 @@ body {
 }
 
 
+.icon-with-stroke {
+    text-shadow:
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    overflow: hidden;
+}
+
+.custom-popup .leaflet-popup-content {
+    margin: 0;
+    width: 300px !important;
+}
+
+.custom-popup .leaflet-popup-tip-container {
+    display: none;
+}
+
+

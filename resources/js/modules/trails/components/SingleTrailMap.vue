@@ -1,11 +1,10 @@
 <template>
     <div class="map-container">
         <l-map
-            v-if="isValidStartPoint"
             ref="map"
             :zoom="zoom"
             :center="mapCenter"
-            :options="{ zoomControl: false, preferCanvas: true, maxZoom: 18, minZoom: 2 }"
+            :options="{ zoomControl: false, preferCanvas: true, maxZoom: 18, minZoom: 7 }"
             @ready="onMapReady"
         >
             <l-tile-layer :url="url" :attribution="attribution" />
@@ -14,36 +13,125 @@
                 v-if="trailPath.length > 1"
                 :lat-lngs="trailPath"
                 :color="trailColor"
-                :weight="3"
-                :opacity="0.7"
+                :weight="4"
+                :opacity="0.8"
             />
 
-            <l-marker :lat-lng="startPoint">
+            <l-marker :lat-lng="startPoint" >
                 <l-icon class="start-icon">
-                    <v-icon size="32" color="green darken-4">mdi-map-marker-circle</v-icon>
+                    <v-icon size="34" class="icon-with-stroke" color="green darken-5">mdi-map-marker-circle</v-icon>
                 </l-icon>
+                <l-popup :options="popupOptions">
+                    <v-card outlined flat>
+                        <v-row>
+                            <v-col cols="12">
+                                <span class="font-weight-bold">Początek</span>
+                                <v-spacer></v-spacer>
+                                <span>{{startPoint[0]}}, {{startPoint[1]}}</span>
+                            </v-col>
+                        </v-row>
+                    </v-card>
+
+
+                </l-popup>
             </l-marker>
 
             <l-marker v-if="isValidEndPoint" :lat-lng="endPoint">
                 <l-icon class="end-icon">
-                    <v-icon size="32" color="red">mdi-flag-checkered</v-icon>
+                    <v-icon class="icon-with-stroke" size="32" color="red">mdi-flag-checkered</v-icon>
                 </l-icon>
+                <l-popup :options="popupOptions">
+                    <v-card outlined flat>
+                        <v-row>
+                            <v-col cols="12">
+                                <span class="font-weight-bold">Koniec</span>
+                                <v-spacer></v-spacer>
+                                <span>{{endPoint[0]}}, {{endPoint[1]}}</span>
+                            </v-col>
+                        </v-row>
+                    </v-card>
+
+
+                </l-popup>
             </l-marker>
+
+            <!-- Trail Points -->
+            <l-marker v-for="point in trailPoints" :key="point.id" :lat-lng="[point.lat, point.lng]">
+                <l-icon class-name="point-icon">
+                    <v-icon size="32" class="icon-with-stroke" :color="getPointColor(point.point_type_key)">{{ getPointIcon(point.point_type_key) }}</v-icon>
+                </l-icon>
+                <l-popup :options="popupOptions">
+                    <v-card class="point-popup" width="300" max-height="120" outlined>
+                        <v-row no-gutters>
+                            <v-col cols="4">
+                                <v-img
+                                    :src="placeholderImage"
+                                    height="100%"
+                                    width="100"
+                                    cover
+                                >
+                                    <template v-slot:placeholder>
+                                        <v-row class="fill-height ma-0" align="center" justify="center">
+                                            <v-progress-circular indeterminate color="grey-lighten-5"></v-progress-circular>
+                                        </v-row>
+                                    </template>
+                                </v-img>
+                            </v-col>
+                            <v-col cols="8">
+                                <v-card-item>
+                                    <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+                                        {{ point.name }}
+                                        <v-chip :color="getPointColor(point.point_type_key)" size="small" class="mr-2">
+                                            {{ point.point_type_key }}
+                                        </v-chip>
+                                    </v-card-title>
+                                    <v-card-text v-if="point.description" class="pa-0 text-truncate">
+                                        {{ point.description }}
+                                    </v-card-text>
+                                    <v-card-text v-else class="pa-0 pt-3 text-truncate text-subtitle-2">
+                                        Brak opisu dla punktu
+                                    </v-card-text>
+                                </v-card-item>
+                            </v-col>
+                        </v-row>
+                    </v-card>
+                </l-popup>
+            </l-marker>
+            <!--map controls-->
+            <div class="map-controls top-right-controls">
+                <div class="layer-control" @mouseenter="showLayerOptions = true" @mouseleave="showLayerOptions = false">
+                    <v-btn icon="mdi-layers" density="comfortable" class="main-button" v-tooltip="'Warstwy mapy'"/>
+                    <transition name="fade">
+                        <div v-if="showLayerOptions" class="layer-options">
+                            <v-btn icon="mdi-map" class="layer-button" @click="setTileLayer('default')" v-tooltip="'Mapa domyślna'"/>
+                            <v-btn icon="mdi-terrain" class="layer-button" @click="setTileLayer('terrain')" v-tooltip="'Mapa terenu'"/>
+                            <v-btn icon="mdi-satellite-variant" class="layer-button" @click="setTileLayer('satellite')" v-tooltip="'Mapa satelitarna'"/>
+                        </div>
+                    </transition>
+                </div>
+            </div>
+            <div class="map-controls bottom-right-controls">
+                <v-btn icon="mdi-plus" density="comfortable" class="control-button" @click="zoomIn" v-tooltip="'Przybliż'"/>
+                <v-btn icon="mdi-minus" density="comfortable" class="control-button" @click="zoomOut" v-tooltip="'Oddal'"/>
+                <v-btn icon="mdi-crosshairs-gps" density="comfortable" class="control-button" @click="locate" v-tooltip="'Zlokalizuj mnie'"/>
+            </div>
         </l-map>
-        <div v-else class="error-message">
-            Nieprawidłowe dane trasy. Nie można wyświetlić mapy.
-        </div>
+
+
+
+
     </div>
 </template>
 
 <script>
-import { LMap, LTileLayer, LPolyline, LMarker, LIcon } from '@vue-leaflet/vue-leaflet'
+import {LMap, LTileLayer, LPolyline, LMarker, LIcon, LPopup} from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { mapState } from 'vuex'
 
 export default {
     name: 'SingleTrailMap',
     components: {
+        LPopup,
         LMap,
         LTileLayer,
         LPolyline,
@@ -58,6 +146,11 @@ export default {
             attribution: '© OpenStreetMap contributors',
             trailColor: '#4682B4', // Steel Blue color from your color scheme
             showLayerOptions: false,
+            popupOptions: {
+                closeButton: false,
+                className: 'custom-popup'
+
+            }
         }
     },
     computed: {
@@ -100,6 +193,11 @@ export default {
         },
         trailLength() {
             return this.currentTrail?.trail_length || 0
+        },
+        trailPoints() {
+            const points = this.currentTrail?.points || []
+            console.log('Trail points:', points)
+            return points
         }
     },
     methods: {
@@ -142,11 +240,62 @@ export default {
                 lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
         },
         calculateZoomFromTrailLength() {
-            if (this.trailLength < 1000) return 15
+            if (this.trailLength < 1000) return 18
+            if (this.trailLength < 2000) return 14
             if (this.trailLength < 5000) return 13
             if (this.trailLength < 20000) return 11
             if (this.trailLength < 50000) return 9
             return 7
+        },
+        getPointIcon(pointType) {
+            switch (pointType) {
+                case 'Pole namiotowe':
+                case 'Miejsce biwakowania':
+                    return 'mdi-tent'
+                case 'Przeszkoda':
+                case 'Niebezpieczeństwo':
+                case 'uwaga':
+                    return 'mdi-alert'
+                case 'Jaz':
+                    return 'mdi-water'
+                case 'most':
+                    return 'mdi-bridge'
+                case 'przenoska':
+                    return 'mdi-arrow-up-down'
+                case 'ujście':
+                    return 'mdi-call-split'
+                case 'sklep':
+                    return 'mdi-store'
+                case 'Inny':
+                case 'Other':
+                default:
+                    return 'mdi-map-marker'
+            }
+        },
+        getPointColor(pointType) {
+            switch (pointType) {
+                case 'Pole namiotowe':
+                case 'Miejsce biwakowania':
+                    return 'green'
+                case 'Przeszkoda':
+                case 'Niebezpieczeństwo':
+                case 'uwaga':
+                    return 'red'
+                case 'Jaz':
+                    return 'blue'
+                case 'most':
+                    return 'brown'
+                case 'przenoska':
+                    return 'orange'
+                case 'ujście':
+                    return 'purple'
+                case 'sklep':
+                    return 'amber'
+                case 'Inny':
+                case 'Other':
+                default:
+                    return 'teal'
+            }
         },
         zoomIn() {
             if (this.$refs.map) {
@@ -204,7 +353,8 @@ export default {
     },
     watch: {
         currentTrail: {
-            handler() {
+            handler(newTrail) {
+                console.log('Current trail updated:', newTrail)
                 this.$nextTick(this.fitMapToTrail)
             },
             immediate: true,
@@ -217,7 +367,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .map-container {
     position: relative;
     height: 100%;
@@ -296,4 +446,45 @@ export default {
     padding: 20px;
     text-align: center;
 }
+
+.point-popup {
+    min-width: 200px;
+}
+
+:deep(.custom-popup .leaflet-popup .leaflet-popup-content-wrapper) {
+    padding: 0;
+    overflow: hidden;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+:deep(.custom-popup .leaflet-popup-content) {
+    margin: 0;
+    width: auto !important;
+}
+
+:deep(.custom-popup .leaflet-popup-tip-container) {
+    display: none;
+}
+
+
+.start-icon, .end-icon, .point-icon {
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.point-popup {
+    min-width: 200px;
+}
+.point-popup h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+.point-popup p {
+    margin: 4px 0;
+}
+
 </style>
