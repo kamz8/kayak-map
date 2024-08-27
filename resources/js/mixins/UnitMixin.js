@@ -5,8 +5,7 @@ export default {
             const mins = minutes % 60;
             return `${hours}h ${mins}m`;
         },
-        formatAvgDuration(length, AVGSpeed = 4.5) {
-            // const avgSpeed = 3.4; // średnia prędkość w km/h
+        formatAvgDuration(length, AVGSpeed = 5) {
             const timeInHours = (length /1000) / AVGSpeed;
             const minutes = Math.round(timeInHours * 60);
             const hours = Math.floor(minutes / 60);
