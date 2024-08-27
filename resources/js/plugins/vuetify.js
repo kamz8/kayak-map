@@ -4,9 +4,17 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import '@mdi/font/css/materialdesignicons.css'; // Import MDI icons CSS
 
+// Translations provided by Vuetify
+import { pl, en } from 'vuetify/locale'
+
 const vuetify = createVuetify({
     components,
     directives,
+    locale: {
+        locale: 'pl',
+        fallback: 'en',
+        messages: { pl, en },
+    },
     icons: {
         iconfont: 'mdi'
     },
