@@ -1,66 +1,167 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://raw.githubusercontent.com/kamz8/kayak-map/feature/api-trails/public/favicon-apple.png" width="100" alt="Kayak Map Logo">
 </p>
 
-## About Laravel
+# Kayak Map
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Kayak Map is an interactive web application designed to help users explore and discover kayak trails in various regions. Built using **Vue.js (v3)**, **Vuetify**, and **Laravel (v11)**, the application offers a dynamic map interface, detailed trail information, and a seamless user experience for outdoor enthusiasts. It integrates geolocation services, trail visualization, and region-based searching, leveraging **OpenStreetMap** and **Overpass API** for geographical data.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## What We Aim to Achieve
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+We are working with a dataset of nearly 200 river trails across Poland. These are carefully prepared and verified routes. Our goal is to process GPX (GPS Exchange Format) files, allowing us to modify or add new trails based on this data. Additionally, we aim to enhance the experience by adding **key informational or warning points** along the trails to inform or alert users about hazardous conditions or helpful locations.
 
-## Learning Laravel
+Our main objectives include:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Gathering comprehensive data** on Polish kayak trails and making it freely available to kayaking enthusiasts in Poland.
+- Providing users with **safe and informed experiences** while exploring the beautiful landscapes of our rivers.
+- **Processing GPX trails** for both modifying existing routes and adding new ones to our growing database.
+- Adding **critical points** to warn users about obstacles, hazards, or other significant markers along their kayaking journey.
+- Developing future **integration with devices** to enhance the kayaking experience, such as GPS trackers or water-level monitoring devices.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+This project aspires to become the most comprehensive and user-friendly resource for exploring Polish rivers by kayak, providing detailed routes and information for outdoor enthusiasts.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Objectives and Key Features
 
-## Laravel Sponsors
+The main objectives and key aspects of this application are:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- :compass: **Interactive Map**: Provide users with a dynamic and interactive map experience.
+- :world_map: **Region-Based Search**: Enable filtering by country, state, city, and geographic regions.
+- :triangular_ruler: **Geospatial Data**: Store and process trails using geospatial data types in the database.
+- :mag: **Search Optimization**: Implement URL-based routing and filters to enhance SEO performance.
+- :bookmark_tabs: **Trail Information**: Present users with detailed information on each trail, including its difficulty, scenery, and region.
+- :satellite: **API Integration**: Use **OpenStreetMap**, **Overpass API**, and **Nominatim** for real-time geospatial data and geocoding.
+- :chart_with_upwards_trend: **Performance**: Ensure efficient data handling through asynchronous job queues for large datasets and trail imports.
+- :iphone: **Mobile-First Design**: Implement a responsive design using Vuetify for a seamless experience across devices.
 
-### Premium Partners
+### Key Aspects Delivered
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- :white_check_mark: Fully interactive map with leaflet integration.
+- :white_check_mark: SEO-friendly URL routing for each trail and region.
+- :white_check_mark: Real-time GPS location tracking.
+- :white_check_mark: Integration with OpenStreetMap and Overpass API for real-time data.
+- :white_check_mark: Detailed trail information, including start and end points, length, and difficulty.
+- :white_check_mark: Modular Vue.js architecture with Vuex for state management.
+- :white_check_mark: Geospatial data types for storing trail routes and geographic boundaries in the database.
+
+## Technologies
+
+- **Frontend**: Vue.js (v3), Vuetify, Vuex, Leaflet.js, @vue-leaflet/vue-leaflet
+- **Backend**: Laravel (v11), MySQL with spatial extensions
+- **APIs**:
+  - **OpenStreetMap/Overpass API**: For fetching rivers and geographic features.
+  - **Nominatim**: For geocoding and reverse geocoding locations.
+- **Database**: MySQL with support for geographic data types (`GEOMETRY`, `GEOGRAPHY`).
+- **Job Queue**: Asynchronous task handling for processing large datasets like trail imports and region mapping.
+
+## Installation
+
+### Prerequisites
+
+- **Node.js** >= 14.x
+- **Composer** >= 2.x
+- **PHP** >= 8.x
+- **MySQL** with spatial extensions enabled
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/kayak-map.git
+cd kayak-map
+```
+
+### Backend Setup
+
+1. Install backend dependencies:
+   ```bash
+   composer install
+   ```
+
+2. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Generate application key:
+   ```bash
+   php artisan key:generate
+   ```
+
+4. Run database migrations:
+   ```bash
+   php artisan migrate
+   ```
+
+5. Seed the database:
+   ```bash
+   php artisan db:seed
+   ```
+
+6. Start the Laravel development server:
+   ```bash
+   php artisan serve
+   ```
+
+### Frontend Setup
+
+1. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start the frontend development server:
+   ```bash
+   npm run dev
+   ```
+
+## API Endpoints
+
+The application provides a series of API endpoints to manage and fetch trails, regions, and geographic data.
+
+- **GET /api/v1/trails**: Fetch trails based on bounding box and filters (difficulty, scenery, etc.).
+- **GET /api/v1/regions**: Retrieve regions such as countries, states, cities.
+- **POST /api/v1/geocode**: Geocode addresses and locations.
+
+For detailed API documentation, refer to the `routes/api.php` file and the built-in **Laravel API Resource Collections** used in the project.
+
+## Architecture
+
+### Modular Structure
+
+The application follows a **modular structure** with separate modules for managing trails, maps, and regions. Each module is organized under the `src/modules/` directory with a dedicated state, actions, and components.
+
+### Key Components
+
+- **MapView.vue**: Main map interface to explore and interact with trails.
+- **TrailPopup.vue**: Displays detailed information about a selected trail.
+- **RiverTrack.vue**: Displays the river's path and trail route.
+- **SidebarTrails.vue**: Sidebar filter and trail list view.
+- **GeocodingService**: Handles geolocation and region-based trail lookups.
+- **TrailSeeder**: Seeds the database with trails and connects them to geographic regions.
+
+### State Management
+
+Vuex is used for state management, where we handle:
+- **Trails**: Fetch, filter, and manage kayak trails.
+- **Regions**: Geographic region hierarchy and filtering.
+- **User Preferences**: Customizable UI and map preferences.
+
+### Database
+
+The project leverages **spatial extensions** in MySQL to store and query geographic data. Each trail is associated with regions, and its route is stored in the form of spatial data points.
+
+### Region Management
+
+Regions (Country/State/City/Geographic Area) are stored in a hierarchical structure, allowing trails to belong to multiple regions. Slugs are generated for SEO-friendly URLs like `/poland/dolnoslaskie/wroclaw`.
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+We welcome contributions! Please follow the guidelines below:
+- Fork the repository.
+- Create a new branch (`feature/your-feature`).
+- Commit your changes.
+- Open a pull request with a detailed description.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-source and available under the [MIT License](LICENSE).
+
