@@ -16,23 +16,14 @@
                 :weight="4"
                 :opacity="0.8"
             />
-
-            <l-marker :lat-lng="startPoint" >
+            <!--  Start stop marker-->
+            <l-marker :lat-lng="startPoint">
                 <l-icon class="start-icon">
                     <v-icon size="34" class="icon-with-stroke" color="green darken-5">mdi-map-marker-circle</v-icon>
                 </l-icon>
-                <l-popup :options="popupOptions">
-                    <v-card outlined flat>
-                        <v-row>
-                            <v-col cols="12">
-                                <span class="font-weight-bold">Początek</span>
-                                <v-spacer></v-spacer>
-                                <span>{{startPoint[0]}}, {{startPoint[1]}}</span>
-                            </v-col>
-                        </v-row>
-                    </v-card>
-
-
+                <mini-popup lat-lang="startPoint" text="Początek" />
+                <l-popup :options="miniPopupOptions">
+                <mini-popup :lat-lang="startPoint" :text="'Początek'" />
                 </l-popup>
             </l-marker>
 
@@ -40,13 +31,13 @@
                 <l-icon class="end-icon">
                     <v-icon class="icon-with-stroke" size="32" color="red">mdi-flag-checkered</v-icon>
                 </l-icon>
-                <l-popup :options="popupOptions">
-                    <v-card outlined flat>
-                        <v-row>
-                            <v-col cols="12">
+                <l-popup :options="miniPopupOptions">
+                    <v-card flat width="200px" height="60px">
+                        <v-row class="ma-1">
+                            <v-col cols="12" class="pa-2">
                                 <span class="font-weight-bold">Koniec</span>
                                 <v-spacer></v-spacer>
-                                <span>{{endPoint[0]}}, {{endPoint[1]}}</span>
+                                <span style="line-height: 1.8em" class="text-grey-darken-2">{{endPoint[0]}}, {{endPoint[1]}}</span>
                             </v-col>
                         </v-row>
                     </v-card>
@@ -127,10 +118,12 @@
 import {LMap, LTileLayer, LPolyline, LMarker, LIcon, LPopup} from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { mapState } from 'vuex'
+import MiniPopup from "@/modules/trails/components/Map/MiniPopup.vue";
 
 export default {
     name: 'SingleTrailMap',
     components: {
+        MiniPopup,
         LPopup,
         LMap,
         LTileLayer,
@@ -150,24 +143,24 @@ export default {
                 closeButton: false,
                 className: 'custom-popup'
 
+            },
+            miniPopupOptions: {
+                closeButton: false,
+                className: 'mini-popup'
             }
         }
     },
     computed: {
         ...mapState('trails', ['currentTrail']),
         trailPath() {
-            if (!this.currentTrail || !this.currentTrail.river_track) return []
-
-            const trackData = this.currentTrail.river_track
-            if (Array.isArray(trackData)) {
-                return trackData.filter(point => this.isValidLatLng(point.lat, point.lng))
-                    .map(point => [point.lat, point.lng])
-            } else if (typeof trackData === 'object' && trackData.track_points) {
-                return trackData.track_points.filter(point => this.isValidLatLng(point.lat, point.lng))
-                    .map(point => [point.lat, point.lng])
+            if (!this.currentTrail || !this.currentTrail.river_track || !Array.isArray(this.currentTrail.river_track.track_points)) {
+                console.warn('Invalid or missing river_track data');
+                return [];
             }
 
-            return []
+            return this.currentTrail.river_track.track_points
+                .filter(point => Array.isArray(point) && point.length === 2 && this.isValidLatLng(point[1], point[0]))
+                .map(point => [point[1], point[0]]); // Odwracamy kolejność, aby pasowała do formatu Leaflet
         },
         startPoint() {
             if (this.trailPath.length > 0) {
@@ -195,23 +188,17 @@ export default {
             return this.currentTrail?.trail_length || 0
         },
         trailPoints() {
-            const points = this.currentTrail?.points || []
-            console.log('Trail points:', points)
-            return points
+            return  this.currentTrail?.points || []
         }
     },
     methods: {
         onMapReady(mapInstance) {
-            console.log('Map ready')
             this.mapInstance = mapInstance
             this.fitMapToTrail()
         },
         fitMapToTrail() {
-            console.log('Fitting map to trail')
             if (this.isValidStartPoint) {
                 this.mapCenter = [...this.startPoint]
-                console.log('Setting map center to:', this.mapCenter)
-
                 if (this.trailPath.length > 1 && this.mapInstance) {
                     const bounds = this.calculateBounds()
                     if (bounds) {
@@ -234,11 +221,7 @@ export default {
                 L.latLngBounds(this.trailPath[0], this.trailPath[0])
             )
         },
-        isValidLatLng(lat, lng) {
-            return typeof lat === 'number' && typeof lng === 'number' &&
-                !isNaN(lat) && !isNaN(lng) &&
-                lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
-        },
+
         calculateZoomFromTrailLength() {
             if (this.trailLength < 1000) return 18
             if (this.trailLength < 2000) return 14
@@ -350,24 +333,25 @@ export default {
                     this.attribution = '© OpenStreetMap contributors'
             }
         },
+        isValidLatLng(lat, lng) {
+            return typeof lat === 'number' && typeof lng === 'number' &&
+                !isNaN(lat) && !isNaN(lng) &&
+                lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        },
     },
     watch: {
         currentTrail: {
             handler(newTrail) {
-                console.log('Current trail updated:', newTrail)
                 this.$nextTick(this.fitMapToTrail)
             },
             immediate: true,
             deep: true
         }
     },
-    mounted() {
-        console.log('Component mounted, initial center:', this.mapCenter) // Debugging log
-    }
 }
 </script>
 
-<style>
+<style scoped>
 .map-container {
     position: relative;
     height: 100%;
@@ -468,7 +452,6 @@ export default {
     display: none;
 }
 
-
 .start-icon, .end-icon, .point-icon {
     background-color: white;
     border-radius: 50%;
@@ -485,6 +468,23 @@ export default {
 }
 .point-popup p {
     margin: 4px 0;
+}
+
+:deep(.mini-popup .leaflet-popup .leaflet-popup-content-wrapper) {
+    padding: 0;
+    overflow: hidden;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+:deep(.mini-popup .leaflet-popup-content) {
+    margin: 0;
+    width: auto !important;
+}
+
+:deep(.mini-popup .leaflet-popup-tip-container) {
+    display: none;
 }
 
 </style>

@@ -34,7 +34,6 @@ body {
 
 .custom-popup .leaflet-popup-content {
     margin: 0;
-    width: 300px !important;
 }
 
 .custom-popup .leaflet-popup-tip-container {
