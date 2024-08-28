@@ -96,10 +96,28 @@ class TrailService
     {
         $requiredFields = ['start_lat', 'end_lat', 'start_lng', 'end_lng'];
         if (count(array_intersect_key(array_flip($requiredFields), $filters)) === count($requiredFields)) {
-            $query->whereBetween('start_lat', [$filters['start_lat'], $filters['end_lat'] ])
-                ->whereBetween('end_lat', [$filters['start_lat'] , $filters['end_lat'] ])
-                ->whereBetween('start_lng', [$filters['start_lng'] , $filters['end_lng']])
-                ->whereBetween('end_lng', [$filters['start_lng'] , $filters['end_lng'] ]);
+            $query->where(function ($q) use ($filters) {
+                $q->where(function ($subQ) use ($filters) {
+                    $subQ->whereBetween('start_lat', [
+                        min((float)$filters['start_lat'], (float)$filters['end_lat']),
+                        max((float)$filters['start_lat'], (float)$filters['end_lat'])
+                    ])
+                        ->whereBetween('start_lng', [
+                            min((float)$filters['start_lng'], (float)$filters['end_lng']),
+                            max((float)$filters['start_lng'], (float)$filters['end_lng'])
+                        ]);
+                })
+                    ->orWhere(function ($subQ) use ($filters) {
+                        $subQ->whereBetween('end_lat', [
+                            min((float)$filters['start_lat'], (float)$filters['end_lat']),
+                            max((float)$filters['start_lat'], (float)$filters['end_lat'])
+                        ])
+                            ->whereBetween('end_lng', [
+                                min((float)$filters['start_lng'], (float)$filters['end_lng']),
+                                max((float)$filters['start_lng'], (float)$filters['end_lng'])
+                            ]);
+                    });
+            });
         }
     }
 }
