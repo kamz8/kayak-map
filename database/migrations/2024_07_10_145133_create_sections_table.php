@@ -16,6 +16,9 @@ return new class extends Migration
             $table->text('description');
             $table->json('polygon_coordinates');
             $table->integer('scenery')->default(0);
+            $table->integer('difficulty')->default(0);
+            $table->integer('nuisance')->default(0);
+            $table->integer('cleanliness')->default(0);
             $table->timestamps();
         });
 

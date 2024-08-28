@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\PointType;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Enums\PointType;
 use Illuminate\Database\Seeder;
 
 class PointTypeSeeder extends Seeder

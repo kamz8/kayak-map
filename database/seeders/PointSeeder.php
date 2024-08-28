@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Enums\PointType;
 use App\Models\Point;
 use App\Models\Trail;
-use App\Models\PointType;
 use Faker\Factory as Faker;
+use Illuminate\Database\Seeder;
 
 class PointSeeder extends Seeder
 {

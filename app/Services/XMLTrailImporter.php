@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Trail;
-use App\Models\Section;
-use App\Models\Point;
-use App\Models\PointType;
 use App\Enums\Difficulty;
+use App\Enums\PointType;
+use App\Models\Point;
+use App\Models\Section;
+use App\Models\Trail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 

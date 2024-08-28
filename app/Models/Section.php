@@ -13,7 +13,7 @@ class Section extends Model
     use HasFactory;
 
     protected $fillable = [
-        'trail_id', 'name', 'description', 'polygon_coordinates', 'scenery'
+        'trail_id', 'name', 'description', 'polygon_coordinates', 'scenery','difficulty','nuisance','cleanliness'
     ];
 
     protected $casts = [

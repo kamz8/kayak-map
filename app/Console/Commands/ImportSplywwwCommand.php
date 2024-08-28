@@ -2,6 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\Difficulty;
+use App\Models\Point;
+use App\Models\PointDescription;
+use App\Models\Section;
+use App\Models\Trail;
+use App\Services\GeodataService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -10,6 +16,7 @@ use App\Models\Szlak as SzlakModel;
 use App\Models\Odcinek as OdcinekModel;
 use App\Models\Punkt as PunktModel;
 use App\Models\OpisPunktu as OpisPunktuModel;
+use Illuminate\Support\Str;
 
 class ImportSplywwwCommand extends Command
 {
@@ -34,7 +41,7 @@ class ImportSplywwwCommand extends Command
                     $szlak = $parser->szlak;
 
                     $this->saveSzlakData($szlak);
-                    $this->line("\nPath data successfully loaded: " . $szlak->nazwa. " ".$fullPath);
+                    $this->line("\nPath data successfully loaded: " . $szlak->nazwa . " " . $fullPath);
                 }
                 $progressBar->advance();
             }
@@ -51,47 +58,54 @@ class ImportSplywwwCommand extends Command
 
     protected function saveSzlakData($szlak)
     {
-        $szlakModel = SzlakModel::create([
-            'nazwa' => $szlak->nazwa,
-            'id_szlaku' => $szlak->id,
-            'wersja' => $szlak->wersja,
-            'opis' => $szlak->opis,
+
+        $szlakModel = Trail::create([
+            'trail_name' => $szlak->nazwa,
+            'river_name' => $szlak->nazwa,
+            'slug' => Str::slug($szlak->nazwa),
+            'description' => $szlak->opis,
+            'start_lat' => collect($szlak->punkty)->first()->ns,
+            'start_lng' => collect($szlak->punkty)->first()->ws,
+            'end_lat' => collect($szlak->punkty)->last()->ns,
+            'end_lng' => collect($szlak->punkty)->last()->we,
+            'trail_length' => GeodataService::calculateDistance(collect($szlak->punkty)->first()->ns, collect($szlak->punkty)->first()->ws, collect($szlak->punkty)->last()->ns, collect($szlak->punkty)->last()->we),
+            'author'=>'',
+            'difficulty'=> Difficulty::MODERATE,
+            'scenery' => 0,
+            'rating' => 0
         ]);
 
         foreach ($szlak->odcinki as $odcinek) {
-            $odcinekModel = OdcinekModel::create([
-                'szlak_id' => $szlakModel->id,
-                'id_odcinka' => $odcinek->id,
-                'typ' => $odcinek->typ,
-                'nazwa' => $odcinek->nazwa,
-                'trudnosc' => $odcinek->tru,
-                'uciazliwosc' => $odcinek->uci,
-                'malowniczosc' => $odcinek->mal,
-                'czystosc' => $odcinek->czy,
-                'kolejnosc' => $odcinek->kolejnosc,
-                'opis' => $odcinek->opis,
+            $odcinekModel = Section::create([
+                'trail_id' => $szlak->id,
+                'name' => $odcinek->nazwa,
+                'description' => $odcinek->opis,
+                'polygon_coordinates' => $odcinek->punkty,
+                'scenery' => $odcinek->mal,
+                'difficulty' =>$odcinek->tru,
+                'nuisance' => $odcinek->uci,
+                'cleanliness' => $odcinek->czy,
             ]);
         }
 
         foreach ($szlak->punkty as $punkt) {
-            $punktModel = PunktModel::create([
-                'szlak_id' => $szlakModel->id,
-                'etykieta' => $punkt->etykieta,
+            $punktModel = Point::create([
+                'trail_id' => $szlakModel->id,
+
                 'km' => $punkt->km,
-                'miejscowosc' => $punkt->miejscowosc,
+                'name' => $punkt->miejscowosc,
                 'id_punktu' => $punkt->id,
-                'ns' => $punkt->ns,
-                'we' => $punkt->we,
-                'kolejnosc' => $punkt->kolejnosc,
-                'id_wewn' => $punkt->idwewo,
+                'lat' => $punkt->ns,
+                'lng' => $punkt->we,
+                'order' => $punkt->kolejnosc,
             ]);
 
             foreach ($punkt->opisypunktu as $opis) {
-                OpisPunktuModel::create([
-                    'punkt_id' => $punktModel->id,
-                    'typ_punktu' => $opis->typpunktu,
-                    'kolejnosc' => $opis->kolejnosc,
-                    'opis' => $opis->opis,
+
+                PointDescription::create([
+                    'point_id'=> $punktModel->id,
+                    'point_type' => $opis->typpunktu,
+                    'description' => $opis->opis,
                 ]);
             }
         }
