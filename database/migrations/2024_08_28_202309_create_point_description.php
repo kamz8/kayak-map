@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('point_description', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('point_id')->index();
-            $table->unsignedBigInteger('point_type')->nullable()->index();
-            $table->string('description')->nullable();
+            $table->string('point_type')->nullable()->index();
+            $table->unsignedBigInteger('point_type_id')->nullable()->index();
+            $table->longText('description')->nullable();
             $table->timestamps();
         });
     }

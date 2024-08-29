@@ -13,16 +13,17 @@ class CreateTrailsTable extends Migration
             $table->string('river_name')->index();
             $table->string('trail_name')->index();
             $table->string('slug')->nullable('')->index();
-            $table->text('description')->default('');
+            $table->longText('description')->default('');
             $table->decimal('start_lat', 17, 14)->index();
             $table->decimal('start_lng', 17, 14)->index();
             $table->decimal('end_lat', 17, 14)->index();
             $table->decimal('end_lng', 17, 14)->index();
-            $table->integer('trail_length');
+            $table->integer('trail_length')->default(0)->index();
             $table->decimal('rating', 3, 1)->comment('Ocena własna trasy')->index()->default(0);
             $table->string('author');
-            $table->enum('difficulty', ['łatwy', 'umiarkowany', 'trudny'])->default('łatwy');
-            $table->integer('scenery')->default(0); // wartość domyślna 0
+            $table->enum('difficulty', ['łatwy', 'umiarkowany', 'trudny'])->default('łatwy')->index();
+            $table->string('difficulty_detailed')->index();
+            $table->integer('scenery')->default(0);
             $table->timestamps();
         });
     }

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\PointType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,12 +12,21 @@ class Point extends Model
     use HasFactory;
 
     protected $fillable = [
-        'trail_id', 'point_type_id', 'name', 'description', 'lat', 'lng'
+        'trail_id',
+        'point_type_id',
+        'at_length',
+        'name',
+        'description',
+        'lat',
+        'lng',
+        'order'
     ];
 
     protected $casts = [
-        'lat' => 'float',
-        'lng' => 'float'
+        'lat' => 'decimal:7',
+        'lng' => 'decimal:7',
+        'at_length' => 'float',
+        'order' => 'integer'
     ];
 
     public function trail(): BelongsTo
@@ -34,5 +42,15 @@ class Point extends Model
     public function images(): MorphToMany
     {
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order');
+    }
+
+    public function scopeAtLength($query, $length)
+    {
+        return $query->where('at_length', '<=', $length);
     }
 }

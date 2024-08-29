@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('points', function (Blueprint $table) {
             $table->id();
             $table->foreignId('trail_id')->constrained('trails')->onDelete('cascade');
-            $table->foreignId('point_type_id')->constrained('point_types')->onDelete('cascade');
+            $table->foreignId('point_type_id')->nullable()->constrained('point_types')->onDelete('cascade');
             $table->float('at_length')->comment('kilometr na rzece')->nullable();
             $table->string('name')->index()->default('');
             $table->text('description')->nullable();

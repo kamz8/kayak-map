@@ -1,5 +1,11 @@
 <?php
 namespace App\Services;
+use App\Services\TempImporterClasses\Odcinek;
+use App\Services\TempImporterClasses\OpisPunktu;
+use App\Services\TempImporterClasses\Punkt;
+use App\Services\TempImporterClasses\Szlak;
+use Illuminate\Support\Facades\Log;
+
 class XMLPathreader {
     private $inSzlak = false;
     private $inOpis = false;
@@ -12,25 +18,33 @@ class XMLPathreader {
 
     public function __construct($file = null) {
         $this->szlak = new Szlak();
-        if ($file !== null) {
-            $xml_parser = xml_parser_create();
-            xml_set_object($xml_parser, $this);
-            xml_set_element_handler($xml_parser, "startElement", "endElement");
-            xml_set_character_data_handler($xml_parser, "characters");
+        try {
+            if ($file !== null) {
+                $xml_parser = xml_parser_create();
+                xml_set_object($xml_parser, $this);
+                xml_set_element_handler($xml_parser, "startElement", "endElement");
+                xml_set_character_data_handler($xml_parser, "characters");
 
-            if (!($fp = fopen($file, "r"))) {
-                die("Could not open XML input");
-            }
-
-            while ($data = fread($fp, 4096)) {
-                if (!xml_parse($xml_parser, $data, feof($fp))) {
-                    die(sprintf("XML error: %s at line %d",
-                                xml_error_string(xml_get_error_code($xml_parser)),
-                                xml_get_current_line_number($xml_parser)));
+                if (!($fp = fopen($file, "r"))) {
+                    throw new \Exception("Could not open XML input: $file");
                 }
+
+                while ($data = fread($fp, 4096)) {
+                    if (!xml_parse($xml_parser, $data, feof($fp))) {
+                        $errorCode = xml_get_error_code($xml_parser);
+                        $errorString = xml_error_string($errorCode);
+                        $currentLine = xml_get_current_line_number($xml_parser);
+                        fclose($fp);
+                        xml_parser_free($xml_parser);
+                        throw new \Exception("XML error: $errorString at line $currentLine (file line: $currentLine)");
+                    }
+                }
+                xml_parser_free($xml_parser);
             }
-            xml_parser_free($xml_parser);
+        } catch (\Exception $e) {
+            throw new \Exception($e);
         }
+
     }
 
     public function startElement($parser, $name, $attrs) {
@@ -136,45 +150,8 @@ class XMLPathreader {
     }
 }
 
-// Helper classes (you'll need to define these)
-class Szlak {
-    public $nazwa;
-    public $id;
-    public $wersja;
-    public $opis;
-    public $odcinki = [];
-    public $punkty = [];
-}
 
-class Odcinek {
-    public $id;
-    public $typ;
-    public $nazwa;
-    public $tru;
-    public $uci;
-    public $mal;
-    public $czy;
-    public $kolejnosc;
-    public $opis;
-    public $idwew;
-}
 
-class Punkt {
-    public $etykieta;
-    public $km;
-    public $miejscowosc;
-    public $id;
-    public $ns;
-    public $we;
-    public $kolejnosc;
-    public $idwewo;
-    public $opisypunktu = [];
-}
 
-class OpisPunktu {
-    public $typpunktu;
-    public $kolejnosc;
-    public $opis;
-}
 
 

@@ -132,6 +132,18 @@ return [
             'path' => storage_path('logs/TrailsImport.log'),
             'level' => 'debug',
         ],
+        'river_track.command' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/river_track.command.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'import' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/import.log'),
+            'level' => 'debug',
+        ],
 
     ],
 

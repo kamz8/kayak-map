@@ -14,12 +14,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PointTypeSeeder::class,
-            ImageSeeder::class,
-            TrailSeeder::class,
+            PointTypesSeeder::class,
+//            ImageSeeder::class,
+//            TrailSeeder::class,
 
-            ImageableSeeder::class,
+//            ImageableSeeder::class,
             RiverTrailSeeder::class,
         ]);
     }
+
 }

@@ -2,173 +2,169 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Collection;
+
 class GeodataService
 {
     /**
      * Calculate the distance between two points using the Haversine formula.
      *
-     * @param float $lat1 Latitude of the first point.
-     * @param float $lng1 Longitude of the first point.
-     * @param float $lat2 Latitude of the second point.
-     * @param float $lng2 Longitude of the second point.
-     * @return float Distance in meters.
+     * @param float $lat1 Latitude of the first point
+     * @param float $lon1 Longitude of the first point
+     * @param float $lat2 Latitude of the second point
+     * @param float $lon2 Longitude of the second point
+     * @return float Distance in meters
      */
-    public static function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): int
+    public static function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
-        $earthRadius = 6371000; // Radius of the earth in meters.
-
-        $latDelta = deg2rad($lat2 - $lat1);
-        $lngDelta = deg2rad($lng2 - $lng1);
-
-        $a = sin($latDelta / 2) * sin($latDelta / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($lngDelta / 2) * sin($lngDelta / 2);
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        $distance = $earthRadius * $c;
-
-        return (int) round($distance);
+        $earthRadius = 6371000; // meters
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon/2) * sin($dLon/2);
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+        return $earthRadius * $c;
     }
 
     /**
-     * Smooth a trail using the Ramer-Douglas-Peucker algorithm.
+     * Find the nearest point on a river to a given point.
      *
-     * @param array $points Array of points, each point is an array with 'lat' and 'lng' keys.
-     * @param float $epsilon The maximum distance of a point to a line for the point to be simplified.
-     * @return array Smoothed array of points.
+     * @param array $point The reference point [lat, lon]
+     * @param Collection $riverPoints Collection of river points [[lat, lon], ...]
+     * @return array|null The nearest point on the river or null if not found
      */
-    public static function smoothTrail(array $points, float $epsilon = 0.00001): array
+    public function findNearestPointOnRiver(array $point, Collection $riverPoints): ?array
     {
-        $pointCount = count($points);
-        if ($pointCount <= 2) {
-            return $points;
-        }
+        return $riverPoints->sortBy(function ($riverPoint) use ($point) {
+            return $this->calculateDistance($point[0], $point[1], $riverPoint[0], $riverPoint[1]);
+        })->first();
+    }
 
-        $maxDistance = 0;
+    /**
+     * Simplify a path using the Ramer-Douglas-Peucker algorithm.
+     *
+     * @param array $points Array of points [[lat, lon], ...]
+     * @param float $epsilon The maximum distance of a point to a line for the point to be simplified
+     * @return array Simplified array of points
+     */
+    public function simplifyPath(array $points, float $epsilon = 0.00001): array
+    {
+        $dmax = 0;
         $index = 0;
-        $end = $pointCount - 1;
+        $end = count($points) - 1;
 
         for ($i = 1; $i < $end; $i++) {
-            $distance = self::perpendicularDistance($points[$i], $points[0], $points[$end]);
-            if ($distance > $maxDistance) {
+            $d = $this->perpendicularDistance($points[$i], $points[0], $points[$end]);
+            if ($d > $dmax) {
                 $index = $i;
-                $maxDistance = $distance;
+                $dmax = $d;
             }
         }
 
-        if ($maxDistance > $epsilon) {
-            $recResults1 = self::smoothTrail(array_slice($points, 0, $index + 1), $epsilon);
-            $recResults2 = self::smoothTrail(array_slice($points, $index), $epsilon);
+        if ($dmax > $epsilon) {
+            $results1 = $this->simplifyPath(array_slice($points, 0, $index + 1), $epsilon);
+            $results2 = $this->simplifyPath(array_slice($points, $index), $epsilon);
 
-            $result = [...array_slice($recResults1, 0, -1), ...$recResults2];
+            return array_merge(array_slice($results1, 0, -1), $results2);
         } else {
-            $result = [$points[0], $points[$end]];
+            return [$points[0], $points[$end]];
         }
-
-        return $result;
     }
 
     /**
-     * Calculate the perpendicular distance from a point to a line.
+     * Calculate the perpendicular distance of a point from a line.
      *
-     * @param array $point The point to calculate the distance from.
-     * @param array $lineStart The start point of the line.
-     * @param array $lineEnd The end point of the line.
-     * @return float The perpendicular distance.
+     * @param array $point The point to calculate the distance for
+     * @param array $lineStart The start point of the line
+     * @param array $lineEnd The end point of the line
+     * @return float The perpendicular distance
      */
-    private static function perpendicularDistance(array $point, array $lineStart, array $lineEnd): float
+    private function perpendicularDistance(array $point, array $lineStart, array $lineEnd): float
     {
-        $area = abs(
-            ($lineStart['lat'] * $lineEnd['lng'] +
-                $lineEnd['lat'] * $point['lng'] +
-                $point['lat'] * $lineStart['lng'] -
-                $lineEnd['lat'] * $lineStart['lng'] -
-                $point['lat'] * $lineEnd['lng'] -
-                $lineStart['lat'] * $point['lng']) / 2.0
-        );
+        $x = $point[1];
+        $y = $point[0];
+        $x1 = $lineStart[1];
+        $y1 = $lineStart[0];
+        $x2 = $lineEnd[1];
+        $y2 = $lineEnd[0];
 
-        $bottom = sqrt(
-            ($lineStart['lat'] - $lineEnd['lat']) ** 2 +
-            ($lineStart['lng'] - $lineEnd['lng']) ** 2
-        );
+        $A = $x - $x1;
+        $B = $y - $y1;
+        $C = $x2 - $x1;
+        $D = $y2 - $y1;
 
-        return ($area * 2) / $bottom;
+        $dot = $A * $C + $B * $D;
+        $lenSq = $C * $C + $D * $D;
+        $param = $dot / $lenSq;
+
+
+        if ($param < 0 || ($x1 == $x2 && $y1 == $y2)) {
+            $xx = $x1;
+            $yy = $y1;
+        } elseif ($param > 1) {
+            $xx = $x2;
+            $yy = $y2;
+        } else {
+            $xx = $x1 + $param * $C;
+            $yy = $y1 + $param * $D;
+        }
+
+        $dx = $x - $xx;
+        $dy = $y - $yy;
+
+        return sqrt($dx * $dx + $dy * $dy);
     }
 
     /**
-     * Find the shortest path between two points using Dijkstra's algorithm.
+     * Find a path along a river between two points.
      *
-     * @param array $graph An associative array representing the graph. Keys are node IDs, values are arrays of neighboring nodes and distances.
-     * @param string $start The ID of the start node.
-     * @param string $end The ID of the end node.
-     * @return array|null The shortest path as an array of node IDs, or null if no path is found.
+     * @param array $start Start point [lat, lon]
+     * @param array $end End point [lat, lon]
+     * @param Collection $riverPoints Collection of river points [[lat, lon], ...]
+     * @return array|null Path along the river or null if not found
      */
-    public function dijkstra(array $graph, string $start, string $end): ?array
+    public function findRiverPath(array $start, array $end, Collection $riverPoints): ?array
     {
-        $distances = [];
-        $previous = [];
-        $queue = new \SplPriorityQueue();
+        $nearestStart = $this->findNearestPointOnRiver($start, $riverPoints);
+        $nearestEnd = $this->findNearestPointOnRiver($end, $riverPoints);
 
-        foreach ($graph as $vertex => $neighbors) {
-            $distances[$vertex] = INF;
-            $previous[$vertex] = null;
+        if (!$nearestStart || !$nearestEnd) {
+            return null;
         }
 
-        $distances[$start] = 0;
-        $queue->insert($start, 0);
+        $startIndex = $riverPoints->search($nearestStart);
+        $endIndex = $riverPoints->search($nearestEnd);
 
-        while (!$queue->isEmpty()) {
-            $current = $queue->extract();
-
-            if ($current === $end) {
-                $path = [];
-                while ($current !== null) {
-                    array_unshift($path, $current);
-                    $current = $previous[$current];
-                }
-                return $path;
-            }
-
-            if (!isset($graph[$current])) {
-                continue;
-            }
-
-            foreach ($graph[$current] as $neighbor => $cost) {
-                $alt = $distances[$current] + $cost;
-                if ($alt < $distances[$neighbor]) {
-                    $distances[$neighbor] = $alt;
-                    $previous[$neighbor] = $current;
-                    $queue->insert($neighbor, -$alt);
-                }
-            }
+        if ($startIndex === false || $endIndex === false) {
+            return null;
         }
 
-        return null; // No path found
+        if ($startIndex > $endIndex) {
+            [$startIndex, $endIndex] = [$endIndex, $startIndex];
+        }
+
+        return $riverPoints->slice($startIndex, $endIndex - $startIndex + 1)->values()->all();
     }
 
     /**
-     * Convert an array of coordinate points to a graph structure for Dijkstra's algorithm.
+     * Find the index of the nearest point in the river points collection.
      *
-     * @param array $points Array of points, each point is an array [lat, lng].
-     * @return array The graph structure.
+     * @param array $point The reference point [lat, lon]
+     * @param Collection $riverPoints Collection of river points [[lat, lon], ...]
+     * @return int|null The index of the nearest point or null if not found
      */
-    public function pointsToGraph(array $points): array
+    private function findNearestPointIndex(array $point, Collection $riverPoints): ?int
     {
-        $graph = [];
-        $count = count($points);
+        $nearestIndex = null;
+        $minDistance = PHP_FLOAT_MAX;
 
-        for ($i = 0; $i < $count; $i++) {
-            $graph["node_$i"] = [];
-            for ($j = $i + 1; $j < $count; $j++) {
-                $distance = $this->calculateDistance(
-                    $points[$i][0], $points[$i][1],
-                    $points[$j][0], $points[$j][1]
-                );
-                $graph["node_$i"]["node_$j"] = $distance;
-                $graph["node_$j"]["node_$i"] = $distance;
+        foreach ($riverPoints as $index => $riverPoint) {
+            $distance = $this->calculateDistance($point[0], $point[1], $riverPoint[0], $riverPoint[1]);
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $nearestIndex = $index;
             }
         }
 
-        return $graph;
+        return $nearestIndex;
     }
 }

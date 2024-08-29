@@ -20,7 +20,7 @@ class Trail extends Model
     protected $fillable = [
         'river_name', 'trail_name', 'slug', 'description', 'start_lat',
         'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author',
-        'difficulty', 'scenery', 'rating'
+        'difficulty', 'scenery', 'rating','difficulty_detailed'
     ];
 
     protected $casts = [

@@ -4,90 +4,137 @@ namespace App\Console\Commands;
 
 use App\Models\Trail;
 use App\Models\River;
-use App\Models\RiverTrack;
 use App\Services\RiverTrackService;
-use App\Services\GeodataService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FetchRiverAndCreateTracksCommand extends Command
 {
-    protected $signature = 'river:fetch-and-create-tracks {trailId}';
-    protected $description = 'Fetch the river route between start and end points of the trail and create river_tracks';
+    protected $signature = 'river:fetch-and-create-tracks {trailId?}';
+    protected $description = 'Fetch the river route from Overpass API, save it, and create river tracks for a trail or all trails';
 
     private $riverTrackService;
-    private $geodataService;
 
-    public function __construct(RiverTrackService $riverTrackService, GeodataService $geodataService)
+    public function __construct(RiverTrackService $riverTrackService)
     {
         parent::__construct();
         $this->riverTrackService = $riverTrackService;
-        $this->geodataService = $geodataService;
     }
 
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
     public function handle()
     {
         $trailId = $this->argument('trailId');
-        $trail = Trail::findOrFail($trailId);
-        $this->info("Processing trail: {$trail->trail_name}");
 
-        $this->fetchAndSaveRiverRoute($trail);
+        if ($trailId) {
+            $this->processTrail($trailId);
+        } else {
+            $this->processAllTrails();
+        }
 
-        $this->info("River tracks created/updated successfully for trail ID: {$trailId}");
         return 0;
     }
 
-    private function fetchAndSaveRiverRoute(Trail $trail)
+    /**
+     * Process a single trail.
+     *
+     * @param int $trailId The ID of the trail to process
+     */
+    private function processTrail(int $trailId)
     {
-        try {
-            $route = $this->riverTrackService->fetchRiverRoute(
-                $trail->start_lat,
-                $trail->start_lng,
-                $trail->end_lat,
-                $trail->end_lng
-            );
+        $trail = Trail::find($trailId);
 
-            // Convert route to graph
-            $graph = $this->geodataService->pointsToGraph($route);
+        if (!$trail) {
+            $this->error("Trail with ID {$trailId} not found.");
+            return;
+        }
 
-            // Find the shortest path using Dijkstra's algorithm
-            $start = 'node_0';
-            $end = 'node_' . (count($route) - 1);
-            $shortestPath = $this->geodataService->dijkstra($graph, $start, $end);
+        $this->info("Processing trail: {$trail->trail_name}");
 
-            if ($shortestPath === null) {
-                throw new \Exception("No valid path found between start and end points.");
+        // Fetch river data from Overpass API and save to database
+        $river = $this->fetchAndSaveRiverData($trail);
+
+        if (!$river) {
+            $this->error("Failed to fetch and save river data for trail ID: {$trailId}");
+            return;
+        }
+
+        // Generate river track
+        $riverTrack = $this->riverTrackService->generateRiverTrack($trail, $river);
+
+        if ($riverTrack) {
+            $this->info("River track created/updated successfully for trail ID: {$trailId}");
+        } else {
+            $this->error("Failed to create/update river track for trail ID: {$trailId}");
+        }
+    }
+
+    /**
+     * Process all trails.
+     */
+    private function processAllTrails()
+    {
+        $trails = Trail::all();
+
+        $this->info("Processing all trails...");
+        $bar = $this->output->createProgressBar(count($trails));
+
+        foreach ($trails as $trail) {
+            // Fetch river data from Overpass API and save to database
+            $river = $this->fetchAndSaveRiverData($trail);
+
+            if ($river) {
+                // Generate river track
+                $riverTrack = $this->riverTrackService->generateRiverTrack($trail, $river);
+
+                if (!$riverTrack) {
+                    Log::warning("Failed to create/update river track for trail ID: {$trail->id}");
+                }
+            } else {
+                Log::error("Failed to fetch and save river data for trail ID: {$trail->id}");
             }
 
-            // Convert path back to coordinates
-            $optimalRoute = array_map(function($node) use ($route) {
-                $index = (int)substr($node, 5);
-                return $route[$index];
-            }, $shortestPath);
-
-            // Smooth the route
-            $smoothedRoute = $this->geodataService->smoothTrail($optimalRoute);
-
-            RiverTrack::updateOrCreate(
-                ['trail_id' => $trail->id],
-                ['track_points' => json_encode($smoothedRoute)]
-            );
-
-            // Update or create record in rivers table
-            $riverPath = 'LINESTRING(' . implode(',', array_map(function($point) {
-                    return $point[1] . ' ' . $point[0];
-                }, $smoothedRoute)) . ')';
-
-            River::updateOrCreate(
-                ['name' => $trail->river_name],
-                ['path' => DB::raw("ST_GeomFromText('$riverPath', 4326)")]
-            );
-
-            $this->info("River route saved successfully.");
-
-        } catch (\Exception $e) {
-            $this->error("Failed to fetch or save river route: " . $e->getMessage());
-            throw $e;
+            $bar->advance();
         }
+
+        $bar->finish();
+        $this->info("\nAll trails processed.");
+    }
+
+    /**
+     * Fetch river data from Overpass API and save to database.
+     *
+     * @param Trail $trail
+     * @return River|null
+     */
+    private function fetchAndSaveRiverData(Trail $trail): ?River
+    {
+        $this->info("Fetching river data for: {$trail->river_name}");
+
+        $riverData = $this->riverTrackService->fetchRiverData(
+            $trail->river_name,
+            $trail->start_lat,
+            $trail->start_lng,
+            $trail->end_lat,
+            $trail->end_lng
+        );
+
+        if (empty($riverData)) {
+            $this->error("No river data found for: {$trail->river_name}");
+            return null;
+        }
+
+        $river = River::updateOrCreate(
+            ['name' => $trail->river_name],
+            ['path' => json_encode($riverData)]
+        );
+
+        $this->info("River data saved successfully for: {$trail->river_name}");
+
+        return $river;
     }
 }

@@ -12,6 +12,10 @@ class DBInitialSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $this->call([
+            PointTypesSeeder::class,
+            RegionSeeder::class,
+            TrailDifficultyDefinitionSeeder::class
+        ]);
     }
 }
