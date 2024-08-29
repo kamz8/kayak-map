@@ -110,12 +110,12 @@ export default {
         ...mapGetters('trails', ['trails', 'activeTrail', 'highlightedTrail', 'boundingBox']),
         activeTrailCoords() {
             return this.activeTrail
-                ? this.activeTrail.river_track.track_points.map(point => [point[1], point[0]])
+                ? this.activeTrail.river_track.track_points.map(point => [point[0], point[1]])
                 : [];
         },
         highlightedTrailCoords() {
             return this.highlightedTrail
-                ? this.highlightedTrail.river_track.track_points.map(point => [point[1], point[0]])
+                ? this.highlightedTrail.river_track.track_points.map(point => [point[0], point[1]])
                 : [];
         }
     },

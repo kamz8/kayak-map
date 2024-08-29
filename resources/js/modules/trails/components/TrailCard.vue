@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <v-card-title>{{ trail.trail_name }}</v-card-title>
+        <v-card-title><v-btn variant="plain" size="samll" tag="a" color="blue-darken-4" class="text-decoration-underline pl-0" :to="{name:'trail-overview', params: {slug: trail.slug}}">{{ trail.trail_name }}</v-btn></v-card-title>
         <v-card-subtitle>
             <v-rating v-model="trail.rating" readonly size="xs" density="compact"></v-rating>
         </v-card-subtitle>

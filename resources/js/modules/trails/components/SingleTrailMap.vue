@@ -152,6 +152,16 @@ export default {
     },
     computed: {
         ...mapState('trails', ['currentTrail']),
+        startPoint() {
+            return this.isValidLatLng(this.currentTrail?.start_lat, this.currentTrail?.start_lng)
+                ? [this.currentTrail.start_lat, this.currentTrail.start_lng]
+                : null;
+        },
+        endPoint() {
+            return this.isValidLatLng(this.currentTrail?.end_lat, this.currentTrail?.end_lng)
+                ? [this.currentTrail.end_lat, this.currentTrail.end_lng]
+                : null;
+        },
         trailPath() {
             if (!this.currentTrail || !this.currentTrail.river_track || !Array.isArray(this.currentTrail.river_track.track_points)) {
                 console.warn('Invalid or missing river_track data');
@@ -159,24 +169,8 @@ export default {
             }
 
             return this.currentTrail.river_track.track_points
-                .filter(point => Array.isArray(point) && point.length === 2 && this.isValidLatLng(point[1], point[0]))
-                .map(point => [point[1], point[0]]); // Odwracamy kolejność, aby pasowała do formatu Leaflet
-        },
-        startPoint() {
-            if (this.trailPath.length > 0) {
-                return this.trailPath[0]
-            }
-            return this.isValidLatLng(this.currentTrail?.start_lat, this.currentTrail?.start_lng)
-                ? [this.currentTrail.start_lat, this.currentTrail.start_lng]
-                : null
-        },
-        endPoint() {
-            if (this.trailPath.length > 1) {
-                return this.trailPath[this.trailPath.length - 1]
-            }
-            return this.isValidLatLng(this.currentTrail?.end_lat, this.currentTrail?.end_lng)
-                ? [this.currentTrail.end_lat, this.currentTrail.end_lng]
-                : null
+                .filter(point => Array.isArray(point) && point.length === 2 && this.isValidLatLng(point[0], point[1]))
+                .map(point => [point[0], point[1]]); // Nie odwracamy kolejności, zostawiamy [lat, lng]
         },
         isValidStartPoint() {
             return this.startPoint !== null
