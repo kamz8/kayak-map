@@ -15,4 +15,9 @@ class PointType extends Model
     {
         return $this->hasMany(Point::class);
     }
+
+    public function pointDescription()
+    {
+        return $this->hasMany(PointDescription::class);
+    }
 }

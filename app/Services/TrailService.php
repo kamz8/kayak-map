@@ -28,7 +28,7 @@ class TrailService
             ->with([
                 'riverTrack',
                 'sections.links',
-                'points.pointType',
+                'points.pointType.pointDescription',
                 'images',
                 'regions'
             ])

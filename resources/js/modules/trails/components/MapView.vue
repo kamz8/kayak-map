@@ -36,7 +36,7 @@
                 class="trail-path"
             />
             <l-polyline
-                v-if="highlightedTrailCoords.length > 0"
+                v-if="highlightedTrailCoords"
                 :lat-lngs="highlightedTrailCoords"
                 :color="$vuetify.theme.current.colors['highlight-path']"
                 :weight="3"
@@ -87,14 +87,14 @@ export default {
     },
     data() {
         return {
-            zoom: 6,
+            zoom: 7,
             center: [52.0689, 19.4803], // Środek Polski
             url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             attribution: 'Leaflet.js | © OpenStreetMap contributors',
             mapInstance: null,
             showLayerOptions: false,
             clusterOptions: {
-                maxClusterRadius: 20,
+                maxClusterRadius: 100,
                 spiderfyOnMaxZoom: true,
                 showCoverageOnHover: false,
                 zoomToBoundsOnClick: true,
@@ -114,8 +114,8 @@ export default {
                 : [];
         },
         highlightedTrailCoords() {
-            return this.highlightedTrail
-                ? this.highlightedTrail.river_track.track_points.map(point => [point[0], point[1]])
+            return (this.highlightedTrail)
+                ? this.highlightedTrail.river_track.track_points
                 : [];
         }
     },

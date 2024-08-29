@@ -114,9 +114,10 @@ class ImportSplywwwCommand extends Command
         foreach ($szlak->punkty as $punkt) {
             $punktModel = Point::create([
                 'trail_id' => $szlakModel->id,
-                'km' => $punkt->km,
+                'at_length' => $punkt->km,
                 'name' => $punkt->miejscowosc,
-                'point_type_id' => $pointTypeService->findIdByType('inne'),
+                'point_type_id' => $pointTypeService->findIdByType((count($punkt->opisypunktu) <2) ? Arr::first($punkt->opisypunktu)->typpunktu : 'inne'),
+                'description' => (count($punkt->opisypunktu) <2) ? Arr::first($punkt->opisypunktu)->opis : null,
                 'lat' => $punkt->ns,
                 'lng' => $punkt->we,
                 'order' => $punkt->kolejnosc,
