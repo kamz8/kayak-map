@@ -18,7 +18,9 @@ class Trail extends Model
     use HasFactory;
 
     protected $fillable = [
-        'river_name', 'trail_name', 'slug', 'description', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author', 'difficulty', 'scenery', 'rating'
+        'river_name', 'trail_name', 'slug', 'description', 'start_lat',
+        'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author',
+        'difficulty', 'scenery', 'rating'
     ];
 
     protected $casts = [

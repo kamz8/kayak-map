@@ -2,12 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\Point;
-use App\Models\PointType;
+use App\Enums\PointType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PointType>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Enums\PointType>
  */
 class PointTypeFactory extends Factory
 {

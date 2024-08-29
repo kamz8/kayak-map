@@ -2,15 +2,14 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Trail;
+use App\Enums\Difficulty;
+use App\Enums\PointType;
+use App\Models\Point;
 use App\Models\River;
 use App\Models\RiverTrack;
 use App\Models\Section;
-use App\Models\Point;
-use App\Models\PointType;
-use App\Models\Image;
-use App\Enums\Difficulty;
+use App\Models\Trail;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 

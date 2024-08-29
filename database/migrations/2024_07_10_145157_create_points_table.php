@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('trail_id')->constrained('trails')->onDelete('cascade');
             $table->foreignId('point_type_id')->constrained('point_types')->onDelete('cascade');
-            $table->string('name')->index();
-            $table->text('description');
+            $table->float('at_length')->comment('kilometr na rzece')->nullable();
+            $table->string('name')->index()->default('');
+            $table->text('description')->nullable();
             $table->decimal('lat', 10, 7);
             $table->decimal('lng', 10, 7);
+            $table->integer('order')->default(0);
             $table->timestamps();
         });
     }
