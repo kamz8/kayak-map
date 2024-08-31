@@ -21,13 +21,16 @@ class Point extends Model
         'lng',
         'order'
     ];
-
-    protected $casts = [
-        'lat' => 'decimal:7',
-        'lng' => 'decimal:7',
-        'at_length' => 'float',
-        'order' => 'integer'
-    ];
+/*New Laravel 11 casting method*/
+    protected function casts()
+    {
+        return [
+            'lat' => 'decimal:7',
+            'lng' => 'decimal:7',
+            'at_length' => 'float',
+            'order' => 'integer'
+        ];
+    }
 
     public function trail(): BelongsTo
     {

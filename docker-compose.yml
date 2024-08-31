@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     redis:
-        image: redis:latest
+        image: redis:alpine
         container_name: redis
         ports:
             - "6379:6379"
@@ -10,23 +10,46 @@ services:
             - redis-data:/data
         networks:
             - laravel
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
 
     nominatim:
         container_name: nominatim
         image: mediagis/nominatim:4.4
         ports:
-            - "8080:8080"
+            - "8080:8000"
         environment:
-            # see https://github.com/mediagis/nominatim-docker/tree/master/4.4#configuration for more options
-            PBF_URL: https://download.geofabrik.de/europe/monaco-latest.osm.pbf
-            REPLICATION_URL: https://download.geofabrik.de/europe/monaco-updates/
-            NOMINATIM_PASSWORD: admin123
+            # Adres URL do pliku .pbf z danymi OSM
+            PBF_URL: https://download.geofabrik.de/europe/poland-latest.osm.pbf
+            # URL do danych replikacyjnych (opcjonalnie, do aktualizacji bazy danych)
+            REPLICATION_URL: https://download.geofabrik.de/europe/poland-updates/
+            # Hasło do bazy danych PostgreSQL
+            NOMINATIM_PASSWORD: ${NOMINATIM_PASSWORD:-very_secure_password}
+            # Opcjonalne style importu, np. address, place, ...
+            NOMINATIM_IMPORT_STYLE: address
+            # Ilość wątków do użycia podczas importu
+            NOMINATIM_THREADS: ${NOMINATIM_THREADS:-4}
+            # Ilość wątków do użycia podczas indeksowania
+            NOMINATIM_INDEXING_THREADS: ${NOMINATIM_INDEXING_THREADS:-4}
+            # Włączenie funkcji odwrotnego geokodowania
+            NOMINATIM_ENABLE_REVERSE_LOOKUP: 1
         volumes:
             - nominatim-data:/var/lib/postgresql/14/main
         shm_size: 1gb
-
-volumes:
-    nominatim-data:
+        networks:
+            - laravel
+        deploy:
+            resources:
+                limits:
+                    memory: 4gb
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8080/status.php"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
 
 volumes:
     redis-data:

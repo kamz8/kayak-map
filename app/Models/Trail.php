@@ -81,4 +81,5 @@ class Trail extends Model
         }
         return $this->images->firstWhere('pivot.is_main', true);
     }
+
 }

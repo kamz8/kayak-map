@@ -87,6 +87,9 @@ export default {
     computed: {
         isLocationAvailable() {
             return typeof this.latitude === 'number' && typeof this.longitude === 'number';
+        },
+        cacheIndex() {
+            return this.cacheKey+"-"+this.latitude+this.longitude
         }
     },
     watch: {
@@ -226,18 +229,18 @@ export default {
         },
 
         cacheData(data) {
-            localStorage.setItem(this.cacheKey, JSON.stringify({
+            localStorage.setItem(this.cacheIndex, JSON.stringify({
                 data: data,
                 timestamp: new Date().getTime()
             }));
         },
         getCachedData() {
-            const cached = localStorage.getItem(this.cacheKey);
+            const cached = localStorage.getItem(this.cacheIndex);
             if (!cached) return null;
 
             const { data, timestamp } = JSON.parse(cached);
             if (new Date().getTime() - timestamp > this.cacheTime) {
-                localStorage.removeItem(this.cacheKey);
+                localStorage.removeItem(this.cacheIndex);
                 return null;
             }
 
