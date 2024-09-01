@@ -36,7 +36,7 @@
                 class="trail-path"
             />
             <l-polyline
-                v-if="highlightedTrailCoords"
+                v-if="highlightedTrailCoords.length"
                 :lat-lngs="highlightedTrailCoords"
                 :color="$vuetify.theme.current.colors['highlight-path']"
                 :weight="3"

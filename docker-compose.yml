@@ -55,6 +55,7 @@ volumes:
     redis-data:
     nominatim-data:
 
+
 networks:
     laravel:
         driver: bridge
