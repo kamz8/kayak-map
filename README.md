@@ -78,7 +78,7 @@ cd kayak-map
 
 2. Set up environment variables:
    ```bash
-   cp .env.example .env
+   cp .env.local.example .env.local
    ```
 
 3. Generate application key:
