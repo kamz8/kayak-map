@@ -64,14 +64,13 @@ services:
       php artisan view:cache
     startCommand: ./start.sh
 
+  - type: redis
+    name: laravel-redis
+    ipAllowList: []
+    plan: starter
+
 databases:
   - name: laravel-db
     databaseName: laravel
     user: laravel
-    plan: starter
-
-services:
-  - type: redis
-    name: laravel-redis
-    ipAllowList: []
     plan: starter
