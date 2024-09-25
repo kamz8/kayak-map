@@ -8,13 +8,14 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    libssl-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd openssl
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
@@ -28,13 +29,10 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . /var/www
 
-# Copy .env file
-COPY .env.${APP_ENV:-local} .env
-
 # Install dependencies
-RUN composer install
+RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
 
-# Change current user to www
+# Change current user to www-data
 USER www-data
 
 # Expose port 9000 and start php-fpm server

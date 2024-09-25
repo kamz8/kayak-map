@@ -55,7 +55,6 @@ services:
         value: redis
     healthCheckPath: /
     buildCommand: |
-      composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
       php artisan key:generate --force
       php artisan config:cache
       php artisan route:cache
