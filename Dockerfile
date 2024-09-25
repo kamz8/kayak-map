@@ -1,49 +1,57 @@
-FROM php:8.2-fpm
+# Użyj oficjalnego obrazu PHP z Apache
+FROM php:8.2-apache
+
+# Ustaw zmienną środowiskową dla produkcji
+ENV APP_ENV=production
+ENV APP_DEBUG=false
 
 # Zainstaluj zależności systemowe
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
     libpng-dev \
-    libonig-dev \
-    libxml2-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     zip \
     unzip \
+    git \
+    curl \
     libzip-dev \
-    nodejs \
-    npm
-
-# Wyczyść cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Zainstaluj rozszerzenia PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql zip
 
 # Zainstaluj Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Zainstaluj Node.js i npm
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
 
 # Ustaw katalog roboczy
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 # Skopiuj pliki projektu
-COPY . /var/www
+COPY . .
 
 # Zainstaluj zależności PHP
 RUN composer install --no-dev --optimize-autoloader
 
 # Zainstaluj zależności Node.js i zbuduj assets
-RUN npm ci && npm run build
+RUN npm install && npm run build
 
-# Ustaw uprawnienia
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Nadaj odpowiednie uprawnienia
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage
 
-# Wyczyść cache i zoptymalizuj aplikację
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Skonfiguruj Apache
+RUN a2enmod rewrite
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
-# Zmień użytkownika na www-data
-USER www-data
+# Oczyść cache
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
 
-# Uruchom serwer PHP
-CMD php artisan serve --host=0.0.0.0 --port=10000
+# Expose port 80
+EXPOSE 80
+
+# Uruchom Apache
+CMD ["apache2-foreground"]
