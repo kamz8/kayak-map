@@ -68,6 +68,11 @@ services:
     ipAllowList: []
     plan: starter
 
+  - type: redis
+    name: laravel-redis
+    ipAllowList: []
+    plan: starter
+
 databases:
   - name: laravel-db
     databaseName: laravel
