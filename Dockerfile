@@ -38,12 +38,17 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . /var/www
 
+# Make start.sh executable
+RUN chmod +x /var/www/start.sh
+
 # Install dependencies
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
 
 # Change current user to www-data
 USER www-data
 
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-CMD ["php-fpm"]
+# Expose port 8000
+EXPOSE 8000
+
+# Use start.sh as the entry point
+CMD ["/var/www/start.sh"]
