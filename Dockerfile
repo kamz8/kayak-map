@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Zainstaluj zależności systemowe
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,43 +9,41 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libssl-dev \
     libzip-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    libgd-dev \
-    libmcrypt-dev
+    nodejs \
+    npm
 
-# Clear cache
+# Wyczyść cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+# Zainstaluj rozszerzenia PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Install OpenSSL
-RUN apt-get update && apt-get install -y openssl
-
-# Install Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
-
-# Get latest Composer
+# Zainstaluj Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Ustaw katalog roboczy
 WORKDIR /var/www
 
-# Copy existing application directory contents
+# Skopiuj pliki projektu
 COPY . /var/www
 
-# Install dependencies
-RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
+# Zainstaluj zależności PHP
+RUN composer install --no-dev --optimize-autoloader
 
-# Change current user to www-data
+# Zainstaluj zależności Node.js i zbuduj assets
+RUN npm ci && npm run build
+
+# Ustaw uprawnienia
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Wyczyść cache i zoptymalizuj aplikację
+RUN php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
+
+# Zmień użytkownika na www-data
 USER www-data
 
-# Expose port 8000
-EXPOSE 8000
-
-# Start PHP built-in server
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Uruchom serwer PHP
+CMD php artisan serve --host=0.0.0.0 --port=10000

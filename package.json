@@ -25,6 +25,7 @@
         "leaflet.markercluster": "^1.5.3",
         "lodash": "^4.17.21",
         "moment-timezone": "^0.5.45",
+        "railway": "^2.0.17",
         "vue": "^3.4.32",
         "vue-leaflet": "^0.1.0",
         "vue-meta": "^2.4.0",
