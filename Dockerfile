@@ -38,9 +38,6 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . /var/www
 
-# Make start.sh executable
-RUN chmod +x /var/www/start.sh
-
 # Install dependencies
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
 
@@ -50,5 +47,5 @@ USER www-data
 # Expose port 8000
 EXPOSE 8000
 
-# Use start.sh as the entry point
-CMD ["/var/www/start.sh"]
+# Start PHP built-in server
+CMD php artisan serve --host=0.0.0.0 --port=8000
