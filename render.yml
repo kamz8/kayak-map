@@ -5,10 +5,26 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://${RENDER_EXTERNAL_HOSTNAME}
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: mysql
       - key: DB_HOST
         fromDatabase:
           name: laravel-db
           property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: laravel-db
+          property: port
       - key: DB_DATABASE
         fromDatabase:
           name: laravel-db
@@ -31,10 +47,16 @@ services:
           type: redis
           name: laravel-redis
           property: port
+      - key: CACHE_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+    healthCheckPath: /
     buildCommand: |
-      cp .env.production .env
       composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-      php artisan key:generate
+      php artisan key:generate --force
       php artisan config:cache
       php artisan route:cache
       php artisan view:cache
@@ -44,7 +66,9 @@ databases:
   - name: laravel-db
     databaseName: laravel
     user: laravel
+    plan: starter
 
 redis:
   - name: laravel-redis
     ipAllowList: []
+    plan: starter
