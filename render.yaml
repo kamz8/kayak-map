@@ -1,3 +1,4 @@
+version: 1
 services:
   - type: web
     name: kayak-app
@@ -69,7 +70,8 @@ databases:
     user: laravel
     plan: starter
 
-redis:
-  - name: laravel-redis
+services:
+  - type: redis
+    name: laravel-redis
     ipAllowList: []
     plan: starter
