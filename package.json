@@ -4,20 +4,21 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "vuetisan": "node resources/vuetisan-scripts/vuetisan.cjs"
+        "vuetisan": "node resources/vuetisan-scripts/vuetisan.cjs",
+        "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+        "docker:prod": "docker-compose -f docker-compose.prod.yml up --build"
     },
     "devDependencies": {
-        "@vitejs/plugin-vue": "^5.0.5",
-        "@vue-leaflet/vue-leaflet": "^0.10.1",
-        "axios": "^1.7.2",
-        "laravel-vite-plugin": "^1.0.5",
-        "leaflet": "^1.9.4",
-        "vite": "^5.3.4",
-        "vite-plugin-browser-sync": "^3.0.3",
-        "vue-leaflet-markercluster": "^0.6.1"
+        "vite-plugin-browser-sync": "^3.0.3"
     },
     "dependencies": {
-        "@fortawesome/fontawesome-free": "^6.6.0",
+        "laravel-vite-plugin": "^1.0.5",
+        "vite": "^5.3.4",
+        "axios": "^1.7.2",
+        "leaflet": "^1.9.4",
+        "vue-leaflet-markercluster": "^0.6.1",
+        "@vitejs/plugin-vue": "^5.1.4",
+        "@vue-leaflet/vue-leaflet": "^0.10.1",
         "@mdi/font": "^7.4.47",
         "@vitejs/plugin-basic-ssl": "^1.1.0",
         "@vueuse/core": "^10.11.0",

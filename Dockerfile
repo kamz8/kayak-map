@@ -1,57 +1,47 @@
-# Użyj oficjalnego obrazu PHP z Apache
-FROM php:8.2-apache
+# Bazowy obraz PHP
+FROM php:8.2-fpm
 
-# Ustaw zmienną środowiskową dla produkcji
-ENV APP_ENV=production
-ENV APP_DEBUG=false
-
-# Zainstaluj zależności systemowe
+# Instalacja zależności
 RUN apt-get update && apt-get install -y \
+    build-essential \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    locales \
     zip \
-    unzip \
     git \
     curl \
     libzip-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql zip
+    unzip \
+    nodejs \
+    npm
 
-# Zainstaluj Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Instalacja rozszerzeń PHP
+RUN docker-php-ext-install pdo_mysql gd zip
 
-# Zainstaluj Node.js i npm
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs
+# Instalacja Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Ustaw katalog roboczy
+# Instalacja Redis w PHP
+RUN pecl install redis \
+    && docker-php-ext-enable redis
+
+# Ustawienie katalogu roboczego
 WORKDIR /var/www/html
 
-# Skopiuj pliki projektu
+# Kopiowanie plików projektu
 COPY . .
 
-# Zainstaluj zależności PHP
-RUN composer install --no-dev --optimize-autoloader
+# Instalacja zależności PHP i Node.js
+RUN composer install --optimize-autoloader --no-dev
+RUN npm ci
 
-# Zainstaluj zależności Node.js i zbuduj assets
-RUN npm install && npm run build
+# Budowanie front-endu w trybie produkcyjnym
+RUN npm run build
 
-# Nadaj odpowiednie uprawnienia
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
+# Uprawnienia do katalogów
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Skonfiguruj Apache
-RUN a2enmod rewrite
-COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+EXPOSE 9000
 
-# Oczyść cache
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-# Expose port 80
-EXPOSE 80
-
-# Uruchom Apache
-CMD ["apache2-foreground"]
+CMD ["php-fpm"]
