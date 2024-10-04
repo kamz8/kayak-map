@@ -24,6 +24,7 @@ services:
     image: nginx:alpine
     container_name: kayak-nginx-prod
     restart: unless-stopped
+    hostname: 0.0.0.0
     ports:
       - "80:80"
     volumes:
