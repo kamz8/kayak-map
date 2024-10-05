@@ -1,24 +1,18 @@
-# Używamy obrazu richarvey/nginx-php-fpm jako bazy
 FROM richarvey/nginx-php-fpm:3.1.6
 
-# Ustawienie katalogu roboczego
-WORKDIR /var/www/html
+COPY . .
 
-# Kopiowanie plików projektu
-COPY . /var/www/html
+# Image config
+ENV SKIP_COMPOSER 1
+ENV WEBROOT /var/www/html/public
+ENV PHP_ERRORS_STDERR 1
+ENV RUN_SCRIPTS 1
+ENV REAL_IP_HEADER 1
 
-# Kopiowanie pliku .env
-COPY .env.example .env
-
-# Instalacja niezbędnych rozszerzeń PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath
-
-# Zwiększenie limitu pamięci dla PHP
-RUN echo "memory_limit=-1" > $PHP_INI_DIR/conf.d/memory-limit.ini
-
-# Ustawienie odpowiednich uprawnień
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+# Laravel config
+ENV APP_ENV production
+ENV APP_DEBUG false
+ENV LOG_CHANNEL stderr
 
 # Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER 1
@@ -29,9 +23,6 @@ RUN composer install --optimize-autoloader --no-dev --verbose --no-interaction -
 # Czyszczenie cache'a Composera i optymalizacja autoloadera
 RUN composer clear-cache \
     && composer dump-autoload --optimize
-
-# Generowanie klucza aplikacji
-RUN php artisan key:generate
 
 # Instalacja Node.js i npm (jeśli nie są już zainstalowane w obrazie bazowym)
 RUN apk add --no-cache nodejs npm
@@ -51,11 +42,4 @@ COPY docker/nginx.render.conf /etc/nginx/sites-available/default.conf
 # Czyszczenie
 RUN rm -rf /var/cache/apk/*
 
-# Ustawienie zmiennych środowiskowych dla obrazu richarvey/nginx-php-fpm
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
-
-# Skrypt startowy nie jest potrzebny, ponieważ obraz bazowy już go dostarcza
-# CMD jest również dostarczane przez obraz bazowy
+CMD ["/start.sh"]
