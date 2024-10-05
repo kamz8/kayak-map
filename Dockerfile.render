@@ -1,45 +1,43 @@
-FROM richarvey/nginx-php-fpm:3.1.6
+FROM php:8.2-fpm
 
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    nodejs \
+    npm \
+    nginx
 
-# Image config
-ENV SKIP_COMPOSER 1
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Laravel config
-ENV APP_ENV production
-ENV APP_DEBUG false
-ENV LOG_CHANNEL stderr
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Allow composer to run as root
-ENV COMPOSER_ALLOW_SUPERUSER 1
+# Set working directory
+WORKDIR /var/www/html
 
-# Instalacja zależności PHP z dodatkowymi flagami dla lepszej diagnostyki
-RUN composer install --optimize-autoloader --no-dev --verbose --no-interaction --no-progress
+# Copy application files
+COPY . /var/www/html
 
-# Czyszczenie cache'a Composera i optymalizacja autoloadera
-RUN composer clear-cache \
-    && composer dump-autoload --optimize
-
-# Instalacja Node.js i npm (jeśli nie są już zainstalowane w obrazie bazowym)
-RUN apk add --no-cache nodejs npm
-
-# Instalacja zależności Node.js
-RUN npm ci
-
-# Budowanie aplikacji z użyciem vite.config.render.js
-RUN npm run build -- --config vite.config.render.js
-
-# Przeniesienie pliku manifestu (jeśli potrzebne)
-RUN node move-manifest.js
+# Install dependencies
+RUN composer install --optimize-autoloader --no-dev
+RUN npm ci && npm run build
 
 # Kopiowanie konfiguracji Nginx
 COPY docker/nginx.render.conf /etc/nginx/sites-available/default.conf
 
-# Czyszczenie
-RUN rm -rf /var/cache/apk/*
+# Ensure Laravel directories are writable
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Create a script to start both Nginx and PHP-FPM
+RUN echo '#!/bin/bash\nnginx\nphp-fpm' > /start.sh \
+    && chmod +x /start.sh
+
+# Start Nginx and PHP-FPM
 CMD ["/start.sh"]
