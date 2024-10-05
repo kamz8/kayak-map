@@ -1,5 +1,5 @@
 # Używamy oficjalnego obrazu PHP 8.2 z FPM
-FROM php:8.2-fpm
+FROM richarvey/nginx-php-fpm:3.1.6
 
 # Instalacja zależności systemowych
 RUN apt-get update && apt-get install -y \
@@ -26,6 +26,9 @@ WORKDIR /var/www/html
 # Kopiowanie plików projektu
 COPY . /var/www/html
 
+# Allow composer to run as root
+ENV COMPOSER_ALLOW_SUPERUSER 1
+
 # Instalacja zależności PHP
 RUN composer install --optimize-autoloader --no-dev
 
@@ -48,9 +51,6 @@ RUN chown -R www-data:www-data \
 
 # Czyszczenie
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Otworzenie portu 80
-EXPOSE 80
 
 # Utworzenie skryptu startowego
 RUN echo '#!/bin/bash\n\
