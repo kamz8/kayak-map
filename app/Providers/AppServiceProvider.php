@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\ReverseGeocodingService;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
