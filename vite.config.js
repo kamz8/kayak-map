@@ -8,7 +8,7 @@ import browsersync from 'vite-plugin-browser-sync';  // Dodane statyczne importo
 const host = 'kayak-map.test';
 
 export default defineConfig(({ command, mode }) => {
-    const isDevelopment = mode === 'development';
+    const isDevelopment = mode === 'production';
 
     let httpsConfig = false;
 

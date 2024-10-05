@@ -3,10 +3,10 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
-        "vuetisan": "node resources/vuetisan-scripts/vuetisan.cjs",
+        "build": "vite build && npm run move-manifest",
         "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
-        "docker:prod": "docker-compose -f docker-compose.prod.yml up --build"
+        "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
+        "move-manifest": "node move-manifest.js"
     },
     "devDependencies": {
         "vite-plugin-browser-sync": "^3.0.3"

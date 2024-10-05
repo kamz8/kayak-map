@@ -25,19 +25,24 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . /var/www/html
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev
-RUN npm ci && npm run build
+
+# Install Node.js dependencies
+RUN npm ci
+
+# Build Vue.js application
+RUN npm run build
 
 # Copy Nginx configuration
 COPY docker/nginx.render.conf /etc/nginx/sites-available/default
 
+# Copy start script and make it executable
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Ensure Laravel directories are writable
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Create a script to start both Nginx and PHP-FPM
-RUN echo '#!/bin/bash\nnginx\nphp-fpm' > /start.sh \
-    && chmod +x /start.sh
 
 # Expose port 80
 EXPOSE 80
