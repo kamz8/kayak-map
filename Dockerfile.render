@@ -1,6 +1,7 @@
+# Używamy oficjalnego obrazu PHP 8.2 z FPM
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Instalacja zależności systemowych
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,43 +10,53 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
+    nginx \
     nodejs \
-    npm \
-    nginx
+    npm
 
-# Install PHP extensions
+# Instalacja rozszerzeń PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Get latest Composer
+# Instalacja Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Ustawienie katalogu roboczego
 WORKDIR /var/www/html
 
-# Copy application files
+# Kopiowanie plików projektu
 COPY . /var/www/html
 
-# Install PHP dependencies
+# Instalacja zależności PHP
 RUN composer install --optimize-autoloader --no-dev
 
-# Install Node.js dependencies
+# Instalacja zależności Node.js
 RUN npm ci
 
-# Build Vue.js application
-RUN npm run build
+# Budowanie aplikacji z użyciem vite.config.render.js
+RUN npm run build -- --config vite.config.render.js
 
-# Copy Nginx configuration
+# Przeniesienie pliku manifestu (jeśli potrzebne)
+RUN node move-manifest.js
+
+# Kopiowanie konfiguracji Nginx
 COPY docker/nginx.render.conf /etc/nginx/sites-available/default
 
-# Copy start script and make it executable
-COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
+# Upewnienie się, że katalogi storage i bootstrap/cache są zapisywalne
+RUN chown -R www-data:www-data \
+    /var/www/html/storage \
+    /var/www/html/bootstrap/cache
 
-# Ensure Laravel directories are writable
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Czyszczenie
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Expose port 80
+# Otworzenie portu 80
 EXPOSE 80
 
-# Start Nginx and PHP-FPM
-CMD ["/start.sh"]
+# Utworzenie skryptu startowego
+RUN echo '#!/bin/bash\n\
+    service nginx start\n\
+    php-fpm' > /usr/local/bin/start.sh \
+    && chmod +x /usr/local/bin/start.sh
+
+# Uruchomienie Nginx i PHP-FPM
+CMD ["/usr/local/bin/start.sh"]
