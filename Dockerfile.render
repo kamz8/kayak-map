@@ -7,11 +7,31 @@ WORKDIR /var/www/html
 # Kopiowanie plików projektu
 COPY . /var/www/html
 
+# Kopiowanie pliku .env
+COPY .env.example .env
+
+# Instalacja niezbędnych rozszerzeń PHP
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath
+
+# Zwiększenie limitu pamięci dla PHP
+RUN echo "memory_limit=-1" > $PHP_INI_DIR/conf.d/memory-limit.ini
+
+# Ustawienie odpowiednich uprawnień
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+
 # Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Instalacja zależności PHP
-RUN composer install --optimize-autoloader --no-dev
+# Instalacja zależności PHP z dodatkowymi flagami dla lepszej diagnostyki
+RUN composer install --optimize-autoloader --no-dev --verbose --no-interaction --no-progress
+
+# Czyszczenie cache'a Composera i optymalizacja autoloadera
+RUN composer clear-cache \
+    && composer dump-autoload --optimize
+
+# Generowanie klucza aplikacji
+RUN php artisan key:generate
 
 # Instalacja Node.js i npm (jeśli nie są już zainstalowane w obrazie bazowym)
 RUN apk add --no-cache nodejs npm
@@ -27,9 +47,6 @@ RUN node move-manifest.js
 
 # Kopiowanie konfiguracji Nginx
 COPY docker/nginx.render.conf /etc/nginx/sites-available/default.conf
-
-# Upewnienie się, że katalogi storage i bootstrap/cache są zapisywalne
-RUN chown -R nginx:nginx /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Czyszczenie
 RUN rm -rf /var/cache/apk/*
