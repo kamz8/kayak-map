@@ -2,7 +2,7 @@
 
 echo "Running composer"
 composer global require hirak/prestissimo
-composer install --no-dev --working-dir=/var/www/html
+composer install --no-dev --working-dir=/var/www/html --prefer-dist --no-scripts --no-progress --no-interaction
 
 npm install
 
@@ -13,5 +13,9 @@ php artisan route:cache
 echo "Running migrations..."
 php artisan migrate --force
 
-echo "Build Frontend..."
+echo "Building Frontend..."
 npm run build
+
+# Upewnienie się, że po buildzie mamy odpowiednie uprawnienia
+echo "Setting permissions for storage and cache"
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
