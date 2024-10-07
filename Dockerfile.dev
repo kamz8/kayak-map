@@ -12,9 +12,10 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     nodejs \
-    npm
+    npm \
+    pgloader
 
-RUN docker-php-ext-install pdo_mysql gd zip
+RUN docker-php-ext-install pdo_mysql gd zip pdo_pgsql
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

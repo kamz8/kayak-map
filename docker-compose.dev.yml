@@ -45,6 +45,21 @@ services:
           - '3306:3306'
         networks:
             - laravel
+      # Serwis bazy danych PostgreSQL
+    postgres:
+      image: postgres:latest
+      container_name: postgres
+      restart: unless-stopped
+      environment:
+        POSTGRES_DB: ${PGSQL_DATABASE}
+        POSTGRES_USER: ${PGSQL_USERNAME}
+        POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+      ports:
+        - '5432:5432'
+      networks:
+        - laravel
 
     # Serwis Redis
     redis:
