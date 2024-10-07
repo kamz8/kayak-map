@@ -27,6 +27,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # PHP memory limit fix
 RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
 
-RUN service php-fpm start && ls -l /var/run/php-fpm.sock
 
 CMD ["/start.sh"]
