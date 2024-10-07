@@ -32,6 +32,7 @@ services:
         image: mariadb:latest
         container_name: mariadb
         restart: unless-stopped
+        hostname: kayak-map.test
         environment:
             MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
             MYSQL_DATABASE: ${DB_DATABASE}
