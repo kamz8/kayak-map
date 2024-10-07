@@ -4,7 +4,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build && npm run move-manifest",
-        "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+        "render": "vite build --config=vite.config.render.js",
+        "docker:dev": "docker-compose -f docker-compose.dev.yml up --build -d",
         "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
         "move-manifest": "node move-manifest.js"
     },

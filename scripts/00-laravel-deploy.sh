@@ -14,7 +14,6 @@ echo "Setting permissions for storage and cache"
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 echo "Install frontend"
-npm ci && npm run build
-echo "Move manifest"
-node move-manifest.js
+npm ci && npm run render
+
 

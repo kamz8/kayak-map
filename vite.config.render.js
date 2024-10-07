@@ -24,13 +24,13 @@ export default defineConfig({
     },
     build: {
         manifest: 'manifest.json',  // Explicitly name the manifest file
-        outDir: 'public/build/manifest',
+        outDir: 'public/build',
         rollupOptions: {
             input: 'resources/js/app.js'
         }
     },
     server: {
         host: '0.0.0.0',
-        port: process.env.PORT || 5173,
+        port: process.env.PORT || 4000,
     }
 });
