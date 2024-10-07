@@ -29,8 +29,4 @@ export default defineConfig({
             input: 'resources/js/app.js'
         }
     },
-    server: {
-        host: '0.0.0.0',
-        port: process.env.PORT || 4000,
-    }
 });
