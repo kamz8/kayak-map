@@ -1,0 +1,31 @@
+{
+    "name": "kamz8/laravel-overpass",
+    "description": "Laravel package for interacting with Overpass API",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kamil Żmijowski",
+            "email": "kamzil2@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "guzzlehttp/guzzle": "7.8.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "TwojaNazwa\\LaravelOverpass\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "kamz8\\LaravelOverpass\\OverpassServiceProvider"
+            ],
+            "aliases": {
+                "Overpass": "kamz8\\LaravelOverpass\\Facades\\Overpass"
+            }
+        }
+    }
+}
