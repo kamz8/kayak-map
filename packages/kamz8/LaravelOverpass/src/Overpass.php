@@ -9,7 +9,7 @@ use Kamz8\LaravelOverpass\Helpers\ThrottleMiddleware;
 
 class Overpass
 {
-    protected Client $client;
+    public Client $client;
     protected string $endpoint;
     protected int $timeout;
     protected bool $throttle;
