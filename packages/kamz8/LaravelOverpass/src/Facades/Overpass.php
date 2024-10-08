@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static raw(string $query)
+ * @method static query()
  */
 class Overpass extends Facade
 {

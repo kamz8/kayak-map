@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * @method static create(array $array)
+ * @method static find(int $trailId)
  */
 class Trail extends Model
 {
