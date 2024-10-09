@@ -35,7 +35,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Kamz8\\LaravelOverpass\\": "packages/Kamz8/LaravelOverpass/src"
         }
     },
     "autoload-dev": {
@@ -43,7 +44,8 @@
             "Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
-            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/",
+            "Kamz8\\LaravelOverpass\\Tests\\": "packages/Kamz8/LaravelOverpass/tests/"
         }
     },
     "repositories": [
