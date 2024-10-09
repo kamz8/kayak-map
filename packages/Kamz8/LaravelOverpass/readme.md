@@ -23,7 +23,7 @@ Laravel Overpass is a Laravel package that provides an Eloquent-like syntax for 
 Install the package via Composer:
 
 ```bash
-composer require kamz8/laravel-overpass
+composer require Kamz8/laravel-overpass
 ```
 
 Publish the configuration file:
