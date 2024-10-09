@@ -1,6 +1,6 @@
-# Laravel Overpass
+# Laravel Overpass ![Laravel](https://img.shields.io/badge/Laravel-11-red.svg) ![Version](https://img.shields.io/badge/version-0.1.0--alpha-blue.svg)
 
-Laravel Overpass is a Laravel package that provides an Eloquent-like syntax for interacting with the Overpass API, allowing you to build and execute complex queries to OpenStreetMap data effortlessly.
+Laravel Overpass is a Laravel package that provides an Eloquent-like syntax for interacting with the Overpass API, allowing you to build and execute complex queries to OpenStreetMap data effortlessly. This package is compatible with Laravel 11.
 
 ## Table of Contents
 
@@ -62,77 +62,40 @@ You can set these configurations in your `.env` file:
 
 ### Building Queries
 
-Import the Overpass facade at the top of your class:
+You can build queries using an Eloquent-like syntax:
 
 ```php
-use Overpass;
-```
+use Kamz8\LaravelOverpass\Facades\Overpass;
 
-#### Simple Query Example
-
-```php
-$data = Overpass::query()
+$results = Overpass::query()
     ->node()
-    ->where('amenity', 'parking')
+    ->where('amenity', 'cafe')
     ->bbox(51.5, -0.1, 51.6, 0.1)
-    ->get();
-```
-
-#### Advanced Query Example
-
-```php
-$data = Overpass::query()
-    ->nwr()
-    ->where('waterway', 'river')
-    ->orWhere('natural', 'water')
-    ->bboxFromPoints(51.5, -0.1, 51.6, 0.1, marginPercent: 10)
-    ->recurse()
-    ->output('json')
+    ->limit(10)
     ->get();
 ```
 
 ### Using Raw Queries
 
-If you prefer to write raw Overpass QL queries:
+You can also use raw Overpass QL queries if needed:
 
 ```php
-$query = '
-[out:json];
-node["amenity"="cafe"](51.5,-0.1,51.6,0.1);
-out;
-';
-
-$data = Overpass::raw($query)->get();
+$query = '[out:json];node["amenity"="cafe"](51.5,-0.1,51.6,0.1);out body;';
+$results = Overpass::raw($query)->get();
 ```
 
 ### Throttling Requests
 
-By default, the package throttles requests to **1 request per second** to comply with Overpass API usage policies. You can adjust or disable throttling in the configuration.
-
-#### Adjusting Throttling
-
-In `config/overpass.php` or `.env` file:
-
-```php
-'throttle' => true, // Set to false to disable throttling
-'throttle_limit' => 2, // Max 2 requests per second
-```
+Throttling can be enabled to avoid exceeding the Overpass API rate limits. By default, throttling is enabled with a limit of 1 request per second.
 
 ### Error Handling
 
-Exceptions are thrown if there are issues communicating with the Overpass API or parsing responses. You should handle exceptions appropriately in your application.
-
-#### Example
+The package provides robust error handling to capture Overpass API errors:
 
 ```php
 try {
-    $data = Overpass::query()
-        ->node()
-        ->where('amenity', 'fuel')
-        ->bbox(51.5, -0.1, 51.6, 0.1)
-        ->get();
-} catch (\Exception $e) {
-    // Handle the exception
+    $results = Overpass::query()->node()->where('amenity', 'cafe')->get();
+} catch (Exception $e) {
     echo 'Error: ' . $e->getMessage();
 }
 ```
@@ -156,10 +119,7 @@ $weirs = Overpass::query()
 use Kamz8\LaravelOverpass\Helpers\RouteHelper;
 
 $routeHelper = new RouteHelper();
-
 $route = $routeHelper->findRoute($latA, $lonA, $latB, $lonB);
-
-// Process and display the route
 ```
 
 ## Helpers
@@ -172,15 +132,7 @@ The `BoundingBoxHelper` class helps generate a bounding box (BBox) with an optio
 
 ```php
 $helper = new \Kamz8\LaravelOverpass\Helpers\BoundingBoxHelper();
-
 $bbox = $helper->generateBBox($lat1, $lon1, $lat2, $lon2, $marginPercent = 10);
-
-// Use the generated BBox in your query
-$data = Overpass::query()
-    ->node()
-    ->where('amenity', 'parking')
-    ->bbox($bbox)
-    ->get();
 ```
 
 ### RouteHelper
@@ -193,10 +145,7 @@ The `RouteHelper` class assists in finding a route between two points.
 use Kamz8\LaravelOverpass\Helpers\RouteHelper;
 
 $routeHelper = new RouteHelper();
-
 $route = $routeHelper->findRoute($latA, $lonA, $latB, $lonB);
-
-// Process the route data
 ```
 
 ## Testing
@@ -229,10 +178,17 @@ public function testSimpleQuery()
 }
 ```
 
+## Documentation
+
+For more detailed documentation about the available methods and their usage, please refer to the [OverpassQueryBuilder Documentation](https://github.com/kamz8/LaravelOverpass/blob/dev/Doc/OverpassQueryBuilder.md).
+
+## Compatibility
+
+This package is compatible with **Laravel 11**.
 ## License
 
 Laravel Overpass is open-source software licensed under the [MIT license](LICENSE).
 
----
+**Author**: Kamil Żmijowski (kamzil2@gmail.com)
 
-Jeśli masz jakiekolwiek pytania lub potrzebujesz pomocy z pakietem **Laravel Overpass**, nie wahaj się skontaktować!
+

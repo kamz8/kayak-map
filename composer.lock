@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7e07b198a91680cc9ee0142ca629a70d",
+    "content-hash": "5dc8ebedf4d917a1758a7d2429e4b6d0",
     "packages": [
         {
             "name": "brick/math",
@@ -1173,11 +1173,11 @@
         },
         {
             "name": "kamz8/laravel-overpass",
-            "version": "0.1",
+            "version": "0.1.0-alpha",
             "dist": {
                 "type": "path",
                 "url": "packages/Kamz8/LaravelOverpass",
-                "reference": "8a405da613407ff8f068a1008905088f2b90f775"
+                "reference": "d423a7a553531d70285f71247f956c6a3649a8e6"
             },
             "require": {
                 "guzzlehttp/guzzle": "7.8.*",
@@ -9427,13 +9427,15 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "kamz8/laravel-overpass": 15
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2",
         "ext-xml": "*"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }
