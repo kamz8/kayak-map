@@ -14,6 +14,7 @@ class ThrottleMiddleware
     public function __construct(int $limit)
     {
         $this->limit = $limit;
+
     }
 
     public function __invoke(callable $handler): callable

@@ -28,9 +28,6 @@ class OverpassServiceProvider extends ServiceProvider
             $configPath => $publishPath,
         ], 'overpass-config');
 
-        if (file_exists($publishPath)) {
-            $this->app['log']->info('Overpass config file already exists. Use --force to overwrite.');
-        }
     }
 
     /**

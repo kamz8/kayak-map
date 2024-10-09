@@ -17,38 +17,61 @@ use Illuminate\Support\Facades\Config;
  */
 class Overpass
 {
-    /** @var Client The HTTP client used for API requests */
-    public Client $client;
-
-    /** @var array The configuration array for the Overpass client */
+    protected Client $client;
+    protected bool $throttle;
+    protected ?int $throttleLimit;
     protected array $config;
 
-    /**
-     * Overpass constructor.
-     *
-     * @param array|null $config Optional configuration array to override default settings
-     */
-    public function __construct(?array $config = null)
+    public function __construct()
     {
-        $this->config = $config ?? Config::get('overpass');
+        // Pobieramy konfigurację raz i zapisujemy w zmiennej $config
+        $this->config = config('overpass');
 
+        // Ustawiamy throttling na podstawie konfiguracji (domyślnie true)
+        $this->throttle = $this->config['throttle'] ?? true;
+
+        // Ustawiamy limit throttlingu tylko, jeśli throttling jest włączony
+        $this->throttleLimit = $this->throttle ? ($this->config['throttle_limit'] ?? 1) : null;
+
+        // Tworzymy stos handlerów Guzzle, aby ewentualnie dodać middleware throttlingu
         $stack = HandlerStack::create();
 
-        if ($this->config['throttle']) {
+        if ($this->throttle) {
             $stack->push(
-                new ThrottleMiddleware($this->config['throttle_limit']),
+                new ThrottleMiddleware($this->throttleLimit),
                 'throttle'
             );
         }
 
+        // Inicjalizujemy klienta Guzzle z odpowiednim stosunkiem middleware
         $this->client = new Client([
-            'base_uri' => $this->config['endpoint'],
-            'timeout'  => $this->config['timeout'],
+            'base_uri' => $this->config['endpoint'] ?? 'https://overpass-api.de/api/interpreter',
+            'timeout'  => $this->config['timeout'] ?? 10,
             'handler'  => $stack,
-            'headers'  => [
-                'User-Agent' => "{$this->config['app_name']} ({$this->config['app_author']})",
-            ],
         ]);
+    }
+
+    /**
+     * Get the throttling limit.
+     *
+     * @return int|null Returns the limit if throttling is enabled, otherwise null.
+     */
+    public function getThrottleLimit(): ?int
+    {
+        return $this->throttleLimit;
+    }
+
+    /**
+     * Get the Guzzle client's handler stack.
+     *
+     * This allows access to the handler stack for testing purposes,
+     * particularly to verify whether the throttling middleware is attached.
+     *
+     * @return HandlerStack The handler stack used by the Guzzle client.
+     */
+    public function getHandler(): HandlerStack
+    {
+        return $this->client->getConfig('handler');
     }
 
     /**
@@ -71,4 +94,5 @@ class Overpass
     {
         return (new OverpassQueryBuilder($this->client, $this->config))->raw($query);
     }
+
 }

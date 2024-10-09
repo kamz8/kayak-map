@@ -8,6 +8,10 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <testsuite name="Overpass">
+            <directory suffix="Test.php">./packages/kamz8/LaravelOverpass/tests</directory>
+        </testsuite>
+
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
