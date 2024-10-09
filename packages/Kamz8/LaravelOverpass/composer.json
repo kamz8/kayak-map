@@ -20,6 +20,11 @@
             "Kamz8\\LaravelOverpass\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Kamz8\\LaravelOverpass\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [

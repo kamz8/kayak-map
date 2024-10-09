@@ -1177,7 +1177,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/Kamz8/LaravelOverpass",
-                "reference": "d423a7a553531d70285f71247f956c6a3649a8e6"
+                "reference": "9f71586abd108ea9abceaf19ed31ad52d5a460b7"
             },
             "require": {
                 "guzzlehttp/guzzle": "7.8.*",
@@ -1196,7 +1196,8 @@
             },
             "autoload": {
                 "psr-4": {
-                    "Kamz8\\LaravelOverpass\\": "src/"
+                    "Kamz8\\LaravelOverpass\\": "src/",
+                    "Kamz8\\LaravelOverpass\\Tests\\": "tests/"
                 }
             },
             "license": [

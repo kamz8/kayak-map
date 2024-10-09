@@ -4,54 +4,71 @@ namespace Kamz8\LaravelOverpass;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
-use Kamz8\LaravelOverpass\Helpers\ThrottleMiddleware;
+use Kamz8\LaravelOverpass\Middleware\ThrottleMiddleware;
+use Illuminate\Support\Facades\Config;
 
+/**
+ * Class Overpass
+ *
+ * This class is the main entry point for interacting with the Overpass API.
+ * It manages the HTTP client and provides methods to create queries.
+ *
+ * @package Kamz8\LaravelOverpass
+ */
 class Overpass
 {
+    /** @var Client The HTTP client used for API requests */
     public Client $client;
-    protected string $endpoint;
-    protected int $timeout;
-    protected bool $throttle;
-    protected int $throttleLimit;
-    protected string $appName;
-    protected string $appAuthor;
 
-    public function __construct()
+    /** @var array The configuration array for the Overpass client */
+    protected array $config;
+
+    /**
+     * Overpass constructor.
+     *
+     * @param array|null $config Optional configuration array to override default settings
+     */
+    public function __construct(?array $config = null)
     {
-        $this->endpoint = config('overpass.endpoint');
-        $this->timeout = config('overpass.timeout');
-        $this->throttle = config('overpass.throttle');
-        $this->throttleLimit = config('overpass.throttle_limit');
-        $this->appName = config('overpass.app_name');
-        $this->appAuthor = config('overpass.app_author');
+        $this->config = $config ?? Config::get('overpass');
 
         $stack = HandlerStack::create();
 
-        if ($this->throttle) {
+        if ($this->config['throttle']) {
             $stack->push(
-                new ThrottleMiddleware($this->throttleLimit),
+                new ThrottleMiddleware($this->config['throttle_limit']),
                 'throttle'
             );
         }
 
         $this->client = new Client([
-            'base_uri' => $this->endpoint,
-            'timeout'  => $this->timeout,
+            'base_uri' => $this->config['endpoint'],
+            'timeout'  => $this->config['timeout'],
             'handler'  => $stack,
             'headers'  => [
-                'User-Agent' => "{$this->appName} ({$this->appAuthor})",
+                'User-Agent' => "{$this->config['app_name']} ({$this->config['app_author']})",
             ],
         ]);
     }
 
+    /**
+     * Create a new query builder instance.
+     *
+     * @return OverpassQueryBuilder
+     */
     public function query(): OverpassQueryBuilder
     {
-        return new OverpassQueryBuilder($this->client);
+        return new OverpassQueryBuilder($this->client, $this->config);
     }
 
+    /**
+     * Create a new query builder instance with a raw query.
+     *
+     * @param string $query The raw Overpass query
+     * @return OverpassQueryBuilder
+     */
     public function raw(string $query): OverpassQueryBuilder
     {
-        return (new OverpassQueryBuilder($this->client))->raw($query);
+        return (new OverpassQueryBuilder($this->client, $this->config))->raw($query);
     }
 }

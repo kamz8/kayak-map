@@ -5,21 +5,38 @@ namespace Kamz8\LaravelOverpass\Providers;
 use Illuminate\Support\ServiceProvider;
 use Kamz8\LaravelOverpass\Overpass;
 
+/**
+ * Class OverpassServiceProvider
+ *
+ * This service provider bootstraps the Overpass package.
+ *
+ * @package Kamz8\LaravelOverpass\Providers
+ */
 class OverpassServiceProvider extends ServiceProvider
 {
     /**
      * Perform post-registration booting of services.
+     *
+     * @return void
      */
     public function boot(): void
     {
-        // Publikacja pliku konfiguracyjnego
+        $configPath = __DIR__ . '/../../config/overpass.php';
+        $publishPath = config_path('overpass.php');
+
         $this->publishes([
-            __DIR__ . '/../../config/overpass.php' => config_path('overpass.php'),
+            $configPath => $publishPath,
         ], 'overpass-config');
+
+        if (file_exists($publishPath)) {
+            $this->app['log']->info('Overpass config file already exists. Use --force to overwrite.');
+        }
     }
 
     /**
      * Register bindings in the container.
+     *
+     * @return void
      */
     public function register(): void
     {
@@ -31,7 +48,7 @@ class OverpassServiceProvider extends ServiceProvider
 
         // Rejestracja singletonu dla Overpass
         $this->app->singleton('overpass', function ($app) {
-            return new Overpass();
+            return new Overpass($app['config']['overpass']);
         });
     }
 }
