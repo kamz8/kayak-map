@@ -7,6 +7,7 @@ use App\Models\Trail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Kamz8\LaravelOverpass\Facades\Overpass;
 
@@ -42,14 +43,6 @@ class FetchRiverTrackJob implements ShouldQueue
         try {
             // Generuj bounding box z marginesem 10%
             $bboxHelper = new \Kamz8\LaravelOverpass\Helpers\BoundingBoxHelper();
-            $bbox = $bboxHelper->generateBBox(
-                $trail->start_lat,
-                $trail->start_lng,
-                $trail->end_lat,
-                $trail->end_lng,
-                marginPercent: 10
-            );
-
             // Wykonaj zapytanie do Overpass API
             $data = Overpass::query()
                 ->way()
@@ -65,6 +58,8 @@ class FetchRiverTrackJob implements ShouldQueue
                 ->recurse()
                 ->output('json')
                 ->get();
+            Log::info('Otrzymana odpowiedź z Overpass API:', ['data' => $data]);
+
 
             if (empty($data['elements'])) {
                 Log::warning("Brak danych rzeki dla trasy ID: {$this->trailId}");
@@ -79,10 +74,8 @@ class FetchRiverTrackJob implements ShouldQueue
                     // Możemy przechowywać IDs węzłów, jeśli potrzebne
                 }
                 if ($element['type'] === 'node' && isset($element['lat'], $element['lon'])) {
-                    $trackPoints[] = [
-                        'lat' => $element['lat'],
-                        'lon' => $element['lon'],
-                    ];
+                    // Zbieramy punkty ścieżki jako ciąg WKT (Well-Known Text)
+                    $trackPoints[] = "{$element['lon']} {$element['lat']}"; // Musi być w formacie: lon lat
                 }
             }
 
@@ -90,11 +83,12 @@ class FetchRiverTrackJob implements ShouldQueue
                 Log::warning("Brak punktów ścieżki dla trasy ID: {$this->trailId}");
                 return;
             }
+            $lineString = 'LINESTRING(' . implode(',', $trackPoints) . ')';
 
             // Zapisz punkty ścieżki w bazie danych
             RiverTrack::updateOrCreate(
                 ['trail_id' => $this->trailId],
-                ['track_points' => json_encode($trackPoints, JSON_THROW_ON_ERROR)]
+                ['track_points' => DB::raw("ST_GeomFromText('{$lineString}')")]
             );
 
             Log::info("Ścieżka rzeki zapisana dla trasy ID: {$this->trailId}");

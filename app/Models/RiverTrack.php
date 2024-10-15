@@ -14,12 +14,11 @@ class RiverTrack extends Model
         'trail_id', 'track_points'
     ];
 
-    protected $casts = [
-        'track_points' => 'array'
-    ];
-
     public function trail(): BelongsTo
     {
         return $this->belongsTo(Trail::class);
     }
+
+    // Dodaj przestrzenne operacje do modelu
+    public $timestamps = true;
 }

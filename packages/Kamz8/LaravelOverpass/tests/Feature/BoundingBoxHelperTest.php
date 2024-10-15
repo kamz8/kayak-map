@@ -1,60 +1,31 @@
 <?php
 
+use Kamz8\LaravelOverpass\Tests\TestCase;
 use Kamz8\LaravelOverpass\Helpers\BoundingBoxHelper;
 
-it('calculates bounding box correctly', function () {
-    $startLat = 51.5;
-    $startLng = -0.1;
-    $endLat = 51.6;
-    $endLng = 0.1;
+uses(TestCase::class);
 
-    $bbox = BoundingBoxHelper::calculateBoundingBox($startLat, $startLng, $endLat, $endLng);
+it('calculates bounding box with 10% buffer', function () {
+    $start = [53.5544308, 16.9887918];
+    $end = [53.5997899, 17.181988];
 
-    expect($bbox)
+    $boundingBox = BoundingBoxHelper::calculateWithBuffer($start, $end, 0.10);
+
+    expect($boundingBox)
         ->toBeArray()
-        ->toHaveCount(4)
-        ->and($bbox['south'])->toBe($startLat)
-        ->and($bbox['west'])->toBe($startLng)
-        ->and($bbox['north'])->toBe($endLat)
-        ->and($bbox['east'])->toBe($endLng);
+        ->and(count($boundingBox))->toBe(4)
+        ->and($boundingBox[0])->toBeLessThan($start[0])
+        ->and($boundingBox[1])->toBeLessThan($start[1])
+        ->and($boundingBox[2])->toBeGreaterThan($end[0])
+        ->and($boundingBox[3])->toBeGreaterThan($end[1]);
 });
 
-it('throws an exception for invalid coordinates', function () {
-    $startLat = 200; // Nieprawidłowa szerokość geograficzna
-    $startLng = -0.1;
-    $endLat = 51.6;
-    $endLng = 0.1;
+it('returns correct bounding box without buffer', function () {
+    $start = [53.5544308, 16.9887918];
+    $end = [53.5997899, 17.181988];
 
-    expect(fn() => BoundingBoxHelper::calculateBoundingBox($startLat, $startLng, $endLat, $endLng))
-        ->toThrow(InvalidArgumentException::class);
-});
+    $boundingBox = BoundingBoxHelper::calculateWithBuffer($start, $end, 0.0);
 
-it('handles negative longitude correctly', function () {
-    $startLat = 51.5;
-    $startLng = -0.5;
-    $endLat = 51.6;
-    $endLng = -0.3;
-
-    $bbox = BoundingBoxHelper::calculateBoundingBox($startLat, $startLng, $endLat, $endLng);
-
-    expect($bbox)
-        ->toBeArray()
-        ->toHaveCount(4)
-        ->and($bbox['south'])->toBe($startLat)
-        ->and($bbox['west'])->toBe($startLng)
-        ->and($bbox['north'])->toBe($endLat)
-        ->and($bbox['east'])->toBe($endLng);
-});
-
-it('generates bounding box string correctly', function () {
-    $startLat = 51.5;
-    $startLng = -0.1;
-    $endLat = 51.6;
-    $endLng = 0.1;
-
-    $bboxString = BoundingBoxHelper::generateBBox($startLat, $startLng, $endLat, $endLng);
-
-    expect($bboxString)
-        ->toBeString()
-        ->toBe("(51.500000,-0.100000,51.600000,0.100000)");
+    expect($boundingBox)
+        ->toBe([$start[0], $start[1], $end[0], $end[1]]);
 });

@@ -2,76 +2,88 @@
 
 namespace Kamz8\LaravelOverpass;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
-use Kamz8\LaravelOverpass\Middleware\ThrottleMiddleware;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 
 /**
  * Class Overpass
  *
- * This class is the main entry point for interacting with the Overpass API.
- * It manages the HTTP client and provides methods to create queries.
+ * This class manages Overpass API interactions and creates HTTP client instances.
  *
  * @package Kamz8\LaravelOverpass
  */
 class Overpass
 {
-    protected Client $client;
-    protected bool $throttle;
-    protected ?int $throttleLimit;
     protected array $config;
+    protected ?float $lastRequestTime = null;
 
     public function __construct()
     {
-        // Pobieramy konfigurację raz i zapisujemy w zmiennej $config
+        // Load configuration from Laravel config file 'overpass.php' once
         $this->config = config('overpass');
 
-        // Ustawiamy throttling na podstawie konfiguracji (domyślnie true)
-        $this->throttle = $this->config['throttle'] ?? true;
+        // Validate configuration keys
+        $this->validateConfig($this->config);
+    }
 
-        // Ustawiamy limit throttlingu tylko, jeśli throttling jest włączony
-        $this->throttleLimit = $this->throttle ? ($this->config['throttle_limit'] ?? 1) : null;
+    /**
+     * Get the Laravel HTTP client configured for the Overpass API.
+     *
+     * @return \Illuminate\Http\Client\PendingRequest
+     */
+    public function getClient()
+    {
+        $client = Http::baseUrl($this->config['endpoint'])
+            ->timeout($this->config['timeout'])
+            ->withHeaders([
+                'User-Agent' => sprintf('%s (%s)', $this->config['app_name'], $this->config['app_author'])
+            ]);
 
-        // Tworzymy stos handlerów Guzzle, aby ewentualnie dodać middleware throttlingu
-        $stack = HandlerStack::create();
-
-        if ($this->throttle) {
-            $stack->push(
-                new ThrottleMiddleware($this->throttleLimit),
-                'throttle'
-            );
+        // If throttling is enabled, we implement delay logic before the request
+        if ($this->config['throttle']) {
+            $client->beforeSending(function () {
+                $this->applyThrottle();
+            });
         }
 
-        // Inicjalizujemy klienta Guzzle z odpowiednim stosunkiem middleware
-        $this->client = new Client([
-            'base_uri' => $this->config['endpoint'] ?? 'https://overpass-api.de/api/interpreter',
-            'timeout'  => $this->config['timeout'] ?? 10,
-            'handler'  => $stack,
-        ]);
+        return $client;
     }
 
     /**
-     * Get the throttling limit.
-     *
-     * @return int|null Returns the limit if throttling is enabled, otherwise null.
+     * Apply throttling logic based on the configuration.
      */
-    public function getThrottleLimit(): ?int
+    protected function applyThrottle()
     {
-        return $this->throttleLimit;
+        $limit = $this->config['throttle_limit'];
+        $interval = 1 / $limit; // Seconds per request
+
+        if ($this->lastRequestTime !== null) {
+            $elapsed = microtime(true) - $this->lastRequestTime;
+            $waitTime = max(0, $interval - $elapsed);
+            if ($waitTime > 0) {
+                usleep((int) ($waitTime * 1e6)); // Convert to microseconds
+            }
+        }
+
+        // Update the time of the last request
+        $this->lastRequestTime = microtime(true);
     }
 
     /**
-     * Get the Guzzle client's handler stack.
+     * Validate configuration to ensure all required keys are present
      *
-     * This allows access to the handler stack for testing purposes,
-     * particularly to verify whether the throttling middleware is attached.
-     *
-     * @return HandlerStack The handler stack used by the Guzzle client.
+     * @param array $config
+     * @throws \InvalidArgumentException
      */
-    public function getHandler(): HandlerStack
+    protected function validateConfig(array $config)
     {
-        return $this->client->getConfig('handler');
+        $requiredKeys = ['throttle', 'throttle_limit', 'endpoint', 'timeout', 'app_name', 'app_author'];
+
+        foreach ($requiredKeys as $key) {
+            if (!array_key_exists($key, $config)) {
+                throw new \InvalidArgumentException("Missing required config key: {$key}");
+            }
+        }
     }
 
     /**
@@ -81,7 +93,7 @@ class Overpass
      */
     public function query(): OverpassQueryBuilder
     {
-        return new OverpassQueryBuilder($this->client, $this->config);
+        return new OverpassQueryBuilder($this->getClient(), $this->config);
     }
 
     /**
@@ -92,7 +104,6 @@ class Overpass
      */
     public function raw(string $query): OverpassQueryBuilder
     {
-        return (new OverpassQueryBuilder($this->client, $this->config))->raw($query);
+        return (new OverpassQueryBuilder($this->getClient(), $this->config))->raw($query);
     }
-
 }

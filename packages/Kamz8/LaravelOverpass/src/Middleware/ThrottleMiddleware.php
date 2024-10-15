@@ -20,6 +20,7 @@ class ThrottleMiddleware
     public function __invoke(callable $handler): callable
     {
         return function (Request $request, array $options) use ($handler): PromiseInterface {
+            $request = $request->withHeader('X-Middleware', 'ThrottleMiddleware');
             $now = microtime(true);
             $elapsed = $now - $this->lastRequestTime;
             $waitTime = max(0, (1 / $this->limit) - $elapsed);

@@ -4,6 +4,8 @@ namespace Kamz8\LaravelOverpass;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Http\Client\PendingRequest;
+use JetBrains\PhpStorm\NoReturn;
 use Kamz8\LaravelOverpass\Helpers\BoundingBoxHelper;
 
 /**
@@ -15,8 +17,8 @@ use Kamz8\LaravelOverpass\Helpers\BoundingBoxHelper;
  */
 class OverpassQueryBuilder
 {
-    /** @var Client The HTTP client used for API requests */
-    protected Client $client;
+    /** @var PendingRequest The HTTP client used for API requests */
+    protected PendingRequest $client;
 
     /** @var array The configuration array for the Overpass client */
     protected array $config;
@@ -54,10 +56,10 @@ class OverpassQueryBuilder
     /**
      * OverpassQueryBuilder constructor.
      *
-     * @param Client $client The HTTP client
+     * @param PendingRequest $client The HTTP client
      * @param array $config The configuration array
      */
-    public function __construct(Client $client, array $config)
+    public function __construct(PendingRequest $client, array $config)
     {
         $this->client = $client;
         $this->config = $config;
@@ -127,17 +129,13 @@ class OverpassQueryBuilder
     /**
      * Add a filter to the query.
      *
-     * @param string $key The key to filter on
-     * @param string|null $value The value to filter for (optional)
+     * @param string $key
+     * @param string $value
      * @return $this
      */
-    public function where(string $key, ?string $value = null): static
+    public function where(string $key, string $value): self
     {
-        if (is_null($value)) {
-            $this->filters[] = "['{$key}']";
-        } else {
-            $this->filters[] = "['{$key}'='{$value}']";
-        }
+        $this->filters[] = "[\"$key\"=\"$value\"]";
         return $this;
     }
 
@@ -159,18 +157,19 @@ class OverpassQueryBuilder
         return $this;
     }
 
+
     /**
      * Set the bounding box for the query.
      *
-     * @param float $south The southern latitude of the bounding box
-     * @param float $west The western longitude of the bounding box
-     * @param float $north The northern latitude of the bounding box
-     * @param float $east The eastern longitude of the bounding box
+     * @param float $minLat
+     * @param float $minLon
+     * @param float $maxLat
+     * @param float $maxLon
      * @return $this
      */
-    public function bbox(float $south, float $west, float $north, float $east): static
+    public function bbox(float $minLat, float $minLon, float $maxLat, float $maxLon): self
     {
-        $this->bbox = "({$south},{$west},{$north},{$east})";
+        $this->bbox = "($minLat,$minLon,$maxLat,$maxLon)";
         return $this;
     }
 
@@ -241,32 +240,31 @@ class OverpassQueryBuilder
     }
 
     /**
-     * Build the Overpass query string.
+     * Build the Overpass API query string.
      *
-     * @return string The complete Overpass query
+     * @return string
      */
-    public function build(): string
+    protected function build(): string
     {
-        $settings = implode('', $this->settings);
-        $queryElements = [];
+        // Start with the header
+        $query = "[out:{$this->output}][timeout:{$this->timeout}];\n";
 
-        foreach ($this->queryParts as $part) {
-            $filters = implode('', $this->filters);
-            $area = $this->bbox ?? $this->around ?? '';
-            $queryElements[] = "({$part}{$filters}{$area};);";
+        // Add the main part of the query
+        $query .= "way";
+        if (!empty($this->filters)) {
+            $query .= implode('', $this->filters);
         }
+        if ($this->bbox) {
+            $query .= $this->bbox;
+        }
+        $query .= ";\n";
 
-        $query = $settings . implode('', $queryElements);
-
+        // Add output instructions
+        $query .= "out body;\n";
         if ($this->recursive) {
-            $query .= "out body; >; out skel qt;";
-        } else {
-            $query .= "out body";
-            if ($this->limit !== null) {
-                $query .= " {$this->limit}";
-            }
-            $query .= ";";
+            $query .= ">;\n";
         }
+        $query .= "out skel qt;";
 
         return $query;
     }
@@ -282,21 +280,35 @@ class OverpassQueryBuilder
         $fullQuery = $this->rawQuery ?? $this->build();
 
         try {
-            $response = $this->client->request('POST', '', [
-                'form_params' => ['data' => $fullQuery],
+            $response = $this->client->asForm()->post('', [
+                'data' => $fullQuery,
             ]);
 
-            $body = $response->getBody()->getContents();
+            $body = $response->body();
 
             if ($this->output === 'json') {
                 return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
             } else {
                 return $body;
             }
-        } catch (GuzzleException $e) {
+        } catch (\Illuminate\Http\Client\RequestException $e) {
             throw new \Exception("Error communicating with Overpass API: " . $e->getMessage(), $e->getCode(), $e);
         } catch (\JsonException $e) {
             throw new \Exception("Error parsing JSON response: " . $e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    /**
+     * Debug the query syntax by dumping the built query.
+     *
+     * @return void
+     */
+    #[NoReturn] public function ddQuery(): void
+    {
+        // Build the query using the existing logic
+        $fullQuery = $this->rawQuery ?? $this->build();
+
+        // Dump and die (dd) the full query
+        dd($fullQuery);
     }
 }

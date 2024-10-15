@@ -26,7 +26,7 @@
             />
             </l-marker-cluster-group>
             <l-polyline
-                v-if="activeTrailCoords.length > 0"
+                v-if="activeTrailCoords && activeTrailCoords.length > 0"
                 :lat-lngs="activeTrailCoords"
                 :color="$vuetify.theme.current.colors['river-path']"
                 :weight="5"
@@ -36,7 +36,7 @@
                 class="trail-path"
             />
             <l-polyline
-                v-if="highlightedTrailCoords.length"
+                v-if="highlightedTrailCoords && highlightedTrailCoords.length"
                 :lat-lngs="highlightedTrailCoords"
                 :color="$vuetify.theme.current.colors['highlight-path']"
                 :weight="3"

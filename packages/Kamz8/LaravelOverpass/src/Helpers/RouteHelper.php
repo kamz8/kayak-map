@@ -4,8 +4,6 @@ namespace Kamz8\LaravelOverpass\Helpers;
 
 use Kamz8\LaravelOverpass\Overpass;
 use Exception;
-use GuzzleHttp\Exception\GuzzleException;
-use JsonException;
 
 /**
  * Class RouteHelper
@@ -16,9 +14,7 @@ use JsonException;
  */
 class RouteHelper
 {
-    /**
-     * @var Overpass The Overpass API client
-     */
+    /** @var Overpass The Overpass API client */
     protected Overpass $overpass;
 
     /**
@@ -43,20 +39,12 @@ class RouteHelper
      */
     public function findRoute(float $lat1, float $lon1, float $lat2, float $lon2): array
     {
+        $queryBuilder = $this->overpass->query();
         $query = $this->buildRouteQuery($lat1, $lon1, $lat2, $lon2);
 
         try {
-            $response = $this->overpass->client->request('POST', '', [
-                'form_params' => ['data' => $query],
-            ]);
-
-            $body = $response->getBody()->getContents();
-            return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-
-        } catch (GuzzleException $e) {
-            throw new Exception("Error communicating with Overpass API: " . $e->getMessage(), $e->getCode(), $e);
-        } catch (JsonException $e) {
-            throw new Exception("Error parsing JSON response: " . $e->getMessage(), $e->getCode(), $e);
+            // Use the raw query method to set the query and execute it
+            return $queryBuilder->raw($query)->get();
         } catch (Exception $e) {
             throw new Exception("Error finding route: " . $e->getMessage(), $e->getCode(), $e);
         }
