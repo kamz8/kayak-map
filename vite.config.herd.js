@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
+import browsersync from 'vite-plugin-browser-sync';
 import laravel from 'laravel-vite-plugin';
 import fs from 'fs';
-import browsersync from "vite-plugin-browser-sync";
 
 const host = 'kayak-map.test';
 export default defineConfig({
@@ -14,16 +14,14 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
             ],
+            detectTls: host,
             refresh: true,
         }),
         browsersync({
-            host: '0.0.0.0',
+            host: host,
             port: 3000,
-            proxy: 'https://nginx',
-            https: {
-                key: fs.readFileSync(`./docker/ssl/cert.key`),
-                cert: fs.readFileSync(`./docker/ssl/cert.crt`),
-            },
+            proxy: host,
+            https: true,
             open: false
         })
     ],
@@ -32,8 +30,7 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'resources/js'),
-            '@assets': path.resolve(__dirname, 'storage/app/public/assets')
+            '@': path.resolve(__dirname, 'resources/js')
         }
     },
     build: {
@@ -44,29 +41,22 @@ export default defineConfig({
         }
     },
     server: {
-        host: '0.0.0.0',
+        host: host,
         port: 5173,
+        hmr: { host },
         https: {
-            key: fs.readFileSync(`./docker/ssl/cert.key`),
-            cert: fs.readFileSync(`./docker/ssl/cert.crt`),
+            key: fs.readFileSync(`C:\\Users\\User\\.config\\herd\\config\\valet\\Certificates\\${host}.key`),
+            cert: fs.readFileSync(`C:\\Users\\User\\.config\\herd\\config\\valet\\Certificates\\${host}.crt`),
         },
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
-        hmr: {
-            host: host,
-            protocol: 'wss',
-            port: 5173,
-        },
-        watch: {
-            usePolling: true,
-        },
         proxy: {
             '/api': {
-                target: 'https://nginx',
+                target: host,
                 changeOrigin: true,
-                secure: false,
-            },
-        },
+                rewrite: (path) => path.replace(/^\/api/, '')
+            }
+        }
     }
 });
