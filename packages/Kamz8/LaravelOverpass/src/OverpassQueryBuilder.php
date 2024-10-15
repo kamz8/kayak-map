@@ -53,6 +53,10 @@ class OverpassQueryBuilder
     /** @var int|null The limit for the number of results */
     protected ?int $limit = null;
 
+
+    /** @var string The type of the output for the query (e.g., 'body', 'geom') */
+    protected string $outType = 'body';
+
     /**
      * OverpassQueryBuilder constructor.
      *
@@ -240,6 +244,19 @@ class OverpassQueryBuilder
     }
 
     /**
+     * Set the type of the output for the Overpass query (e.g., 'geom', 'body').
+     *
+     * @param string $outType The desired output type (e.g., 'geom', 'body', 'skel', 'qt').
+     * @return $this
+     */
+    public function outType(string $outType = 'body'): static
+    {
+        $this->outType = $outType;
+        return $this;
+    }
+
+
+    /**
      * Build the Overpass API query string.
      *
      * @return string
@@ -258,6 +275,9 @@ class OverpassQueryBuilder
             $query .= $this->bbox;
         }
         $query .= ";\n";
+
+        // Add output instructions with the selected outType
+        $query .= "out {$this->outType};\n";
 
         // Add output instructions
         $query .= "out body;\n";
