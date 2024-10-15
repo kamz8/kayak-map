@@ -70,9 +70,6 @@ class FetchRiverTrackJob implements ShouldQueue
             $trackPoints = [];
 
             foreach ($data['elements'] as $element) {
-                if ($element['type'] === 'way' && isset($element['nodes'])) {
-                    // Możemy przechowywać IDs węzłów, jeśli potrzebne
-                }
                 if ($element['type'] === 'node' && isset($element['lat'], $element['lon'])) {
                     // Zbieramy punkty ścieżki jako ciąg WKT (Well-Known Text)
                     $trackPoints[] = "{$element['lon']} {$element['lat']}"; // Musi być w formacie: lon lat
@@ -85,7 +82,7 @@ class FetchRiverTrackJob implements ShouldQueue
             }
             $lineString = 'LINESTRING(' . implode(',', $trackPoints) . ')';
 
-            // Zapisz punkty ścieżki w bazie danych
+
             RiverTrack::updateOrCreate(
                 ['trail_id' => $this->trailId],
                 ['track_points' => DB::raw("ST_GeomFromText('{$lineString}')")]

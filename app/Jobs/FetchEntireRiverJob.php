@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\River;
+use App\Traits\Spatial;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,7 +12,7 @@ use Kamz8\LaravelOverpass\Facades\Overpass;
 
 class FetchEntireRiverJob implements ShouldQueue
 {
-    use Dispatchable, Queueable;
+    use Dispatchable, Queueable, Spatial;
 
     protected string $riverName;
 
@@ -38,7 +39,7 @@ class FetchEntireRiverJob implements ShouldQueue
                 ->where('name', $this->riverName)
                 ->recurse()
                 ->output('json')
-                ->get();
+                ->DDQuery();
 
             if (empty($data['elements'])) {
                 Log::warning("Brak danych dla rzeki: {$this->riverName}");
@@ -94,18 +95,5 @@ class FetchEntireRiverJob implements ShouldQueue
         }
     }
 
-    /**
-     * Konwertuje punkty do formatu WKT LineString.
-     *
-     * @param array $points
-     * @return string
-     */
-    protected function convertToWKTLineString(array $points): string
-    {
-        $coordinates = array_map(function ($point) {
-            return implode(' ', $point);
-        }, $points);
 
-        return 'LINESTRING(' . implode(', ', $coordinates) . ')';
-    }
 }

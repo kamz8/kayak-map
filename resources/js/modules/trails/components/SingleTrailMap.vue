@@ -172,7 +172,7 @@ export default {
       }
 
       let dupa = this.currentTrail.river_track.track_points
-          .map(point => [point.lat, point.lang]); // Formatowanie dla leaflet: [lat, lng]
+          .map(point => [point.lat, point.lon]); // Formatowanie dla leaflet: [lat, lon]
 
       console.log(dupa)
       return dupa

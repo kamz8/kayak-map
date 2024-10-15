@@ -40,8 +40,16 @@ export default defineConfig({
         manifest: true,
         outDir: 'public/build',
         rollupOptions: {
-            input: 'resources/js/app.js'
-        }
+            input: 'resources/js/app.js',
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return 'vendor';
+                    }
+                },
+            },
+        },
+        chunkSizeWarningLimit: 1000,
     },
     server: {
         host: '0.0.0.0',
@@ -57,9 +65,11 @@ export default defineConfig({
             host: host,
             protocol: 'wss',
             port: 5173,
+            overlay: false,
         },
         watch: {
             usePolling: true,
+            interval: 1000,
         },
         proxy: {
             '/api': {
