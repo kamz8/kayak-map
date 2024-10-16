@@ -22,8 +22,8 @@ class NearbyTrailsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'lat' => 'required|numeric|between:-90,90',
-            'long' => 'required|numeric|between:-180,180',
+            'lat' => 'nullable|numeric|between:-90,90',
+            'long' => 'nullable|numeric|between:-180,180',
             'location_name' => 'nullable|string'
         ];
     }

@@ -14,7 +14,7 @@ class NearbyTrailsCollection extends ResourceCollection
             'status' => 'success',
             'data' => NearbyTrailResource::collection($this->collection),
             'message' => 'Top 10 nearby trails retrieved successfully.',
-            'total_trails' => $this->collection->count(), // dodatkowe pole
+            'total_trails' => $this->collection->count(),
         ];
     }
 }

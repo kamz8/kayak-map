@@ -83,6 +83,7 @@ class TrailController extends Controller
      */
     public function getNearbyTrails(NearbyTrailsRequest $request): NearbyTrailsCollection
     {
+        $request->validated();
         $latitude = $request->input('lat');
         $longitude = $request->input('long');
         $locationName = $request->input('location_name');
