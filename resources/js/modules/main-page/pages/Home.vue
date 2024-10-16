@@ -4,6 +4,13 @@
     <v-row>
       <v-container>
         <v-row class="mt-5 mb-4">
+
+          <v-col cols="12">
+            <h2>Lokalne szlaki w pobliżu {{ city }}</h2>
+          </v-col>
+        </v-row>
+
+        <v-row>
           <!-- Szkielet ładowania -->
           <v-col
               v-if="isLoading"
@@ -36,14 +43,8 @@
               </v-card-text>
             </v-card>
           </v-col>
-
-          <v-col cols="12">
-            <h2>Lokalne szlaki w pobliżu {{ city }}</h2>
-          </v-col>
-        </v-row>
-
-        <v-row>
           <v-col
+              v-else
               v-for="trail in limitedTrails"
               :key="trail.id"
               cols="12"
@@ -55,6 +56,7 @@
             <nearby-trail-card :trail="trail" :appConfig="appConfig" />
           </v-col>
         </v-row>
+
       </v-container>
     </v-row>
   </v-container>
@@ -70,7 +72,6 @@ import SectionTwo from "@/modules/main-page/components/sections/SectionTwo.vue";
 import SectionThree from "@/modules/main-page/components/sections/SectionThree.vue";
 import HeroSection from "@/modules/main-page/components/Hero.vue";
 import NearbyTrailCard from "@/modules/main-page/components/NearbyTrailCard.vue";
-import { useGeolocation, useStorage } from '@vueuse/core';
 import axios from 'axios';
 
 export default {
@@ -109,34 +110,39 @@ export default {
       if (this.locationAttempted) return;
 
       this.locationAttempted = true;
-      const storedLocation = useStorage('locationData', null);
+      const storedLocation = JSON.parse(localStorage.getItem('locationData'));
 
-      if (storedLocation.value && storedLocation.value.lat && storedLocation.value.long) {
-        this.city = storedLocation.value.city;
-        this.coordinates.lat = storedLocation.value.lat;
-        this.coordinates.long = storedLocation.value.long;
-        await this.fetchTrailsNearby(storedLocation.value.lat, storedLocation.value.long, storedLocation.value.city);
+      if (storedLocation && storedLocation.lat && storedLocation.long) {
+        this.city = storedLocation.city;
+        this.coordinates.lat = storedLocation.lat;
+        this.coordinates.long = storedLocation.long;
+        await this.fetchTrailsNearby(storedLocation.lat, storedLocation.long, storedLocation.city);
       } else {
         await this.getGeolocation();
       }
     },
     async getGeolocation() {
-      const { coords, error: geoError } = useGeolocation();
-
-      if (coords.value && coords.value.latitude && coords.value.longitude) {
-        this.coordinates.lat = coords.value.latitude;
-        this.coordinates.long = coords.value.longitude;
-        await this.reverseGeocode(coords.value.latitude, coords.value.longitude);
-      } else if (geoError.value) {
-        this.$alertError('Nie udało się uzyskać lokalizacji.');
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              this.coordinates.lat = position.coords.latitude;
+              this.coordinates.long = position.coords.longitude;
+              await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
+            },
+            (error) => {
+              this.$alertError('Nie udało się uzyskać lokalizacji.');
+            }
+        );
+      } else {
+        this.$alertError('Geolokalizacja nie jest wspierana przez tę przeglądarkę.');
       }
     },
     async reverseGeocode(lat, long) {
       try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}`);
         this.city = response.data.address.city || 'Nieznane miasto';
-        const storedLocation = useStorage('locationData', null);
-        storedLocation.value = { city: this.city, lat: lat, long: long };
+        const storedLocation = { city: this.city, lat: lat, long: long };
+        localStorage.setItem('locationData', JSON.stringify(storedLocation));
         await this.fetchTrailsNearby(lat, long, this.city);
       } catch (error) {
         this.$alertError('Nie udało się uzyskać nazwy lokalizacji.');
@@ -153,10 +159,10 @@ export default {
       }
     },
     async loadDefaultTrails() {
-      this.isLoading = true
+      this.isLoading = true;
       try {
         const response = await axios.get(`/api/v1/trails/nearby?location_name=Polska`);
-        this.isLoading = false
+        this.isLoading = false;
         this.trails = response.data.data;
       } catch (error) {
         this.$alertError('Nie udało się pobrać tras dla Polski.');
@@ -164,6 +170,7 @@ export default {
     }
   }
 };
+
 </script>
 
 <style scoped>

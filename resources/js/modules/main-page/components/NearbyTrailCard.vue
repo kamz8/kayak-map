@@ -14,7 +14,7 @@
       <v-rating v-model="trail.rating" readonly size="xs" color="yellow" >{{trail.rating}}</v-rating>
     </v-card-subtitle>
     <v-card-text>
-      <span>{{ trail.length }} - {{ trail.distance ?? '' }} km - {{ trail.difficulty }}</span>
+      <span>{{ trail.length }} km - {{ trail.distance ?? '' }} - {{ trail.difficulty }}</span>
     </v-card-text>
   </v-card>
 </template>
@@ -32,14 +32,6 @@ export default {
       required: true
     }
   },
-  methods: {
-    formatLocation(location) {
-      if (location.type === 'geographic_area') {
-        return `${location.region}, ${location.country}`;
-      } else if (!location.type)
-      return `${location.city}, ${location.state}, ${location.country}`;
-    }
-  }
 };
 </script>
 
