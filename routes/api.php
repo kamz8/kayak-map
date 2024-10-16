@@ -21,6 +21,7 @@ Route::middleware('api')->prefix('v1')->group(function () {
         return ['message'=>'Witamy w naszym api', ];
     });
     Route::get('trails', [TrailController::class, 'index']);
+    Route::get('/trails/nearby', [TrailController::class, 'getNearbyTrails']);
     Route::get('trail/{slug}', [TrailController::class, 'show']);
     Route::get('/river-track/{id}', [RiverTrackController::class, 'show']);
     Route::post('/upload-gpx', [GPXController::class, 'upload']);

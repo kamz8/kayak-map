@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Trail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class TrailService
 {
@@ -119,5 +120,43 @@ class TrailService
                     });
             });
         }
+    }
+
+    /**
+     * Pobiera listę tras w pobliżu na podstawie współrzędnych.
+     *
+     * @param float $latitude
+     * @param float $longitude
+     * @param string|null $locationName
+     * @return \Illuminate\Support\Collection
+     */
+    public function getNearbyTrails(float $latitude, float $longitude, ?string $locationName = null)
+    {
+        $cacheKey = "nearby_trails_{$latitude}_{$longitude}_{$locationName}";
+
+        return Cache::store('redis')->remember($cacheKey, now()->hours(24), function () use ($latitude, $longitude, $locationName) {
+            $radius = 50000;
+
+            $query = Trail::selectRaw("
+                    trails.*,
+                    ST_Distance_Sphere(POINT(?, ?), POINT(trails.start_lat, trails.start_lng)) AS distance
+                ", [$latitude, $longitude])
+                ->whereRaw('ST_Distance_Sphere(POINT(?, ?), POINT(trails.start_lat, trails.start_lng)) <= ?', [
+                    $latitude, $longitude, $radius
+                ])
+                ->orderBy('distance')
+                ->orderByDesc('rating') // Sortowanie po ocenie (najlepsze trasy)
+                ->limit(10);
+
+            // Filtrowanie na podstawie nazwy lokalizacji (nazwa regionu)
+            if ($locationName) {
+                $query->whereHas('regions', function ($q) use ($locationName) {
+                    $q->where('name', 'LIKE', "%$locationName%");
+                });
+            }
+
+            // Zwracamy wyniki z bazy danych
+            return $query->get();
+        });
     }
 }
