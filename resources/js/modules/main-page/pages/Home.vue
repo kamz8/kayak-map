@@ -1,146 +1,213 @@
 <template>
-    <HeroSection :city="city" :coordinates="coordinates" />
-        <v-container fluid class="mt-5 mx-0">
-            <v-row>
-                <v-container>
-                    <v-row>
-                        <v-col cols="12">
-                            <v-img src="https://images.pexels.com/photos/2525517/pexels-photo-2525517.jpeg" aspect-ratio="16/9">
-                                <div class="search-container">
-                                    <v-text-field
-                                        label="Search by city, park, or trail name"
-                                        filled
-                                        rounded
-                                        prepend-inner-icon="mdi-magnify"
-                                    ></v-text-field>
-                                </div>
-                            </v-img>
-                        </v-col>
-                    </v-row>
-                    <v-row class="mt-5">
-                        <v-col cols="12">
-                            <h2>Lokalne szlaki w pobliżu {{city}}</h2>
-                        </v-col>
-                        <v-col cols="3" v-for="(trail, index) in trails" :key="index">
-                            <v-card>
-                                <v-img :src="trail.image" height="200px"></v-img>
-                                <v-card-title>{{ trail.name }}</v-card-title>
-                                <v-card-subtitle>{{ trail.location }}</v-card-subtitle>
-                                <v-card-text>
-                                    <v-rating v-model="trail.rating" color="yellow" readonly></v-rating>
-                                    <span>{{ trail.distance }} km - {{ trail.difficulty }}</span>
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-                    </v-row>
-                </v-container>
-            </v-row>
-        </v-container>
-    <section-one></section-one>
-    <section-two></section-two>
-    <section-three/>
+  <HeroSection :city="city" :coordinates="coordinates"/>
+  <v-container fluid class="mt-5 mx-0">
+    <v-row>
+      <v-container>
+        <v-row class="mt-5 mb-4">
+          <!-- Szkielet ładowania -->
+          <v-col
+              v-if="isLoading"
+              v-for="n in 4"
+              :key="n"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+          >
+            <v-card height="400">
+              <!-- Szkielet obrazu -->
+              <v-skeleton-loader boilerplate type="image" class="skeleton-image" />
+
+              <!-- Szkielet zawartości karty -->
+              <v-card-text>
+                <!-- Szkielet tytułu -->
+                <v-skeleton-loader boilerplate type="text" class="skeleton-title mb-2" />
+
+                <!-- Szkielet opisu -->
+                <v-skeleton-loader boilerplate type="text" class="skeleton-subtitle mb-2" />
+
+                <!-- Szkielet gwiazdek (przykład za pomocą ikon) -->
+                <div class="d-flex mb-2">
+                  <v-skeleton-loader boilerplate type="text" width="120px" />
+                </div>
+
+                <!-- Szkielet dodatkowych informacji -->
+                <v-skeleton-loader boilerplate type="text" width="80px" />
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12">
+            <h2>Lokalne szlaki w pobliżu {{ city }}</h2>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col
+              v-for="trail in limitedTrails"
+              :key="trail.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+              class="trail-col"
+          >
+            <nearby-trail-card :trail="trail" :appConfig="appConfig" />
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-row>
+  </v-container>
+
+  <section-one></section-one>
+  <section-two></section-two>
+  <section-three/>
 </template>
 
 <script>
-import MainLayout from '@/layouts/MainLayout.vue';
 import SectionOne from "@/modules/main-page/components/sections/SectionOne.vue";
 import SectionTwo from "@/modules/main-page/components/sections/SectionTwo.vue";
 import SectionThree from "@/modules/main-page/components/sections/SectionThree.vue";
 import HeroSection from "@/modules/main-page/components/Hero.vue";
-import { useGeolocation } from '@vueuse/core'
-import {watchEffect} from "vue";
+import NearbyTrailCard from "@/modules/main-page/components/NearbyTrailCard.vue";
+import { useGeolocation, useStorage } from '@vueuse/core';
+import axios from 'axios';
 
 export default {
-    name: 'Home',
-    components: {
-        HeroSection,
-        SectionThree,
-        SectionTwo,
-        SectionOne,
-        MainLayout
-    },
-    data() {
-        return {
-            trails: [
-                {
-                    name: 'Sobótka - Ślęża',
-                    location: 'Ślęża Landscape Park',
-                    image: 'https://images.pexels.com/photos/2525517/pexels-photo-2525517.jpeg',
-                    rating: 5,
-                    distance: 9.8,
-                    difficulty: 'Moderate'
-                },
-                {
-                    name: 'Tapada - Ślęża Nature Trail',
-                    location: 'Ślęża Landscape Park',
-                    image: 'https://images.pexels.com/photos/2525517/pexels-photo-2525517.jpeg',
-                    rating: 4.5,
-                    distance: 6.0,
-                    difficulty: 'Moderate'
-                },
-                {
-                    name: 'Wielka Wyspa Loop',
-                    location: 'Wroclaw, Lower Silesian, Poland',
-                    image: 'https://images.pexels.com/photos/2525517/pexels-photo-2525517.jpeg',
-                    rating: 4.4,
-                    distance: 12.2,
-                    difficulty: 'Moderate'
-                },
-                {
-                    name: 'Tapada Pass - Ślęża',
-                    location: 'Ślęża Landscape Park',
-                    image: 'https://images.pexels.com/photos/2525517/pexels-photo-2525517.jpeg',
-                    rating: 4.4,
-                    distance: 7.7,
-                    difficulty: 'Moderate'
-                }
-            ],
-            city: '',
-            coordinates: {
-                lat: null,
-                lng: null
-            },
-        };
-    },
-    created() {
-        const { coords } = useGeolocation();
-
-        watchEffect(() => {
-            if (coords.value) {
-                this.coordinates.lat = coords.value.latitude;
-                this.coordinates.lng = coords.value.longitude;
-                this.getCityName(coords.value.latitude, coords.value.longitude);
-            }
-        });
-    },
-    methods: {
-        async getCityName(lat, lng) {
-
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                this.city = data.address.city || data.address.town || data.address.village || 'Unknown location';
-            } catch (error) {
-                console.error('Error fetching city name:', error);
-            }
-        }
+  name: 'Home',
+  components: {
+    SectionThree,
+    SectionTwo,
+    SectionOne,
+    NearbyTrailCard,
+    HeroSection,
+  },
+  data() {
+    return {
+      trails: [],
+      city: 'Polska',
+      error: '',
+      coordinates: {
+        lat: 52.237049,  // Domyślne współrzędne dla centrum Polski (Warszawa)
+        long: 21.017532,
+      },
+      locationAttempted: false,
+      isLoading: true,
+    };
+  },
+  mounted() {
+    this.loadDefaultTrails(); // Domyślnie ładujemy szlaki dla Polski
+    this.initializeLocation(); // Próbujemy pobrać lokalizację użytkownika, jeśli jest dostępna
+  },
+  computed: {
+    limitedTrails() {
+      return this.trails.slice(0, 4);
     }
+  },
+  methods: {
+    async initializeLocation() {
+      if (this.locationAttempted) return;
+
+      this.locationAttempted = true;
+      const storedLocation = useStorage('locationData', null);
+
+      if (storedLocation.value && storedLocation.value.lat && storedLocation.value.long) {
+        this.city = storedLocation.value.city;
+        this.coordinates.lat = storedLocation.value.lat;
+        this.coordinates.long = storedLocation.value.long;
+        await this.fetchTrailsNearby(storedLocation.value.lat, storedLocation.value.long, storedLocation.value.city);
+      } else {
+        await this.getGeolocation();
+      }
+    },
+    async getGeolocation() {
+      const { coords, error: geoError } = useGeolocation();
+
+      if (coords.value && coords.value.latitude && coords.value.longitude) {
+        this.coordinates.lat = coords.value.latitude;
+        this.coordinates.long = coords.value.longitude;
+        await this.reverseGeocode(coords.value.latitude, coords.value.longitude);
+      } else if (geoError.value) {
+        this.$alertError('Nie udało się uzyskać lokalizacji.');
+      }
+    },
+    async reverseGeocode(lat, long) {
+      try {
+        const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}`);
+        this.city = response.data.address.city || 'Nieznane miasto';
+        const storedLocation = useStorage('locationData', null);
+        storedLocation.value = { city: this.city, lat: lat, long: long };
+        await this.fetchTrailsNearby(lat, long, this.city);
+      } catch (error) {
+        this.$alertError('Nie udało się uzyskać nazwy lokalizacji.');
+      }
+    },
+    async fetchTrailsNearby(lat, long, locationName) {
+      try {
+        const response = await axios.get(`/api/v1/trails/nearby`, {
+          params: { lat, long, location_name: locationName },
+        });
+        this.trails = response.data.data;
+      } catch (error) {
+        this.$alertError('Nie udało się pobrać lokalnych szlaków.');
+      }
+    },
+    async loadDefaultTrails() {
+      this.isLoading = true
+      try {
+        const response = await axios.get(`/api/v1/trails/nearby?location_name=Polska`);
+        this.isLoading = false
+        this.trails = response.data.data;
+      } catch (error) {
+        this.$alertError('Nie udało się pobrać tras dla Polski.');
+      }
+    }
+  }
 };
 </script>
 
 <style scoped>
-.search-container {
-    position: absolute;
-    bottom: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
+.scrolling-wrapper {
+  display: flex;
+  overflow-y: auto;
+  max-height: 100%;
+  flex-wrap: nowrap;
 }
 
-.v-text-field .v-input__control {
-    background-color: white;
-    border-radius: 25px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+.trail-col {
+  flex: 0 0 auto;
+  width: 25%; /* Ustaw 25%, aby ograniczyć widoczność maksymalnie 4 kolumn jednocześnie */
+}
+
+@media (max-width: 1200px) {
+  .trail-col {
+    width: 33.33%; /* Na mniejszych ekranach możesz dostosować szerokość */
+  }
+}
+
+@media (max-width: 960px) {
+  .trail-col {
+    width: 50%;
+  }
+}
+
+@media (max-width: 600px) {
+  .trail-col {
+    width: 100%;
+  }
+}
+
+.skeleton-image {
+  height: 200px; /* Ustaw wysokość obrazu podobnie jak w pełnej karcie */
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 70%;
+}
+
+.skeleton-subtitle {
+  height: 18px;
+  width: 50%;
 }
 </style>
