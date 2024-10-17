@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\NearbyTrailsRequest;
 use App\Http\Requests\TrailRequest;
+use App\Http\Resources\NearbyTrailResource;
+use App\Http\Resources\NearbyTrailsCollection;
 use App\Http\Resources\TrailCollection;
 use App\Http\Resources\TrailResource;
 use App\Services\TrailService;
 use App\Services\RegionService;
 use Illuminate\Http\JsonResponse;
 use MatanYadaev\EloquentSpatial\Objects\Point;
+use Symfony\Component\HttpFoundation\Response;
 
 class TrailController extends Controller
 {
@@ -69,5 +73,23 @@ class TrailController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Trail not found'], 404);
         }
+    }
+
+    /**
+     * Pobiera trasy w pobliżu na podstawie lokalizacji.
+     *
+     * @param NearbyTrailsRequest $request
+     * @return NearbyTrailsCollection
+     */
+    public function getNearbyTrails(NearbyTrailsRequest $request): NearbyTrailsCollection
+    {
+        $request->validated();
+        $latitude = $request->input('lat');
+        $longitude = $request->input('long');
+        $locationName = $request->input('location_name');
+
+        $trails = $this->trailService->getNearbyTrails($latitude, $longitude, $locationName);
+
+        return new NearbyTrailsCollection($trails);
     }
 }

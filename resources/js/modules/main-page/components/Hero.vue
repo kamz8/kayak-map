@@ -92,7 +92,7 @@ export default {
         },
         coordinates: {
             type: Object,
-            default: () => ({ lat: null, lng: null })
+            default: () => ({ lat: 0, lng: 0 })
         }
     },
     data() {
@@ -121,7 +121,7 @@ export default {
 <style scoped>
 .hero-section {
     position: relative;
-    height: 36vw;
+    height: 50vh;
 }
 
 .v-carousel__controls__item {
