@@ -18,7 +18,7 @@ class RiverTrackResource extends JsonResource
         return [
             'id' => $this->id,
             'trail_id' => $this->trail_id,
-            'track_points' => json_decode($this->track_points, true),
+            'track_points' => $this->track_points,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

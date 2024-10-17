@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('river_tracks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('trail_id')->constrained('trails')->onDelete('cascade');
-            $table->json('track_points'); // Przechowuje punkty przebiegu jako JSON
+            $table->geography('track_points', 'LINESTRING')->index();
             $table->timestamps();
         });
 

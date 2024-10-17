@@ -2,18 +2,23 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
         "ext-xml": "*",
         "geocoder-php/nominatim-provider": "^5.7",
         "guzzlehttp/guzzle": "^7.8",
+        "kamz8/laravel-overpass": "0.1.0-alpha",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "matanyadaev/laravel-eloquent-spatial": "^4.3",
         "php-http/guzzle7-adapter": "^1.0",
+        "predis/predis": "^2.2",
         "sibyx/phpgpx": "1.3.0"
     },
     "require-dev": {
@@ -22,6 +27,8 @@
         "laravel/sail": "^1.26",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.0",
+        "orchestra/pest-plugin-testbench": "^2.0",
+        "orchestra/testbench": "^9.2",
         "pestphp/pest": "^2.34",
         "pestphp/pest-plugin-laravel": "^2.4"
     },
@@ -29,16 +36,30 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Kamz8\\LaravelOverpass\\": "packages/Kamz8/LaravelOverpass/src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/",
+            "Kamz8\\LaravelOverpass\\Tests\\": "packages/Kamz8/LaravelOverpass/tests/"
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/Kamz8/LaravelOverpass"
+
+        }
+    ],
     "scripts": {
         "post-autoload-dump": [
+            "@clear",
+            "@prepare",
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
@@ -52,6 +73,21 @@
             "@php artisan key:generate --ansi",
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "lint": [
+            "@php vendor/bin/pint",
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "test": [
+            "@php vendor/bin/pest"
         ]
     },
     "extra": {

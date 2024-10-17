@@ -1,5 +1,5 @@
 const appConfig = {
-    placeholderImage: '/assets/trailsplaceholder.webp',
+    placeholderImage: '/storage/assets/trailsplaceholder.webp',
 
 };
 
