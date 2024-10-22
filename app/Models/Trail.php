@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -81,6 +82,13 @@ class Trail extends Model
             $this->load('images');
         }
         return $this->images->firstWhere('pivot.is_main', true);
+    }
+
+    public function scopeSearch(Builder $query, string $searchTerm): Builder
+    {
+        return $query->where('trail_name', 'like', "%{$searchTerm}%")
+            ->orWhere('river_name', 'like', "%{$searchTerm}%")
+            ->orWhere('description', 'like', "%{$searchTerm}%");
     }
 
 }

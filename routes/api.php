@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\GPXController;
 use App\Http\Controllers\Api\V1\RegionController;
 use App\Http\Controllers\Api\V1\ReverseGeocodingController;
@@ -38,7 +39,10 @@ Route::middleware('api')->prefix('v1')->group(function () {
     Route::middleware('throttle.nominatim')->group(function (){
         Route::post('/geocoding/reverse', [ReverseGeocodingController::class, 'reverseGeocode']);
         Route::get('/trails/{id}/reverse_geocode', [TrailGeocodingController::class, 'getStartPointRegion']);
+
     });
+
+    Route::get('search', [SearchController::class, 'search'])->middleware('throttle:60,1');
 
 });
 

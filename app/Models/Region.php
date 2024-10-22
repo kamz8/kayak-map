@@ -5,6 +5,7 @@ namespace App\Models;
 namespace App\Models;
 
 use App\Enums\RegionType;
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
@@ -58,5 +59,10 @@ class Region extends Model
         return Attribute::make(
             set: fn ($value) => str_slug($value),
         );
+    }
+
+    public function scopeSearch(Builder $query, string $searchTerm): Builder
+    {
+        return $query->where('name', 'like', "%{$searchTerm}%");
     }
 }
