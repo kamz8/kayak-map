@@ -35,38 +35,7 @@
                     <v-col>
                         <h1 class="headline">Znajdź wymarzoną trasę</h1>
 
-                        <v-combobox
-                            v-model="search"
-                            class="search-box text-black"
-                            filled
-                            rounded
-                            hide-details
-                            variant="solo"
-                            single-line
-                            placeholder="Szukaj po regionach, miastach, rzekach"
-                            :items="recentSearches"
-                            item-text="name"
-                            item-value="name"
-                            hide-selected
-                            no-data-text="Brak ostatnio przeglądanych tras"
-                        >
-                            <template v-slot:prepend-inner>
-                                <v-icon class="map-search">mdi-map-search</v-icon>
-                            </template>
-                            <template v-slot:item="data">
-                                <template>
-                                    <v-list-item>
-                                        <v-list-item-icon>
-                                            <v-icon>mdi-map-marker</v-icon>
-                                        </v-list-item-icon>
-                                        <v-list-item-content>
-                                            <v-list-item-title v-text="data.item.name"></v-list-item-title>
-                                            <v-list-item-subtitle v-text="data.item.details"></v-list-item-subtitle>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </template>
-                            </template>
-                        </v-combobox>
+                        <search-component/>
                     </v-col>
                     <v-row class="pt-4">
                         <v-col>
@@ -81,10 +50,12 @@
 
 <script>
 import BaseBtnProgress from "@/components/BaseBtnProgress.vue";
+import SearchBox from "@/modules/trails/components/Toolbar/SearchBox.vue";
+import SearchComponent from "@/modules/main-page/components/MainSearch/SearchComponent.vue";
 
 export default {
     name: 'HeroSection',
-    components: { BaseBtnProgress },
+    components: {SearchComponent, SearchBox, BaseBtnProgress },
     props: {
         city: {
             type: String,

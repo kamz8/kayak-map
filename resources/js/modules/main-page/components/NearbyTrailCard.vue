@@ -27,10 +27,7 @@ export default {
       type: Object,
       required: true
     },
-    appConfig: {
-      type: Object,
-      required: true
-    }
+
   },
 };
 </script>
