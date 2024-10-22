@@ -26,6 +26,16 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $e, $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    return response()->json([
+                        'error' => [
+                            'code' => 422,
+                            'message' => $e->getMessage(),
+                            'errors' => $e->errors(),
+                        ]
+                    ], 422);
+                }
+
                 $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
                 $message = $e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
                     ? 'The requested API endpoint does not exist.'

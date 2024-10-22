@@ -5,6 +5,7 @@ services:
             dockerfile: Dockerfile
         image: kayak-app
         container_name: kayak-app
+        network_mode: "host"
         restart: unless-stopped
         working_dir: /var/www/html
         environment:
@@ -21,9 +22,9 @@ services:
             REDIS_PORT: 6379
             NODE_ENV: development
         volumes:
-            - .:/var/www/html
+            - .:/var/www/html:cached
             - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
-            - ./node_modules:/var/www/html/node_modules
+            - ./node_modules:/var/www/html/node_modules:cached
             - laravel-storage:/var/www/html/storage
             - ./storage:/var/www/html/storage
         depends_on:
@@ -31,6 +32,11 @@ services:
             - redis
         networks:
             - laravel
+        deploy:
+            resources:
+              limits:
+                  cpus: '2'
+                  memory: 2G
 
     nginx:
         image: nginx:latest
@@ -82,10 +88,11 @@ services:
             context: .
             dockerfile: Dockerfile.vite
         container_name: vite
+        network_mode: "host"
         volumes:
             - .:/var/www/html:cached
             - ./docker/ssl:/etc/ssl:ro
-            - node_modules:/var/www/html/node_modules
+            - node_modules:/var/www/html/node_modules:cached
         ports:
             - "5173:5173"
             - "3000:3000"
@@ -98,8 +105,8 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '2'
-                    memory: 2G
+                    cpus: '3'
+                    memory: 4G
 
 
 volumes:

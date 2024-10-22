@@ -17,7 +17,7 @@ export default defineConfig({
             refresh: true,
         }),
         browsersync({
-            host: '0.0.0.0',
+            host: host,
             port: 3000,
             proxy: 'https://nginx',
             https: {
@@ -28,7 +28,7 @@ export default defineConfig({
         })
     ],
     optimizeDeps: {
-        include: ['leaflet', 'vue-leaflet-markercluster']
+        include: ['vue','leaflet', 'vue-leaflet-markercluster','vue-router']
     },
     resolve: {
         alias: {
@@ -46,9 +46,15 @@ export default defineConfig({
                     if (id.includes('node_modules')) {
                         return 'vendor';
                     }
+                    if (id.includes('main-page')) {
+                        return 'main-page'
+                    }
                 },
             },
         },
+        target: 'esnext',
+        minify: false,
+        cssCodeSplit: false,
         chunkSizeWarningLimit: 1000,
     },
     server: {
@@ -65,7 +71,6 @@ export default defineConfig({
             host: host,
             protocol: 'wss',
             port: 5173,
-            overlay: false,
         },
         watch: {
             usePolling: true,
