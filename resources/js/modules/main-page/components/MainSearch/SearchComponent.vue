@@ -32,7 +32,7 @@
 
         <!-- Wyświetlanie ikony przed elementem listy -->
         <template v-slot:item="{ item, props }">
-            <v-list-item v-bind="props" color="primary" class="text-grey-darken-4" variant="plain" @click="navigateToPage(item.raw)">
+            <v-list-item v-bind="props" color="primary" class="text-grey-darken-4" variant="plain" link @click="navigateToPage(item.raw)">
                 <template v-slot:prepend>
                     <v-sheet rounded width="50" class="d-flex justify-center align-center mr-4 pr-2" height="50" color="grey-lighten-3">
                         <v-icon class="text-blue-darken-4" size="large" :icon="item.raw.icon"/>
@@ -150,7 +150,10 @@ export default {
                 });
             }
             if (['city', 'country', 'state', 'geographic_area', 'area'].includes(item.type)) {
-                this.$router.push({ name: 'region', params: { slug: item.slug } });
+                console.log(item.slug);
+                this.$router.push({
+                    path: `/region/${item.slug}`,
+                });
             }
 
         },

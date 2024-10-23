@@ -86,7 +86,7 @@ class SearchService
     private function searchRegions(string $query, string $type = 'all'): Collection
     {
         $regionQuery = Region::query()
-            ->with('parent') // Eager load the parent relationship
+            ->with('parent.parent') // Eager load the parent relationship
             ->where('name', 'like', "%{$query}%");
 
         if ($type !== 'all') {
@@ -189,7 +189,7 @@ class SearchService
         }
 
         if ($type === 'trail') {
-            // Dla szlaku, dodaj nazwę miasta lub obszaru geograficznego, jeśli istnieje
+            // Dla szlaku dodaj nazwę miasta lub obszaru geograficznego, jeśli istnieje
             $cityOrArea = $item->region?->name;
             if ($cityOrArea) {
                 $slugParts[] = Str::slug($cityOrArea);
@@ -249,7 +249,8 @@ class SearchService
     private function formatLocation($item, string $type): string
     {
         if ($type === 'trail') {
-            $region = $item->region;
+            $region = $item->regions->first() ?? null;
+
         } else {
             $region = $item;
         }
@@ -258,6 +259,7 @@ class SearchService
         while ($region) {
             array_unshift($locationParts, $region->name);
             $region = $region->parent;
+
         }
 
         return implode(', ', $locationParts);

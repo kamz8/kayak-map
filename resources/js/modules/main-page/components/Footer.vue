@@ -31,9 +31,9 @@
         <v-col cols="12" md="6">
           <h3 class="text-h6 font-weight-bold white--text mb-4">Aplikacja dla miłośników kajakarstwa</h3>
           <div class="d-flex">
-            <v-btn variant="text" href="#" target="_blank" class="pa-0 mr-4">
-              <v-img src="/storage/assets/app-store-badge.png" alt="Download on App Store" height="40" contain></v-img>
-            </v-btn>
+<!--            <v-btn variant="text" href="#" target="_blank" class="pa-0 mr-4">
+              <v-img src="/storage/assets/app-store-badge.svg" alt="Download on App Store" min-width="135px" min-height="40px" contain></v-img>
+            </v-btn>-->
             <v-btn
                 variant="text"
                 href="#"

@@ -23,8 +23,8 @@ export default [
 
     },
     {
-        path: '/:slug',
-        name: 'regions',
+        path: '/region/:slug(.*)',
+        name: 'region',
         component: Region,
         meta: {
             layout: 'MainLayout',

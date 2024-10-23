@@ -53,6 +53,11 @@ class Region extends Model
         return $this->belongsToMany(Trail::class, 'trail_region');
     }
 
+    public function ancestors(): \Illuminate\Database\Eloquent\Relations\BelongsTo|\Illuminate\Database\Eloquent\Builder
+    {
+        return $this->parent()->with('ancestors');
+    }
+
 
     protected function slug(): Attribute
     {

@@ -28,7 +28,7 @@ export default defineConfig({
         })
     ],
     optimizeDeps: {
-        include: ['vue','leaflet', 'vue-leaflet-markercluster','vue-router']
+        include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'axios', 'vue-leaflet-markercluster']
     },
     resolve: {
         alias: {
@@ -53,7 +53,7 @@ export default defineConfig({
             },
         },
         target: 'esnext',
-        minify: false,
+        minify: true,
         cssCodeSplit: false,
         chunkSizeWarningLimit: 1000,
     },
