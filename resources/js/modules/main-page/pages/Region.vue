@@ -17,7 +17,7 @@
 
 <script>
 import SectionOne from "@/modules/main-page/components/sections/SectionOne.vue";
-import SectionTwo from "@/modules/main-page/components/sections/SectionTwo.vue";
+import SectionTwo from "@/modules/main-page/components/sections/SectionExplore.vue";
 import SectionThree from "@/modules/main-page/components/sections/SectionThree.vue";
 import HeroSection from "@/modules/main-page/components/Hero.vue";
 import NearbyTrailCard from "@/modules/main-page/components/NearbyTrailCard.vue";

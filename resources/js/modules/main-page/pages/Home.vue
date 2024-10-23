@@ -62,23 +62,23 @@
   </v-container>
 
   <section-one></section-one>
-  <section-two></section-two>
+  <section-explore></section-explore>
   <section-three/>
 </template>
 
 <script>
 import SectionOne from "@/modules/main-page/components/sections/SectionOne.vue";
-import SectionTwo from "@/modules/main-page/components/sections/SectionTwo.vue";
 import SectionThree from "@/modules/main-page/components/sections/SectionThree.vue";
 import HeroSection from "@/modules/main-page/components/Hero.vue";
 import NearbyTrailCard from "@/modules/main-page/components/NearbyTrailCard.vue";
 import axios from 'axios';
+import SectionExplore from "@/modules/main-page/components/sections/SectionExplore.vue";
 
 export default {
   name: 'Home',
   components: {
+    SectionExplore,
     SectionThree,
-    SectionTwo,
     SectionOne,
     NearbyTrailCard,
     HeroSection,

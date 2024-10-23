@@ -47,6 +47,8 @@ const vuetify = createVuetify({
                     'marker-highlighted': '#2EB3C4',
                     anchor: '#248996',
                     footer: '#1c3c1c',
+                    'sandy-brown': '#F4A460',
+                    wheat:'#F5DEB3'
 
                 },
             },

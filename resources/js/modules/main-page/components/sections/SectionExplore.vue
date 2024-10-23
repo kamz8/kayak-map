@@ -111,7 +111,7 @@
 import ImageGrid from "@/components/ImageGrid.vue";
 
 export default {
-  name: 'SectionTwo',
+  name: 'SectionExplore',
   components: {ImageGrid},
   data() {
     return {
