@@ -106,80 +106,113 @@ export default {
     }
   },
   methods: {
-    async initializeLocation() {
-      if (this.locationAttempted) return;
+      async initializeLocation() {
+          if (this.locationAttempted) return;
 
-      this.locationAttempted = true;
-      const storedLocation = JSON.parse(localStorage.getItem('locationData'));
+          this.locationAttempted = true;
 
-      if (storedLocation && storedLocation.lat && storedLocation.long) {
-        this.city = storedLocation.city;
-        this.coordinates.lat = storedLocation.lat;
-        this.coordinates.long = storedLocation.long;
-        await this.fetchTrailsNearby(storedLocation.lat, storedLocation.long, storedLocation.city);
-      } else {
-        await this.getGeolocation();
+          // Użycie getCacheWithTTL zamiast get
+          const storedLocation = await this.$cache.getCacheWithTTL('locationData');
+
+          if (storedLocation && storedLocation.lat && storedLocation.long) {
+              this.city = storedLocation.city;
+              this.coordinates.lat = storedLocation.lat;
+              this.coordinates.long = storedLocation.long;
+
+              // Pobranie szlaków na podstawie zapisanej lokalizacji
+              await this.fetchTrailsNearby(storedLocation.lat, storedLocation.long, storedLocation.city);
+          } else {
+              // Jeśli brak danych w cache lub TTL wygasł, pobierz geolokalizację
+              await this.getGeolocation();
+          }
+      },
+
+      async getGeolocation() {
+          try {
+              if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(async (position) => {
+                      const lat = position.coords.latitude;
+                      const long = position.coords.longitude;
+
+                      await this.reverseGeocode(lat, long);
+
+                      // Zapisanie lokalizacji do cache z TTL 24 godziny (86400 sekund)
+                      const locationData = { city: this.city, lat: lat, long: long };
+                      this.$cache.setCacheWithTTL('locationData', locationData, 86400);
+                  }, () => {
+                      this.$alertError('Nie udało się uzyskać lokalizacji.');
+                  });
+              } else {
+                  this.$alertWarning('Geolokalizacja nie jest wspierana w tej przeglądarce.');
+              }
+          } catch (error) {
+              this.$alertError('Błąd podczas uzyskiwania geolokalizacji.');
+          }
+      },
+
+      async reverseGeocode(lat, long) {
+          try {
+              const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}`);
+
+              // Sprawdzenie, czy API zwróciło poprawne dane
+              if (response.data && response.data.address) {
+                  this.city = response.data.address.city || 'Nieznane miasto';
+
+                  const locationData = { city: this.city, lat: lat, long: long };
+                  this.$cache.setCacheWithTTL('locationData', locationData, 86400);
+
+                  await this.fetchTrailsNearby(lat, long, this.city);
+              } else {
+                  throw new Error('Nie można uzyskać adresu z API.');
+              }
+
+          } catch (error) {
+              console.error('Błąd podczas reverse geocoding:', error.response || error.message);
+              this.$alertError('Nie udało się uzyskać nazwy lokalizacji.');
+          }
+      },
+
+      async fetchTrailsNearby(lat, long, locationName) {
+
+          try {
+              // Zapisz wyniki w cache z TTL 24 godziny (86400 sekund)
+              this.trails = await this.$cache.remember(`trailsNearby_${locationName}`, 86400,
+                  async () => {
+                      const response = await axios.get(`/api/v1/trails/nearby`, {
+                          params: { lat, long, location_name: locationName },
+                      });
+                      return response.data.data;
+                  }
+                  , ['trails']);
+          } catch (error) {
+              this.$alertError('Nie udało się pobrać lokalnych szlaków.');
+          }
+      },
+
+      async loadDefaultTrails() {
+          this.isLoading = true;
+
+          const fetchFunction = async () => {
+              const response = await axios.get(`/api/v1/trails/nearby?location_name=Polska`);
+              return response.data.data;
+          };
+
+          try {
+              // Używamy cache dla szlaków domyślnych z TTL 24 godziny (86400 sekund)
+              this.trails = await this.$cache.remember('defaultTrails_Poland', 86400, fetchFunction, ['trails']);
+          } catch (error) {
+              this.$alertError('Nie udało się pobrać tras dla Polski.');
+          } finally {
+              this.isLoading = false;
+          }
       }
-    },
-    async getGeolocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              this.coordinates.lat = position.coords.latitude;
-              this.coordinates.long = position.coords.longitude;
-              await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
-            },
-            (error) => {
-              this.$alertError('Nie udało się uzyskać lokalizacji.');
-            }
-        );
-      } else {
-        this.$alertError('Geolokalizacja nie jest wspierana przez tę przeglądarkę.');
-      }
-    },
-    async reverseGeocode(lat, long) {
-      try {
-        const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}`);
-        this.city = response.data.address.city || 'Nieznane miasto';
-        const storedLocation = { city: this.city, lat: lat, long: long };
-        localStorage.setItem('locationData', JSON.stringify(storedLocation));
-        await this.fetchTrailsNearby(lat, long, this.city);
-      } catch (error) {
-        this.$alertError('Nie udało się uzyskać nazwy lokalizacji.');
-      }
-    },
-    async fetchTrailsNearby(lat, long, locationName) {
-      try {
-        const response = await axios.get(`/api/v1/trails/nearby`, {
-          params: { lat, long, location_name: locationName },
-        });
-        this.trails = response.data.data;
-      } catch (error) {
-        this.$alertError('Nie udało się pobrać lokalnych szlaków.');
-      }
-    },
-    async loadDefaultTrails() {
-      this.isLoading = true;
-      try {
-        const response = await axios.get(`/api/v1/trails/nearby?location_name=Polska`);
-        this.isLoading = false;
-        this.trails = response.data.data;
-      } catch (error) {
-        this.$alertError('Nie udało się pobrać tras dla Polski.');
-      }
-    }
+
   }
 };
 
 </script>
 
 <style scoped>
-.scrolling-wrapper {
-  display: flex;
-  overflow-y: auto;
-  max-height: 100%;
-  flex-wrap: nowrap;
-}
 
 .trail-col {
   flex: 0 0 auto;
