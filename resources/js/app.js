@@ -12,6 +12,7 @@ import moment from 'moment-timezone';
 import AppMixin from "@/mixins/AppMixin.js";
 import L from 'leaflet'
 import cachePlugin from './plugins/cachePlugin.js';
+import { TypingPlugin } from './directives/v-typing'
 
 
 // Ustawienie domyślnej strefy czasowej na Polskę
@@ -28,6 +29,7 @@ app.mixin(AppMixin);
 app.use(router);
 app.use(store);
 app.use(vuetify);
+app.use(TypingPlugin)
 // Use the app helper
 app.use(appHelpers);
 app.use(cachePlugin);
