@@ -10,7 +10,7 @@ class RegionResource extends JsonResource
 {
     public function toArray($request): array
     {
-//        dd($this->area);
+
         return [
             'id' => $this->id,
             'name' => $this->name,

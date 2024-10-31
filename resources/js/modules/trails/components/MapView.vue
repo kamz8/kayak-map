@@ -300,7 +300,7 @@ export default {
 
 .map-controls {
     position: absolute;
-    z-index: 1000;
+    z-index: 2;
 }
 
 .top-right-controls {

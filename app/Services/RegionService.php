@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\RegionType;
 use App\Models\Region;
 use App\Models\Trail;
+use Collection;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
@@ -95,6 +97,10 @@ class RegionService
             ->first();
     }
 
+    /**
+     * @param Region|null $region
+     * @return string|null
+     */
     public function getFullSlug(?Region $region): ?string
     {
         if (!$region) {
@@ -112,6 +118,10 @@ class RegionService
         return implode('/', $slugParts);
     }
 
+    /**
+     * @param Region|null $region
+     * @return array
+     */
     public function getRegionPath(?Region $region): array
     {
         if (!$region) {
@@ -132,4 +142,75 @@ class RegionService
 
         return $path;
     }
+
+    /**
+     * @param int $regionId
+     * @return object|null
+     */
+    public function getRegionStatistics(int $regionId): object
+    {
+        return DB::table('region_trail_statistics')
+            ->where('region_id', $regionId)
+            ->first();
+    }
+    /**
+     * Get nearby regions of the same type
+     *
+     * @param Region $region
+     * @param float $radius Radius in kilometers
+     * @return \Illuminate\Support\Collection
+     */
+    public function getNearbyRegions(Region $region): \Illuminate\Support\Collection
+    {
+        if (!$region->center_point) {
+            return collect();
+        }
+
+        $radiusInKm = match($region->type) {
+            RegionType::CITY => 100,  // 50km dla miast
+            RegionType::GEOGRAPHIC_AREA => 150,
+            RegionType::STATE => 250, // 200km dla województw
+            default => 50
+        };
+
+        // Najpierw pobieramy ID wszystkich przodków
+        /** @var SpatialBuilder $query */
+        return Region::query()
+            ->whereNotNull('area')
+            ->whereNotNull('center_point')
+            ->where('id', '!=', $region->id)
+            ->where('parent_id', $region->parent_id) // wystarczy ten warunek
+            ->whereDistance('center_point', $region->center_point, '<=', $radiusInKm * 1000)
+            ->orderByDistance('center_point', $region->center_point)
+            ->limit(10)
+            ->get();
+    }
+
+    public function getRegionDetails(string $slug): object
+    {
+        $region = $this->getRegionBySlug($slug);
+
+        // Pobieranie z widoku SQL
+        $statistics = DB::table('region_trail_statistics')
+            ->where('region_id', $region->id)
+            ->first();
+
+        // Pobieranie nearby_regions tylko jeśli region ma center_point
+        $nearbyRegions = $region->center_point
+            ? $this->getNearbyRegions($region)
+            : collect();
+
+        // Generowanie bounds tylko jeśli jest center_point
+        $bounds = $region->center_point
+            ? app(GeodataService::class)->createBoundingBox($region->center_point)
+            : null;
+
+        return (object)[
+            'region' => $region,
+            'statistics' => $statistics ?? (object)[],
+            'nearbyRegions' => $nearbyRegions,
+            'bounds' => $bounds
+        ];
+    }
+
 }

@@ -13,6 +13,7 @@ import AppMixin from "@/mixins/AppMixin.js";
 import L from 'leaflet'
 import cachePlugin from './plugins/cachePlugin.js';
 import { TypingPlugin } from './directives/v-typing'
+import appConfig from './config/appConfig.js';
 
 
 // Ustawienie domyślnej strefy czasowej na Polskę
@@ -33,5 +34,7 @@ app.use(TypingPlugin)
 // Use the app helper
 app.use(appHelpers);
 app.use(cachePlugin);
+
+
 
 app.mount('#app');

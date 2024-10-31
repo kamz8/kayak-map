@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Collection;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class GeodataService
 {
@@ -166,5 +167,19 @@ class GeodataService
         }
 
         return $nearestIndex;
+    }
+
+    /**
+     * Generate bouding box from center pount
+     * @param Point $centerPoint
+     * @param float $radius
+     * @return array[]
+     */
+    public function createBoundingBox(Point $centerPoint, float $radius = 0.1): array
+    {
+        return [
+            [$centerPoint->latitude - $radius, $centerPoint->longitude - $radius], // southwest
+            [$centerPoint->latitude + $radius, $centerPoint->longitude + $radius]  // northeast
+        ];
     }
 }

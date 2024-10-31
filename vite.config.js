@@ -5,6 +5,7 @@ import laravel from 'laravel-vite-plugin';
 import fs from 'fs';
 import browsersync from "vite-plugin-browser-sync";
 
+
 const host = 'kayak-map.test';
 export default defineConfig({
     plugins: [
@@ -17,15 +18,15 @@ export default defineConfig({
             refresh: true,
         }),
         browsersync({
-            host: host,
+            host: '0.0.0.0',
             port: 3000,
-            proxy: 'https://nginx',
+            proxy: host,
             https: {
                 key: fs.readFileSync(`./docker/ssl/cert.key`),
                 cert: fs.readFileSync(`./docker/ssl/cert.crt`),
             },
             open: false
-        })
+        }),
     ],
     optimizeDeps: {
         include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'axios', 'vue-leaflet-markercluster']
@@ -42,19 +43,19 @@ export default defineConfig({
         rollupOptions: {
             input: 'resources/js/app.js',
             output: {
-                manualChunks(id) {
+/*                manualChunks(id) {
                     if (id.includes('node_modules')) {
                         return 'vendor';
                     }
                     if (id.includes('main-page')) {
                         return 'main-page'
                     }
-                },
+                },*/
             },
         },
         target: 'esnext',
         minify: true,
-        cssCodeSplit: false,
+        cssCodeSplit: true,
         chunkSizeWarningLimit: 1000,
     },
     server: {
@@ -67,11 +68,13 @@ export default defineConfig({
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
-        hmr: {
+/*        hmr: {
             host: host,
             protocol: 'wss',
             port: 5173,
-        },
+            clientPort: 5173
+
+        },*/
         watch: {
             usePolling: true,
             interval: 1000,

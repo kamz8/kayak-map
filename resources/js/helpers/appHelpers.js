@@ -1,3 +1,6 @@
+
+import { inject } from 'vue';
+
 export default {
     install(app) {
         const store = app.config.globalProperties.$store;
@@ -32,10 +35,26 @@ export default {
             }
         }
 
+        const config = (dotString) => {
+            // Pobieramy konfigurację z inject
+            const configObject = inject('config');
+            if (!configObject) {
+                console.error('Global config is not provided.');
+                return undefined;
+            }
+
+            // Funkcja do nawigacji po obiekcie konfiguracyjnym
+            return dotString.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : undefined), configObject);
+        };
+
         app.config.globalProperties.$alertInfo = createAlertHelper('info');
         app.config.globalProperties.$alertWarning = createAlertHelper('warning');
         app.config.globalProperties.$alertError = createAlertHelper('error');
+        app.config.globalProperties.$config = (dotString) => {
+            // Użyj options.config jako domyślnego obiektu konfiguracyjnego
+            // Funkcja do obsługi notacji kropkowej
+            return dotString.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : undefined), configObject);
+        };
 
-        // rejestruj pozosyałe helpery według schematów
     }
 }

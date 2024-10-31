@@ -1,19 +1,14 @@
 <template>
-    <v-breadcrumbs>
-        <template v-for="(region, index) in sortedRegions" :key="region.id">
-            <v-breadcrumbs-item>{{ region.name }}</v-breadcrumbs-item>
-            <v-breadcrumbs-divider v-if="index < sortedRegions.length - 1">
-                <v-icon icon="mdi-circle-small"/>
-            </v-breadcrumbs-divider>
-        </template>
-    </v-breadcrumbs>
+    <base-regions-breadcrumbs :sorted-regions="sortedRegions" />
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
+import BaseRegionsBreadcrumbs from "@/components/BaseRegionsBreadcrumbs.vue";
 
 export default {
     name: "TrailOverviewToolbar",
+    components: {BaseRegionsBreadcrumbs},
     computed: {
         ...mapGetters({
             currentTrail: 'trails/currentTrail'

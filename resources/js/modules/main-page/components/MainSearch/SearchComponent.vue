@@ -146,13 +146,14 @@ export default {
             if (item.type === 'trail') {
                 return this.$router.push({
                     name: 'trail-overview',
-                    props: { slug: item.slug }
+                    params: { slug: item.slug }
                 });
             }
             if (['city', 'country', 'state', 'geographic_area', 'area'].includes(item.type)) {
                 console.log(item.slug);
                 this.$router.push({
                     path: `/region/${item.slug}`,
+                    props: {slug: item.slug}
                 });
             }
 

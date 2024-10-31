@@ -29,7 +29,8 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
     Route::prefix('regions')->group(function () {
         Route::get('/', [RegionController::class, 'index']);
-        Route::get('/{slug}', [RegionController::class, 'show']);
+        Route::get('{slug}', [RegionController::class, 'show']);
+        Route::get('{slug}/top-trails', [RegionController::class, 'topTrails']);
     });
 
     Route::get('regions/{slug}/trails', [TrailController::class, 'getTrailsByRegion']);

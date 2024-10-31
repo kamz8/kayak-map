@@ -9,6 +9,7 @@ use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use MatanYadaev\EloquentSpatial\Objects\Point;
@@ -65,6 +66,11 @@ class Region extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order')->orderBy('order');
     }
 
+
+    public function links(): MorphToMany
+    {
+        return $this->morphToMany(Link::class, 'linkable');
+    }
 
     protected function slug(): Attribute
     {

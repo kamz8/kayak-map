@@ -2,7 +2,6 @@ import NotFound from "@/modules/main-page/pages/NotFound.vue";
 
 const ExamplePage = () => import("@/modules/main-page/pages/ExamplePage.vue");
 
-const Region = () => import('@/modules/regions/pages/Region.vue')
 const Home = () => import('../../main-page/pages/Home.vue')
 
 export default [
