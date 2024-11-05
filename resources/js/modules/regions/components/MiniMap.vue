@@ -1,68 +1,60 @@
 <template>
     <div class="map-container">
         <l-map
-            :use-global-leaflet="true"
             ref="map"
-            style="height: 100%; width: 100%;"
+            :use-global-leaflet="false"
             :zoom="zoom"
             :center="center"
-            :bounds="bounding"
-            :options="{ zoomControl: false, preferCanvas: true, maxZoom: 18, minZoom: 2 }"
+            :options="mapOptions"
+            @ready="onMapReady"
         >
-            <!-- Warstwa mapy domyślnej -->
             <l-tile-layer :url="url" :attribution="attribution"/>
 
-            <!-- Klastry markerów -->
-            <l-marker-cluster-group v-bind="clusterOptions">
-                <map-markers
-                    :trails="trails"
-                    @highlight-trail="highlightTrail"
-                    @clear-highlight-trail="clearHighlightTrail"
-                    @show-popup="showPopup"
+            <template v-if="isMapReady">
+                <l-marker-cluster-group v-bind="clusterOptions">
+                    <map-markers
+                        :trails="trails"
+                        :active-trail="activeTrail"
+                        :highlighted-trail="highlightedTrail"
+                        @highlight-trail="highlightTrail"
+                        @clear-highlight-trail="clearHighlightTrail"
+                    />
+                </l-marker-cluster-group>
+
+                <l-polyline
+                    v-if="shouldShowPolyline"
+                    :lat-lngs="highlightedTrailCoords"
+                    :color="$vuetify.theme.current.colors['highlight-path']"
+                    :weight="3"
+                    :opacity="0.7"
                 />
-            </l-marker-cluster-group>
-
-            <!-- Podświetlona ścieżka szlaku -->
-            <l-polyline
-                v-if="highlightedTrailCoords && highlightedTrailCoords.length > 0"
-                :lat-lngs="highlightedTrailCoords"
-                :color="$vuetify.theme.current.colors['highlight-path']"
-                :weight="3"
-                :opacity="0.7"
-                :lineCap="'round'"
-                :lineJoin="'round'"
-                class="highlight-path"
-            />
-
-            <!-- Popup z informacjami o trasie -->
-            <mini-popup v-if="popupData" :trail="popupData" @close="popupData = null" />
+            </template>
         </l-map>
 
-        <!-- Kontrolki Zoomu -->
-        <div class="map-controls bottom-left-controls">
+        <div class="map-controls">
             <v-btn icon="mdi-plus" @click="zoomIn" class="control-button" />
             <v-btn icon="mdi-minus" @click="zoomOut" class="control-button" />
         </div>
-        <slot></slot>
+        <div class="overlay-wrapper">
+            <slot></slot>
+        </div>
     </div>
 </template>
 
 <script>
+import { defineComponent, ref, computed } from 'vue';
 import { LMap, LTileLayer, LPolyline } from "@vue-leaflet/vue-leaflet";
 import { LMarkerClusterGroup } from "vue-leaflet-markercluster";
 import MapMarkers from "@/modules/trails/components/Map/MapMarkers.vue";
-import MiniPopup from "@/modules/trails/components/Map/MiniPopup.vue";
 
-export default {
+export default defineComponent({
     name: "MiniMap",
-    components: {LMap, MapMarkers, LPolyline},
-    omponents: {
+    components: {
         LMap,
         LTileLayer,
         LPolyline,
         LMarkerClusterGroup,
-        MapMarkers,
-        MiniPopup,
+        MapMarkers
     },
     props: {
         center: {
@@ -76,41 +68,94 @@ export default {
         trails: {
             type: Array,
             default: () => [],
-        },
-    },
-    data() {
-        return {
-            zoom: 7,
-            url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            attribution: "Leaflet.js | © OpenStreetMap contributors",
-            clusterOptions: {
-                maxClusterRadius: 100,
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false,
-                zoomToBoundsOnClick: true,
-            },
-            highlightedTrailCoords: [],
-            popupData: null, // Dane do miniPopup
         }
     },
+    setup() {
+        const isMapReady = ref(false);
+        const mapInstance = ref(null);
+        const highlightedTrail = ref(null);
+        const activeTrail = ref(null);
+        const highlightedTrailCoords = ref([]);
+        const zoom = ref(7);
+
+        const mapOptions = {
+            zoomControl: false,
+            preferCanvas: true,
+            maxZoom: 18,
+            minZoom: 8
+        };
+
+        const clusterOptions = {
+            maxClusterRadius: 100,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+        };
+
+        const shouldShowPolyline = computed(() =>
+            isMapReady.value && highlightedTrailCoords.value.length > 0
+        );
+
+        return {
+            isMapReady,
+            mapInstance,
+            highlightedTrail,
+            activeTrail,
+            highlightedTrailCoords,
+            zoom,
+            mapOptions,
+            clusterOptions,
+            shouldShowPolyline,
+            url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            attribution: "Leaflet.js | © OpenStreetMap contributors",
+        };
+    },
     methods: {
+        onMapReady(map) {
+            this.mapInstance = map;
+
+            if (this.bounding?.length === 2) {
+                this.$nextTick(() => {
+                    map.fitBounds(this.bounding);
+                });
+            }
+
+            this.isMapReady = true;
+        },
         zoomIn() {
-            if (this.zoom < 18) this.zoom += 1
+            if (this.mapInstance && this.zoom < 18) {
+                this.mapInstance.setZoom(this.zoom + 1);
+            }
         },
         zoomOut() {
-            if (this.zoom > 2) this.zoom -= 1
+            if (this.mapInstance && this.zoom > 2) {
+                this.mapInstance.setZoom(this.zoom - 1);
+            }
         },
         highlightTrail(trail) {
-            this.highlightedTrailCoords = trail.river_track.track_points.map(point => [point[0], point[1]])
+            if (!trail?.river_track?.track_points) return;
+
+            this.highlightedTrail = trail;
+            this.highlightedTrailCoords = trail.river_track.track_points;
         },
         clearHighlightTrail() {
-            this.highlightedTrailCoords = []
-        },
-        showPopup(trail) {
-            this.popupData = trail // Wyświetla popup z danymi trasy
+            this.highlightedTrail = null;
+            this.highlightedTrailCoords = [];
         },
     },
-}
+    watch: {
+        'bounding': {
+            handler(newBounds) {
+                if (!this.mapInstance || !newBounds?.length) return;
+
+                this.$nextTick(() => {
+                    this.mapInstance.fitBounds(newBounds);
+                });
+            },
+            deep: true
+        }
+    }
+});
 </script>
 
 <style scoped>
@@ -122,30 +167,39 @@ export default {
 
 .map-controls {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    bottom: 10px;
+    left: 10px;
     display: flex;
     flex-direction: column;
     gap: 5px;
+    z-index: 999;
 }
 
 .control-button {
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    background-color: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
 }
 
-.highlight-path {
-    stroke-opacity: 0.7;
-}
-
-.bottom-left-controls {
+.overlay-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    bottom: 20px;
-    left: 20px;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 2rem;
+    pointer-events: none;
 }
+
+/* Przywracamy interakcje dla elementów w overlay */
+.overlay-wrapper :deep(*) {
+    pointer-events: auto;
+}
+
 </style>

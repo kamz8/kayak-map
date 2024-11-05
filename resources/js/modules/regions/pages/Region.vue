@@ -69,24 +69,22 @@
                                 <v-card :height="mapHeight" rounded="xl">
                                     <mini-map
                                         :center="mapCenter"
-                                        :bounds="mapBounds"
+                                        :bounding="mapBounds"
                                         :area="region.area"
                                         :trails="topTrails"
-                                    />
-                                    <div class="overlay-content">
-                                        <span class="justify-center">TU BĘDZIE MAPA</span>
+                                    >
                                         <v-btn
                                             color="river-blue"
                                             class="text-capitalize px-8 white--text position-relative"
                                             rounded
                                             density="comfortable"
                                             tag="a"
-                                            to="/"
+                                            to="/explore"
                                             elevation="2"
                                         >
                                             Odkryj więcej
                                         </v-btn>
-                                    </div>
+                                    </mini-map>
 
                                 </v-card>
                             </v-col>
@@ -192,23 +190,21 @@
                         <v-card :height="mapHeight" rounded="xl">
                             <mini-map
                                 :center="mapCenter"
-                                :bounds="mapBounds"
+                                :bounding="mapBounds"
                                 :area="region.area"
                                 :trails="topTrails"
                             >
-                                <div class="overlay-content">
                                     <v-btn
                                         color="river-blue"
                                         class="text-capitalize px-8 white--text position-relative"
                                         rounded
                                         density="comfortable"
                                         tag="a"
-                                        to="/"
+                                        to="/explore"
                                         elevation="2"
                                     >
                                         Odkryj więcej
                                     </v-btn>
-                                </div>
                             </mini-map>
 
 
@@ -241,7 +237,12 @@ export default {
         MiniMap
     },
     mixins: [UnitMixin],
-
+    props: {
+        slug: {
+            type: String,
+            required: true
+        }
+    },
     data() {
         return {
             loading: false,
@@ -255,7 +256,6 @@ export default {
                 bounds: null,
                 area: null,
                 images: [],
-                main_image: null,
                 links: [],
                 breadcrumbs: [],
                 statistics: {
@@ -271,29 +271,6 @@ export default {
                 },
                 nearby_regions: []
             },
-            sortedRegions: [
-                {
-                    id: 1,
-                    name: 'Polska',
-                    slug: 'polska',
-                    type: 'country',
-                    parent_id: null
-                },
-                {
-                    id: 2,
-                    name: 'Dolnośląskie',
-                    slug: 'dolnoslaskie',
-                    type: 'state',
-                    parent_id: 1
-                },
-                {
-                    id: 76,
-                    name: 'Dolina Baryczy',
-                    slug: 'dolina-baryczy',
-                    type: 'geographic_area',
-                    parent_id: 2
-                }
-            ],
             topTrails: [],
             isMobile: false, // Przechowuje informację, czy ekran jest mały
         };
@@ -323,14 +300,29 @@ export default {
             }
         },
         mapCenter() {
-            if (!this.region.center?.coordinates) return [0, 0];
-            const [lng, lat] = this.region.center.coordinates;
-            return [lat, lng];
+            if (this.region.center?.coordinates) {
+                // GeoJSON ma [lng, lat], zamieniamy na [lat, lng] dla Leaflet
+                return [
+                    this.region.center.coordinates[1],
+                    this.region.center.coordinates[0]
+                ];
+            }
+            return [52.0689, 19.4803]; // Środek Polski
         },
 
         mapBounds() {
-            if (!this.region.bounds) return null;
-            return this.region.bounds.map(([lat, lng]) => [lng, lat]);
+            if (this.region.bounds && this.region.bounds.length === 2) {
+                // Konwersja z podanych bounds [lat, lng]
+                return [
+                    [this.region.bounds[0][0], this.region.bounds[0][1]],
+                    [this.region.bounds[1][0], this.region.bounds[1][1]]
+                ];
+            }
+            // Domyślne bounds dla Polski
+            return [
+                [49.0020, 14.1224], // południowo-zachodni kraniec
+                [54.8357, 24.1458]  // północno-wschodni kraniec
+            ];
         },
 
         sortedRegions() {
@@ -352,7 +344,6 @@ export default {
     },
 
     methods: {
-        placeholder,
         capitalize(string) {
             if (!string) return '';
             return string.charAt(0).toUpperCase() + string.slice(1);
@@ -465,21 +456,8 @@ export default {
     height: 100%;
 }
 
-.sticky-container {
-    position: sticky;
-    top: 24px;
-    height: fit-content;
-}
-
 .top-trails-section {
     padding: 0;
-}
-
-@media (max-width: 959px) {
-    .sticky-container {
-        position: relative;
-        top: 0;
-    }
 }
 
 /* Dostosowanie list item dla mobile */

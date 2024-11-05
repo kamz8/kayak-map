@@ -23,7 +23,7 @@
                     @click="handleImageClick(image, index)"
                 >
                     <v-img
-                        :src="image.path || placeholderImage"
+                        :src="image.path"
                         :lazy-src="image.path"
                         :alt="image.alt || 'Zdjęcie'"
                         cover
@@ -46,7 +46,7 @@
                         cover
                         class="fill-height"
                     >
-                        <div class="d-flex flex-column align-center justify-center fill-height bg-grey-darken-3 bg-opacity-25">
+                        <div class="d-flex flex-column align-center overlay justify-center fill-height bg-grey-darken-3">
                             <v-icon
                                 :size="iconSize"
                                 color="grey-lighten-1"
@@ -280,5 +280,10 @@ export default {
 
 :deep(.v-window__controls) {
     display: none;
+}
+
+.overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    opacity: 0.6;
 }
 </style>
