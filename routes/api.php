@@ -32,8 +32,8 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::get('{slug}', [RegionController::class, 'show']);
         Route::get('{slug}/top-trails', [RegionController::class, 'topTrails']);
     });
-
-    Route::get('regions/{slug}/trails', [TrailController::class, 'getTrailsByRegion']);
+    Route::get('regions/{slug}/top-trails-nearby', [RegionController::class, 'getTopTrailsNearby']);
+    Route::get('regions/{slug}/trails', [RegionController::class, 'getTrailsByRegion']);
     Route::get('/weather', [WeatherProxyController::class, 'getWeather']);
 
     // reverse geocoding

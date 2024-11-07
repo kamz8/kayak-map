@@ -14,12 +14,13 @@ use App\Models\Region;
 use App\Http\Resources\TrailResource;
 use App\Services\GeodataService;
 use App\Services\RegionService;
+use App\Traits\NotFoundResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class RegionController extends Controller
 {
-
+    use NotFoundResponse;
     public function __construct(
         private readonly RegionService $regionService,
     ) {}
@@ -45,6 +46,46 @@ class RegionController extends Controller
         }
 
         return new RegionResource($region);
+    }
+
+    public function getTopTrailsNearby(string $slug): JsonResponse
+    {
+        $region = $this->regionService->findRegionBySlug($slug);
+
+        if (!$region) {
+            return $this->notFoundResponse('Region not found');
+        }
+
+        $trails = $this->regionService->getTopTrailsInRegion($region);
+
+        // Debug info w trybie deweloperskim
+        $debugInfo = [];
+        if (config('app.debug')) {
+            $debugInfo = [
+                'region_id' => $region->id,
+                'trail_count' => $trails->count(),
+                'center_point' => $region->center_point ? [
+                    'lat' => $region->center_point->latitude,
+                    'lng' => $region->center_point->longitude
+                ] : null,
+                'type' => $region->type,
+            ];
+        }
+
+        return response()->json([
+            'data' => TrailResource::collection($trails),
+            'meta' => [
+                'region' => [
+                    'name' => $region->name,
+                    'type' => $region->type,
+                    'center' => $region->center_point ? [
+                        'latitude' => $region->center_point->latitude,
+                        'longitude' => $region->center_point->longitude
+                    ] : null
+                ],
+                'debug' => $debugInfo
+            ]
+        ]);
     }
 
     public function index(): RegionCollection
