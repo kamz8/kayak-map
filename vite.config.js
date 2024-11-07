@@ -43,20 +43,17 @@ export default defineConfig({
         rollupOptions: {
             input: 'resources/js/app.js',
             output: {
-/*                manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                        return 'vendor';
+                assetFileNames: (assetInfo) => {
+                    if (assetInfo.name.endsWith('.woff2') ||
+                        assetInfo.name.endsWith('.woff') ||
+                        assetInfo.name.endsWith('.eot') ||
+                        assetInfo.name.endsWith('.ttf')) {
+                        return 'fonts/[name][extname]';
                     }
-                    if (id.includes('main-page')) {
-                        return 'main-page'
-                    }
-                },*/
-            },
-        },
-        target: 'esnext',
-        minify: true,
-        cssCodeSplit: true,
-        chunkSizeWarningLimit: 1000,
+                    return 'assets/[name]-[hash][extname]';
+                }
+            }
+        }
     },
     server: {
         host: '0.0.0.0',
@@ -68,13 +65,9 @@ export default defineConfig({
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
-/*        hmr: {
-            host: host,
-            protocol: 'wss',
-            port: 5173,
-            clientPort: 5173
-
-        },*/
+        hmr: {
+            host: 'localhost'
+        },
         watch: {
             usePolling: true,
             interval: 1000,

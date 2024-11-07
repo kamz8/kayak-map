@@ -18,10 +18,10 @@ class ImageResource extends JsonResource
         return [
             'id' => $this->id,
             'path' => $this->path,
-            'alt' => $this->alt,
+//            'alt' => $this->alt,
             'is_main' => $this->pivot ? $this->pivot->is_main : false,
             'order' => $this->pivot ? $this->pivot->order : null,
-            'vattr'
+            'vattr' => $this->pivot ? $this->pivot->vattr : null
         ];
     }
 }

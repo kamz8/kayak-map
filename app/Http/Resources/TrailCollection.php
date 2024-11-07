@@ -28,9 +28,9 @@ class TrailCollection extends ResourceCollection
         $meta = [
             'total_trails' => $this->collection->count(),
             'bounding_box' => $this->additionalMeta['bounding_box'] ?? null,
-            'criteria' => $criteria,
+/*            'criteria' => $criteria,
             'main_region' => $this->additionalMeta['main_region'] ?? null,
-            'regions' => $this->collection->flatMap->regions->unique('id')->values(),
+            'regions' => $this->collection->flatMap->regions->unique('id')->values(),*/
         ];
 
         if ($this->collection->isEmpty()) {

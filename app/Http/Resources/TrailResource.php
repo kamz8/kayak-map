@@ -37,7 +37,7 @@ class TrailResource extends JsonResource
             'rating' => $this->rating,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'images' => ImageResource::collection($this->images),
+            'images' => ImageResource::collection($this->whenLoaded('images')),
             'river_track' => new RiverTrackResource($this->riverTrack),
             'sections' => SectionResource::collection($this->whenLoaded('sections')),
             'points' => PointResource::collection($this->whenLoaded('points')),

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policymap [
+    <!ELEMENT policymap (policy)+>
+    <!ELEMENT policy EMPTY>
+    <!ATTLIST policy domain (delegate|coder|filter|path|resource) #REQUIRED>
+    <!ATTLIST policy name CDATA #REQUIRED>
+    <!ATTLIST policy rights (none|read|write|execute) #REQUIRED>
+    <!ATTLIST policy pattern CDATA #IMPLIED>
+    <!ATTLIST policy value CDATA #IMPLIED>
+    ]>
+<policymap>
+    <!-- Zezwól na konwersję PDF -->
+    <policy domain="coder" rights="read|write" pattern="PDF" />
+
+    <!-- Zezwól na operacje na wszystkich typach obrazów -->
+    <policy domain="delegate" rights="read|write" pattern="*" />
+    <policy domain="filter" rights="read|write" pattern="*" />
+    <policy domain="coder" rights="read|write" pattern="*" />
+
+    <!-- Limity zasobów -->
+    <policy domain="resource" name="memory" value="256MiB"/>
+    <policy domain="resource" name="map" value="512MiB"/>
+    <policy domain="resource" name="width" value="16KP"/>
+    <policy domain="resource" name="height" value="16KP"/>
+    <policy domain="resource" name="list-length" value="128"/>
+    <policy domain="resource" name="area" value="128MP"/>
+    <policy domain="resource" name="disk" value="1GiB"/>
+</policymap>

@@ -5,7 +5,6 @@ services:
             dockerfile: Dockerfile
         image: kayak-app
         container_name: kayak-app
-        network_mode: "host"
         restart: unless-stopped
         working_dir: /var/www/html
         environment:
@@ -21,6 +20,10 @@ services:
             REDIS_PASSWORD: null
             REDIS_PORT: 6379
             NODE_ENV: development
+
+            PHP_MEMORY_LIMIT: 512M
+            PHP_UPLOAD_MAX_FILESIZE: 100M
+            PHP_POST_MAX_SIZE: 100M
         volumes:
             - .:/var/www/html:cached
             - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
@@ -34,9 +37,11 @@ services:
             - laravel
         deploy:
             resources:
-              limits:
-                  cpus: '2'
-                  memory: 2G
+                limits:
+                    cpus: '2'
+                    memory: 3G
+                reservations:
+                    memory: 512M
 
     nginx:
         image: nginx:latest
@@ -88,17 +93,18 @@ services:
             context: .
             dockerfile: Dockerfile.vite
         container_name: vite
-        network_mode: "host"
+        user: root
         volumes:
             - .:/var/www/html:cached
             - ./docker/ssl:/etc/ssl:ro
             - node_modules:/var/www/html/node_modules:cached
         ports:
             - "5173:5173"
-            - "3000:3000"
+            - "3001:3000"
         environment:
             - NODE_ENV=development
             - HOST=0.0.0.0
+            - VITE_PORT=5173  # Explicitly set Vite port
             - CHOKIDAR_USEPOLLING=true
         networks:
             - laravel
