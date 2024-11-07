@@ -7,7 +7,7 @@
                         <v-btn
                             :ripple="false"
                             variant="plain"
-                            @click="goBack"
+                            href="/explore"
                             class="text-subtitle-2 text-none font-weight-bold justify-start"
                             style="width: 100%; height: 100%;"
                         >
@@ -98,7 +98,7 @@ export default {
     },
     methods: {
         goBack() {
-            this.$router.go(-1);
+            this.$router.push({name: 'explore'})
         },
         getDifficultyColor(difficulty) {
             switch (difficulty) {

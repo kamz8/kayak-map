@@ -14,6 +14,19 @@
                 {{ region.name }}
             </v-breadcrumbs-item>
             <v-breadcrumbs-item
+                v-else-if="lastItemLinkable"
+                :to="{
+                  name: 'region',
+                  params: {
+                    slug: lastItemLinkable ? buildSlugPath(index) : null
+                  }
+                }"
+                active
+                class="font-weight-medium"
+            >
+                {{ region.name }}
+            </v-breadcrumbs-item>
+            <v-breadcrumbs-item
                 v-else
                 active
                 class="font-weight-medium"
@@ -38,7 +51,11 @@ export default {
         sortedRegions: {
             type: Array,
             required: true,
-        }
+        },
+        lastItemLinkable: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     methods: {

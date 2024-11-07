@@ -16,6 +16,15 @@
                         <v-btn color="default" density="default"
                                icon="mdi-printer" elevation="1" class="mr-3"
                                aria-label="Drukuj"
+
+                        ></v-btn>
+                        <v-btn color="default" density="default"
+                               icon="mdi-car" elevation="1" class="mr-3"
+                               aria-label="Nawiguj"
+                               @click="openGoogleMapsNavigation(region.center.coordinates[1], region.center.coordinates[0])"
+                               v-tooltip="'Jak dojechać?'"
+
+
                         ></v-btn>
                     </v-col>
                 </v-row>
@@ -60,18 +69,21 @@
                     <section aria-labelledby="top-trails-heading">
                         <v-sheet rounded="xl" elevation="0" class="top-trails-section">
                             <header class="pt-14">
-                                <h2 id="top-trails-heading" class="text-h5 text-uppercase font-weight-medium mb-4 position-xs-sticky">
+                                <h2 id="top-trails-heading"
+                                    class="text-h5 text-uppercase font-weight-medium mb-4 position-xs-sticky">
                                     Top trasy kajakowe
                                 </h2>
                             </header>
                             <!--            mobilna mini mapa                -->
-                            <v-col v-if="isMobile" cols="12" md="6" id="mobile-map-wrapper" class="map-column d-md-none d-sm-flex">
+                            <v-col v-if="isMobile" cols="12" md="6" id="mobile-map-wrapper"
+                                   class="map-column d-md-none d-sm-flex">
                                 <v-card :height="mapHeight" rounded="xl">
                                     <mini-map
+                                        ref="miniMap"
                                         :center="mapCenter"
                                         :bounding="mapBounds"
                                         :area="region.area"
-                                        :trails="topTrails"
+                                        :trails="sortedTopTrails"
                                     >
                                         <v-btn
                                             color="river-blue"
@@ -93,7 +105,7 @@
                                     :class="{ 'list-mobile': $vuetify.display.smAndDown }">
 
                                 <v-list-item
-                                    v-for="(trail, index) in topTrails"
+                                    v-for="(trail, index) in sortedTopTrails"
                                     :key="trail.id"
                                     :to="{ name: 'trail-overview', params: { slug: trail.slug ?? '' }}"
                                     class="mb-2"
@@ -108,13 +120,13 @@
                                                 :width="imageWidth"
                                                 cover
                                                 rounded="xl"
-                                                :alt="`Zdjęcie trasy ${trail.name}`"
+                                                :alt="`Zdjęcie trasy ${trail.trail_name}`"
                                             />
                                         </div>
                                     </template>
 
                                     <v-list-item-title class="text-h6 mb-1 font-weight-bold pt-6">
-                                        #{{ index + 1 }}&nbsp;{{ trail.name }}
+                                        #{{ index + 1 }}&nbsp;{{ trail.trail_name }}
                                     </v-list-item-title>
 
                                     <!-- Podstawowe informacje -->
@@ -127,7 +139,7 @@
                                             class="me-3"
                                             color="amber"
                                         />
-                                        <v-spacer class="d-sm-inline-block d-md-none" />
+                                        <v-spacer class="d-sm-inline-block d-md-none"/>
                                         <span>{{ formatTrailLength(trail.trail_length) }}</span>
                                         <span>|</span>
                                         <span>{{ trail.difficulty }}</span>
@@ -139,14 +151,16 @@
                                     </v-list-item-subtitle>
 
                                     <!-- Skrócony opis -->
-                                    <v-list-item-subtitle class="d-flex align-center trail-description d-sm-none">
+                                    <v-list-item-subtitle class="d-md-flex d-lg-flex  align-center trail-description">
                                         <span
-                                            class="text-body-2 text-truncate-4 flex-grow-1">{{ trail.description ?? 'Brak opisu dla szlaku' }}</span>
+                                            class="text-body-2 text-truncate-4 flex-grow-1">{{
+                                                trail.description ?? 'Brak opisu dla szlaku'
+                                            }}</span>
                                         <v-btn
                                             v-if="trail.description && !$vuetify.display.smAndDown"
                                             variant="plain"
                                             density="compact"
-                                            class="ms-2 px-0 flex-shrink-0 font-weight-bold text-decoration-underline text-body-1 d-inline-flex"
+                                            class="ms-2 px-0 flex-shrink-0 font-weight-bold text-decoration-underline text-body-1 d-md-inline-flex"
                                             color="gray-darken-1"
                                             :ripple="false"
                                         >
@@ -177,7 +191,7 @@
                                         <span class="text-info">Brak danych...</span>
                                     </v-list-item-title>
 
-                                     <span>Nie możemy ci jeszcze polecić tras dla tej lokalizacji... 😞</span>
+                                    <span>Nie możemy ci jeszcze polecić tras dla tej lokalizacji... 😞</span>
                                 </v-list-item>
                             </v-list>
                         </v-sheet>
@@ -189,22 +203,23 @@
                     <aside class="position-sticky">
                         <v-card :height="mapHeight" rounded="xl">
                             <mini-map
+                                ref="miniMap"
                                 :center="mapCenter"
                                 :bounding="mapBounds"
                                 :area="region.area"
                                 :trails="topTrails"
                             >
-                                    <v-btn
-                                        color="river-blue"
-                                        class="text-capitalize px-8 white--text position-relative"
-                                        rounded
-                                        density="comfortable"
-                                        tag="a"
-                                        to="/explore"
-                                        elevation="2"
-                                    >
-                                        Odkryj więcej
-                                    </v-btn>
+                                <v-btn
+                                    color="river-blue"
+                                    class="text-capitalize px-8 white--text position-relative"
+                                    rounded
+                                    density="comfortable"
+                                    tag="a"
+                                    to="/explore"
+                                    elevation="2"
+                                >
+                                    Odkryj więcej
+                                </v-btn>
                             </mini-map>
 
 
@@ -227,6 +242,7 @@ import BaseRegionsBreadcrumbs from "@/components/BaseRegionsBreadcrumbs.vue";
 import {useDisplay} from "vuetify";
 import apiClient from "@/plugins/apiClient.js";
 import UnitMixin from "@/mixins/UnitMixin.js";
+import _ from "lodash";
 
 export default {
     name: 'RegionView',
@@ -272,7 +288,7 @@ export default {
                 nearby_regions: []
             },
             topTrails: [],
-            isMobile: false, // Przechowuje informację, czy ekran jest mały
+            isMobile: false
         };
     },
 
@@ -311,24 +327,21 @@ export default {
         },
 
         mapBounds() {
-            if (this.region.bounds && this.region.bounds.length === 2) {
-                // Konwersja z podanych bounds [lat, lng]
-                return [
-                    [this.region.bounds[0][0], this.region.bounds[0][1]],
-                    [this.region.bounds[1][0], this.region.bounds[1][1]]
-                ];
+            if (this.region.bounds) {
+                return this.region.bounds;
             }
-            // Domyślne bounds dla Polski
             return [
-                [49.0020, 14.1224], // południowo-zachodni kraniec
-                [54.8357, 24.1458]  // północno-wschodni kraniec
+                [49.0020, 14.1224],
+                [54.8357, 24.1458]
             ];
         },
 
         sortedRegions() {
-            return this.region.breadcrumbs || [];
+            return this.region.breadcrumbs || []
         },
-
+        sortedTopTrails() {
+            return _.take(_.sortBy(this.topTrails, 'rating').reverse(), 10)
+        },
         leadText() {
             if (!this.region.type) return '';
 
@@ -352,10 +365,10 @@ export default {
             const regionSlug = this.$route.params.slug.split('/').pop();
 
             try {
-                const response = await apiClient.get(`/regions/${regionSlug}/top-trails-nearby`);
-                this.topTrails = response.data.map(trail => ({
+                const response = await apiClient.get(`/regions/${regionSlug}/trails`);
+                this.topTrails = response.data.data.map(trail => ({
                     id: trail.id,
-                    name: trail.trail_name,
+                    trail_name: trail.trail_name,
                     slug: trail.slug,
                     river_name: trail.river_name,
                     trail_length: trail.trail_length,
@@ -364,15 +377,22 @@ export default {
                     rating: parseFloat(trail.rating),
                     description: trail.description,
                     thumbnail: trail.main_image?.path || this.placeholderImage,
-                    distance: trail.trail_length / 1000
+                    distance: trail.trail_length / 1000,
+                    start_lat: trail.start_lat,
+                    start_lng: trail.start_lng,
+                    end_lat: trail.end_lat,
+                    end_lng: trail.end_lng
                 }));
             } catch (error) {
                 console.error('Błąd podczas ładowania top tras:', error);
                 this.$alertError('Nie udało się załadować listy najlepszych tras');
             }
         },
+        handlePrint() {
+            console.log('PRINT!')
+            this.$refs.miniMap.printMap('A4Portrait', `mapa-${this.region.name}`);
+        },
     },
-
     beforeRouteEnter(to, from, next) {
         const regionSlug = to.params.slug.split('/').pop();
 
@@ -381,6 +401,7 @@ export default {
                 next(vm => {
                     vm.region = response.data;
                     vm.loading = false;
+                    vm.pageLoading = false
                 });
             })
             .catch(error => {
@@ -402,6 +423,7 @@ export default {
 
     beforeRouteUpdate(to, from, next) {
         this.loading = true;
+        this.pageLoading = true
         const regionSlug = to.params.slug.split('/').pop();
 
         apiClient.get(`/regions/${regionSlug}`)
@@ -426,10 +448,12 @@ export default {
             });
     },
 
-    async created() {
-        // await this.loadTopTrails();
+    async beforeMount() {
+        await this.loadTopTrails();
     },
-
+    async updated() {
+        await this.loadTopTrails();
+    },
     mounted() {
         const display = useDisplay();
         this.isMobile = display.xs.value;
@@ -538,8 +562,13 @@ export default {
     :deep(.v-list-item-subtitle) {
         font-size: 0.875rem;
     }
-    .position-xs-sticky{
+
+    .position-xs-sticky {
         position: sticky;
+    }
+
+    .trail-description {
+        display: none;
     }
 }
 

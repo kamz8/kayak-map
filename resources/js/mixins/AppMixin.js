@@ -15,6 +15,19 @@ export default {
         }
     },
     methods: {
-    ...unitMixin.methods
+    ...unitMixin.methods,
+    openGoogleMapsNavigation(lat, lang) {
+        console.log("dupa openGoogleMapsNavigation")
+        if (!this.region.center?.coordinates) return;
+
+        // Google Maps przyjmuje koordynaty w formacie "lat,lng"
+        const destination = `${lat},${lang}`;
+
+        // Tworzymy URL do Google Maps z nawigacją
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
+
+        // Otwieramy w nowej karcie
+        window.open(googleMapsUrl, '_blank');
+    }
     }
 };

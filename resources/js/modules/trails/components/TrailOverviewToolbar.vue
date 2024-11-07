@@ -1,5 +1,5 @@
 <template>
-    <base-regions-breadcrumbs :sorted-regions="sortedRegions" />
+    <base-regions-breadcrumbs :sorted-regions="sortedRegions" last-item-linkable/>
 </template>
 
 <script>

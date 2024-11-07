@@ -13,6 +13,7 @@ export default [
     {
         path: '/explore',
         component: explore,
+        name: 'explore',
         meta: {
             layout: 'ExploreLayout',
             title: 'KAYAK - Odkrywaj',
