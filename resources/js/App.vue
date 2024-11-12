@@ -1,12 +1,5 @@
 <template>
     <v-app>
-        <v-progress-linear
-            :active="loading || pageLoading"
-            :indeterminate="true"
-            color="primary"
-            absolute
-            height="10px"
-        />
         <component :is="layout">
             <Suspense>
                 <template #default>

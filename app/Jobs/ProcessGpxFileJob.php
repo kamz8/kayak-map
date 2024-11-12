@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Jobs;
 
+use App\Events\GpxProcessingCompleted;
 use App\Models\GpxProcessingStatus;
 use App\Models\Trail;
 use App\Models\RiverTrack;
@@ -10,11 +12,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-class ProcessGpxFile implements ShouldQueue
+class ProcessGpxFileJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -34,28 +38,48 @@ class ProcessGpxFile implements ShouldQueue
 
     public function handle(GpxProcessor $gpxProcessor): void
     {
+        // 1. Dodaj szczegółowe logowanie na początku joba
+        Log::info('Starting GPX processing', [
+            'file_path' => $this->filePath,
+            'trail_id' => $this->trailId,
+            'status_id' => $this->statusId
+        ]);
+        // Sprawdź, czy plik jest w katalogu tymczasowym
+        $isTemporaryFile = Str::contains($this->filePath, '/temp/');
+
         try {
             $status = GpxProcessingStatus::findOrFail($this->statusId);
             $trail = Trail::findOrFail($this->trailId);
 
             DB::beginTransaction();
-
+            DB::enableQueryLog();
             try {
                 // Przetwórz plik GPX
                 $processedData = $gpxProcessor->process(Storage::path($this->filePath));
 
-                // Aktualizuj trail
+                // Aktualizuj trail standardowymi współrzędnymi
                 $trail->update([
-                    'start_point' => $processedData['start_point'],
-                    'end_point' => $processedData['end_point'],
+                    'start_lat' => $processedData['start_lat'],
+                    'start_lng' => $processedData['start_lng'],
+                    'end_lat' => $processedData['end_lat'],
+                    'end_lng' => $processedData['end_lng'],
                     'trail_length' => (int)$processedData['distance']
                 ]);
 
-                // Utwórz lub zaktualizuj river_track
-                RiverTrack::updateOrCreate(
-                    ['trail_id' => $trail->id],
-                    ['track_line' => $processedData['track_line']]
-                );
+                if (isset($processedData['path']) && !empty($processedData['path']->getCoordinates())) {
+
+                    $riverTrack = RiverTrack::updateOrCreate(
+                        ['trail_id' => $trail->id],
+                        ['track_points' => $processedData['path']]
+                    );
+
+                } else {
+                    Log::warning('No valid path data in GPX file', [
+                        'trail_id' => $trail->id,
+                        'file' => $this->filePath
+                    ]);
+                    throw new \Exception('No valid path data found in GPX file');
+                }
 
                 DB::commit();
 
@@ -68,6 +92,13 @@ class ProcessGpxFile implements ShouldQueue
 
                 // Wyślij powiadomienie
                 event(new GpxProcessingCompleted($trail->id));
+
+                // Wyczyść cache jeśli jest używany
+                //Cache::tags(['trails', 'trail-'.$trail->id])->flush();
+
+
+
+
             } catch (\Exception $e) {
                 DB::rollBack();
                 throw $e;
@@ -79,7 +110,7 @@ class ProcessGpxFile implements ShouldQueue
                 'error' => $e->getMessage()
             ]);
 
-            $status->update([
+            GpxProcessingStatus::find($this->statusId)?->update([
                 'status' => 'failed',
                 'message' => $e->getMessage(),
                 'processed_at' => now()
@@ -87,8 +118,10 @@ class ProcessGpxFile implements ShouldQueue
 
             throw $e;
         } finally {
-            // Wyczyść tymczasowy plik
-            Storage::delete($this->filePath);
+            // Usuń plik tylko jeśli jest w katalogu tymczasowym
+            if ($isTemporaryFile && Storage::exists($this->filePath)) {
+                Storage::delete($this->filePath);
+            }
         }
     }
 
@@ -99,5 +132,17 @@ class ProcessGpxFile implements ShouldQueue
             'file' => $this->filePath,
             'error' => $exception->getMessage()
         ]);
+
+        // Aktualizuj status w przypadku błędu
+        GpxProcessingStatus::find($this->statusId)?->update([
+            'status' => 'failed',
+            'message' => $exception->getMessage(),
+            'processed_at' => now()
+        ]);
+
+        // Usuń plik tymczasowy w przypadku błędu, jeśli istnieje
+        if (Str::contains($this->filePath, '/temp/') && Storage::exists($this->filePath)) {
+            Storage::delete($this->filePath);
+        }
     }
 }

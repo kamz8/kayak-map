@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ProcessGpxFile;
+use App\Jobs\ProcessGpxFileJob;
 use App\Models\GpxProcessingStatus;
 use App\Models\Trail;
 use Illuminate\Console\Command;
@@ -61,7 +61,7 @@ class ProcessGpxFileCommand extends Command
             ]);
 
             // Dodaj job do kolejki
-            ProcessGpxFile::dispatch($filePath, $trailId, $status->id);
+            ProcessGpxFileJob::dispatch($filePath, $trailId, $status->id);
 
             $this->info('Plik GPX został dodany do kolejki przetwarzania.');
             $this->info("ID statusu przetwarzania: {$status->id}");

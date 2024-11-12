@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GpxUploadRequest;
-use App\Jobs\ProcessGpxFile;
+use App\Jobs\ProcessGpxFileJob;
 use App\Models\GpxProcessingStatus;
 use Illuminate\Http\JsonResponse;
 
@@ -26,7 +26,7 @@ class GPXController extends Controller
         ]);
 
         // Dispatch job
-        ProcessGpxFile::dispatch($filePath, $trailId, $status->id);
+        ProcessGpxFileJob::dispatch($filePath, $trailId, $status->id);
 
         return response()->json([
             'message' => 'GPX file uploaded and queued for processing',
