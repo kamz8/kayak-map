@@ -84,16 +84,12 @@ export default {
     data() {
         return {
             activeTab: null,
-            appConfig
         }
     },
     computed: {
         ...mapGetters('trails', ['currentTrail']),
         trailImageSrc() {
             return this.currentTrail.main_image?.path || this.appConfig.placeholderImage;
-        },
-        appConfig() {
-            return appConfig
         },
     },
     methods: {
