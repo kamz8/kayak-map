@@ -1,5 +1,6 @@
 import appConfigFile from "@/config/appConfig.js";
 import unitMixin from "@/mixins/UnitMixin.js";
+import mapMixin from "@/mixins/MapMixin.js";
 export default {
     data () {
       return{

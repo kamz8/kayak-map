@@ -122,6 +122,7 @@ import {LMap, LTileLayer, LPolyline, LMarker, LIcon, LPopup} from '@vue-leaflet/
 import 'leaflet/dist/leaflet.css'
 import {mapState} from 'vuex'
 import MiniPopup from "@/modules/trails/components/Map/MiniPopup.vue";
+import MapMixin from "@/mixins/MapMixin.js";
 
 export default {
   name: 'SingleTrailMap',
@@ -134,6 +135,7 @@ export default {
     LMarker,
     LIcon
   },
+  mixins: [MapMixin],
   data() {
     return {
       zoom: 12,
@@ -171,11 +173,7 @@ export default {
         return [];
       }
 
-      let dupa = this.currentTrail.river_track.track_points
-          .map(point => [point.lat, point.lon]); // Formatowanie dla leaflet: [lat, lon]
-
-      console.log(dupa)
-      return dupa
+      return this.convertCoordinates(this.currentTrail.river_track.track_points?.coordinates)
     },
 
     isValidStartPoint() {
