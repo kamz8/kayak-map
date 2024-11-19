@@ -44,9 +44,7 @@ export default defineConfig({
             input: 'resources/js/app.js',
             output: {
                 assetFileNames: (assetInfo) => {
-                    if (assetInfo.name.endsWith('.woff2') ||
-                        assetInfo.name.endsWith('.woff') ||
-                        assetInfo.name.endsWith('.eot') ||
+                    if (assetInfo.name.endsWith('.eot') ||
                         assetInfo.name.endsWith('.ttf')) {
                         return 'fonts/[name][extname]';
                     }

@@ -3,7 +3,7 @@
         <v-img
             :src="imageSrc"
             :alt="trailName"
-            height="300"
+            :height="height"
             cover
         >
             <template v-slot:placeholder>
@@ -56,7 +56,10 @@ export default {
         trailName: String,
         difficulty: String,
         rating: Number,
-        scenery: Number
+        scenery: Number,
+        height: {
+            default: 300
+        }
     },
     methods: {
         getDifficultyColor(difficulty) {

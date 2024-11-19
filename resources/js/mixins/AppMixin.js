@@ -29,6 +29,14 @@ export default {
 
         // Otwieramy w nowej karcie
         window.open(googleMapsUrl, '_blank');
-    }
+    },
+        getDifficultyColor(difficulty) {
+            switch (difficulty) {
+                case 'łatwy': return 'green';
+                case 'umiarkowany': return 'orange';
+                case 'trudny': return 'red';
+                default: return 'grey';
+            }
+        },
     }
 };

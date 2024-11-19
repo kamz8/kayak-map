@@ -16,8 +16,8 @@ use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 
 /**
- * @method static create(array $array)
- * @method static where(string $string, string $slug)
+ * @method maps create(array $array)
+ * @method maps where(string $string, string $slug)
  * @property mixed $trails
  */
 class Region extends Model

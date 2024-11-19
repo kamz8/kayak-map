@@ -6,7 +6,7 @@
     <v-tabs-window v-model="activeTab">
         <v-tabs-window-item key="description">
             <v-card flat>
-                <v-card-text v-if="description" v-html="description">
+                <v-card-text v-if="description" v-html="description" v-modify-links>
                 </v-card-text>
                 <v-card-text v-else>
                     <span class="text-grey-lighten-1 font-weight-light">Trasa nie ma jeszcze opisu</span>
@@ -18,8 +18,10 @@
 </template>
 
 <script>
+import ModifyLinks from '../../../../directives/v-modify-links.ts'
 export default {
     name: "DescriptionTab",
+    directives: {ModifyLinks},
     props: {
         description: {
             default: null

@@ -14,6 +14,7 @@ import L from 'leaflet'
 import cachePlugin from './plugins/cachePlugin.js';
 import { TypingPlugin } from './directives/v-typing'
 import appConfig from './config/appConfig.js';
+import StaticTrailMap from "@/components/StaticTrailMap.vue";
 
 
 // Ustawienie domyślnej strefy czasowej na Polskę
@@ -35,6 +36,6 @@ app.use(TypingPlugin)
 app.use(appHelpers);
 app.use(cachePlugin);
 
-
+app.component('static-trail-map', StaticTrailMap)
 
 app.mount('#app');

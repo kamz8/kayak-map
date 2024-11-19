@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\DifficultyEnumCast;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +13,8 @@ use App\Enums\Difficulty;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
- * @method static create(array $array)
- * @method static find(int $trailId)
+ * @method maps create(array $array)
+ * @method maps find(int $trailId)
  */
 class Trail extends Model
 {
@@ -31,7 +32,7 @@ class Trail extends Model
         'end_lat' => 'float',
         'end_lng' => 'float',
         'scenery' => 'integer',
-        'difficulty' => Difficulty::class,
+        'difficulty' => DifficultyEnumCast::class,
         'rating' => 'float',
     ];
 

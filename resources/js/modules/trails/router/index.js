@@ -2,6 +2,7 @@ import SidebarTrailsOverview from "@/modules/trails/components/SidebarTrailsOver
 import MapOveriew from "@/modules/trails/components/SingleTrailMap.vue";
 import TrailOverviewToolbar from "@/modules/trails/components/TrailOverviewToolbar.vue";
 import store from "@/store/index.js";
+import trailDetails from "@/modules/trails/pages/TrailDetails.vue";
 
 const explore = () => import('../pages/Explore.vue')
 
@@ -96,6 +97,62 @@ export default [
             toolbar: TrailOverviewToolbar
         },
 
+
+    },
+    {
+        path: '/trail/:slug',
+        name: 'trail-details',
+        component: trailDetails,
+        beforeEnter: (to, from, next) => {
+            store.dispatch('trails/fetchTrailDetails', to.params.slug)
+                .then(() => {
+                    const trail = store.state.trails.currentTrail;
+                    const mainImageUrl = trail.main_image ? trail.main_image.path : '';
+                    to.meta.title = `Odkryj szlak ${trail.trail_name} | ${APP_NAME}`;
+                    to.meta.metaTags = [
+                        {
+                            name: 'description',
+                            content: trail.description || `Odkryj szlak kajakowy ${trail.trail_name} o długości ${trail.trail_length}km`
+                        },
+                        {
+                            property: 'og:title',
+                            content: `Odkryj szlak ${trail.trail_name} | ${APP_NAME}`
+                        },
+                        {
+                            property: 'og:description',
+                            content: trail.description || `Odkryj szlak kajakowy ${trail.trail_name} o długości ${trail.trail_length}km`
+                        },
+                        {
+                            property: 'og:image',
+                            content: mainImageUrl
+                        },
+                        {
+                            property: 'og:type',
+                            content: 'website'
+                        },
+                        {
+                            property: 'og:url',
+                            content: `https://twojastrona.pl/explore/trail/${trail.slug}`
+                        },
+                        {
+                            name: 'twitter:card',
+                            content: 'summary_large_image'
+                        },
+                        {
+                            name: 'twitter:image',
+                            content: mainImageUrl
+                        }
+                    ];
+                    next();
+                })
+                .catch(error => {
+                    console.error('Error fetching trail details:', error);
+                    next(error);
+                });
+        },
+        meta: {
+            layout: 'MainLayout',
+        },
 
     },
 ];

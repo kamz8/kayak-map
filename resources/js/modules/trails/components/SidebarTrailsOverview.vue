@@ -21,6 +21,7 @@
                             variant="plain"
                             class="text-subtitle-2 text-none font-weight-medium justify-center"
                             style="width: 100%; height: 100%;"
+                            :link="{name: 'trail-details', param: {'trail-slug': currentTrail.slug}}"
                         >
                             Zobacz szczegóły szlaku
                         </v-btn>
@@ -71,7 +72,6 @@
 <script>
 import { mapGetters } from 'vuex';
 import UnitMixin from '@/mixins/UnitMixin';
-import appConfig from "@/config/appConfig.js";
 import DescriptionTab from "@/modules/trails/components/Details/DescriptionTab.vue";
 import TrailHeader from "@/modules/trails/components/Details/TrailHeader.vue";
 import AuthorTab from "@/modules/trails/components/Details/AuthorTab.vue";
