@@ -175,7 +175,7 @@
                 if (props.trail.start_lat && props.trail.start_lng) {
                     const startIcon = L.divIcon({
                         className: 'marker-icon',
-                        html: '<i class="mdi mdi-map-marker-circle" style="color: #2E7D32; font-size: 24px;"></i>'
+                        html: '<i class="mdi mdi-map-marker-circle" style="color: #2E7D32; font-size: 32px;"></i>'
                     });
                     L.marker([props.trail.start_lat, props.trail.start_lng], { icon: startIcon }).addTo(map.value);
                 }
@@ -183,7 +183,7 @@
                 if (props.trail.end_lat && props.trail.end_lng) {
                     const endIcon = L.divIcon({
                         className: 'marker-icon',
-                        html: '<i class="mdi mdi-flag-checkered" style="color: #FF0000; font-size: 24px;"></i>'
+                        html: '<i class="mdi mdi-flag-checkered" style="color: #FF0000; font-size: 32px;"></i>'
                     });
                     L.marker([props.trail.end_lat, props.trail.end_lng], { icon: endIcon }).addTo(map.value);
                 }
