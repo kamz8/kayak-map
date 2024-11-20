@@ -53,12 +53,15 @@
                                     <v-img :src="mapImageUrl"
                                            height="275"
                                            cover
+                                           lazy-src=""
+                                           alt="Statyczna mapa szlaku"
                                            :loading="loadingMap">
                                         <v-btn
                                             icon="mdi-arrow-expand"
                                             class="position-absolute float-end"
                                             style="bottom: 16px; right: 16px;"
                                             elevation="1"
+                                            :to="{name: 'trail-overview', params:{slug: currentTrail.slug}}"
                                         />
                                     </v-img>
                                 </v-card>
