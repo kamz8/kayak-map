@@ -65,5 +65,7 @@ export default {
 </script>
 
 <style>
-
+html{
+    overflow: inherit;
+}
 </style>
