@@ -13,17 +13,23 @@
         <v-btn
             icon
             @click="toggleDrawer"
-            class="drawer-toggle-btn"
+            class="drawer-toggle-btn d-none d-sm-inline-block d-md-inline-block d-lg-inline-block"
             size="s"
+
         >
             <v-icon>{{ drawer ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
         </v-btn>
+
     </v-navigation-drawer>
 
     <!-- Main Content -->
     <v-main app class="flex-grow-1">
         <v-container app fluid class="pa-0 d-flex flex-column" style="height: calc(100vh - 64px - 66px);">
             <router-view name="main"></router-view>
+<!--    toggle map / list button       -->
+                <v-btn variant="flat" size="x-large" density="default" @click="toggleDrawer" color="river-blue" class="mapToggleButton d-inline-block d-md-none d-lg-none" rounded="xl"><v-icon :icon="!drawer ? 'mdi-view-list' : 'mdi-map'"  />
+                    &nbsp;{{  mapToggleBtnText }}
+                </v-btn>
         </v-container>
     </v-main>
 
@@ -31,14 +37,29 @@
 
 <script>
 import Navbar from '@/modules/main-page/components/Navbar.vue'
+import {useDisplay} from "vuetify";
 
 export default {
     components: {
         Navbar,
     },
+    setup() {
+        const {name} = useDisplay()
+        return {
+            name
+        }
+    },
     data() {
         return {
-            drawer: true,
+            drawer: false,
+        }
+    },
+    computed: {
+        mapToggleBtnText() {
+            return (this.drawer) ? "Mapa" : 'Lista'
+        },
+        drawerOnMobile() {
+
         }
     },
     methods: {
@@ -51,6 +72,11 @@ export default {
             })
         },
     },
+    created() {
+        if (this.name === 'md' || this.name === 'lg') {
+            this.drawer = true
+        }
+    }
 }
 </script>
 
@@ -71,5 +97,17 @@ export default {
     border-top-left-radius: 0;
 
     height: 2em !important;
+}
+.mapToggleButton {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    translate: -50%;
+    z-index: 1005;
+    padding: 2em;
+}
+
+html {
+    overflow: initial;
 }
 </style>
