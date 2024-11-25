@@ -23,6 +23,7 @@ Route::middleware('api')->prefix('v1')->group(function () {
     Route::get('trails', [TrailController::class, 'index']);
     Route::get('/trails/nearby', [TrailController::class, 'getNearbyTrails']);
     Route::get('trail/{slug}', [TrailController::class, 'show']);
+    Route::get('/trails/{slug}/recommended', [TrailController::class, 'getRecommendedTrails']);
     Route::get('/river-track/{id}', [RiverTrackController::class, 'show']);
     Route::post('/upload-gpx', [GPXController::class, 'upload']);
 
