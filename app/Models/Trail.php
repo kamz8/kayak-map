@@ -62,6 +62,11 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
+    public function links(): MorphToMany
+    {
+        return $this->morphToMany(Link::class, 'linkable');
+    }
+
     public function regions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Region::class, 'trail_region');

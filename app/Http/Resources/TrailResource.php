@@ -42,6 +42,7 @@ class TrailResource extends JsonResource
             'sections' => SectionResource::collection($this->whenLoaded('sections')),
             'points' => PointResource::collection($this->whenLoaded('points')),
             'regions' => RegionResource::collection($this->whenLoaded('regions')),
+            'links' => LinkResource::collection($this->links),
         ];
     }
 }

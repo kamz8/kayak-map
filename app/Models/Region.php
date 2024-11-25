@@ -41,6 +41,13 @@ class Region extends Model
         'type' => RegionType::class, // Dodaj to pole
     ];
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('with-parents', function ($builder) {
+            $builder->with('parent');
+        });
+    }
+
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Region::class, 'parent_id');
@@ -83,4 +90,17 @@ class Region extends Model
     {
         return $query->where('name', 'like', "%{$searchTerm}%");
     }
+
+    // Define a local scope for loading full ancestry
+    public function scopeWithAncestors($query)
+    {
+        return $query->with(['parent.parent.parent']); // Adjust depth as needed
+    }
+
+    // Define a local scope for loading full tree
+    public function scopeWithFullTree($query)
+    {
+        return $query->with(['parent.parent.parent', 'children.children.children']); // Adjust depth as needed
+    }
+
 }
