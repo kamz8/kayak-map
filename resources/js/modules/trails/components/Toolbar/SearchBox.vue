@@ -1,5 +1,4 @@
 <template>
-    <v-col cols="12" class="d-flex align-center">
         <v-text-field
             v-model.trim="localSearchQuery"
             label="Wpisz nazwę miasta, parku lub nazwy szlaku"
@@ -10,7 +9,7 @@
             single-line
             filled
             rounded
-            class="ma-2"
+            :min-width="width"
             @keyup.enter="applySearch"
         >
             <template v-slot:append-inner>
@@ -19,10 +18,12 @@
                 </v-fade-transition>
             </template>
         </v-text-field>
-    </v-col>
 </template>
 
 <script>
+import {useDisplay} from "vuetify";
+
+
 export default {
     props: {
         value: {
@@ -30,10 +31,26 @@ export default {
             default: ''
         }
     },
+    setup() {
+        const { name } = useDisplay()
+        return{
+            name
+        }
+    },
     data() {
         return {
             localSearchQuery: this.value,
         }
+    },
+    computed: {
+        width () {
+            switch (this.name) {
+                case 'xs': return '300px'
+                case 'sm': return '300px'
+                case 'md': return '500px'
+                default: return '400px'
+            }
+        },
     },
     watch: {
         value(newValue) {
@@ -51,3 +68,7 @@ export default {
     },
 }
 </script>
+
+<style>
+
+</style>

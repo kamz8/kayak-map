@@ -17,11 +17,12 @@
                     </v-col>
                     <v-col cols="6">
                         <v-btn
+                            tag="a"
                             :ripple="false"
                             variant="plain"
                             class="text-subtitle-2 text-none font-weight-medium justify-center"
                             style="width: 100%; height: 100%;"
-                            :link="{name: 'trail-details', param: {'trail-slug': currentTrail.slug}}"
+                            :to="{name: 'trail-details', param: {'slug': currentTrail.slug}}"
                         >
                             Zobacz szczegóły szlaku
                         </v-btn>

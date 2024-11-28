@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container class="main-page-container">
         <v-row dense>
             <base-regions-breadcrumbs :sorted-regions="getRegions" />
         </v-row>
@@ -33,7 +33,7 @@
                             </v-col>
                         </v-row>
 
-                        <v-divider class="my-4" />
+                        <v-spacer class="my-4" />
 
                         <description-tab :description="currentTrail.description"/>
                         <weather-tab
@@ -41,7 +41,10 @@
                             :latitude="currentTrail.start_lat"
                             :longitude="currentTrail.start_lng"
                         />
+                        <v-divider class="my-4" />
+                        <trail-tabs :tabs="tabs" />
                         <author-tab :author="currentTrail.author" />
+
                     </v-col>
 
                     <!-- Sidebar -->
@@ -79,8 +82,8 @@
 
                             <!-- Najlepsze szlaki -->
                             <v-col cols="12">
-                                <h4 class="text-h6 mb-2">Najlepsze szlaki w pobliżu</h4>
-                                <!-- Tu dodaj listę szlaków -->
+                                <h4 class="text-h6 mb-2">Polecane szlaki</h4>
+                                <trail-card v-for="trail in topTrails" :key="trail.id" :trail="trail"></trail-card>
                             </v-col>
                         </v-row>
                     </v-col>
@@ -101,16 +104,54 @@ import UnitMixin from "@/mixins/UnitMixin.js";
 import {mapGetters} from "vuex";
 import AppMixin from "@/mixins/AppMixin.js";
 import apiClient from "@/plugins/apiClient.js";
+import TrailTabs from "@/modules/trails/components/TrailDetails/TrailTabs.vue";
+import LinksList from "@/modules/trails/components/TrailDetails/LinksList.vue";
+import PhotosTabContent from "@/modules/trails/components/TrailDetails/PhotosTabContent.vue";
+import PointsTabContent from "@/modules/trails/components/TrailDetails/PointsTabContent.vue";
+import SectionsTabContent from "@/modules/trails/components/TrailDetails/SectionsTabContent.vue";
+import TrailCard from "@/modules/trails/components/TrailCard.vue";
+import {markRaw, shallowRef} from "vue";
 
 export default {
     name: "TrailDetails",
-    components: {BaseRegionsBreadcrumbs, WeatherTab, AuthorTab, TrailHeader, DescriptionTab},
+    components: {TrailCard, TrailTabs, BaseRegionsBreadcrumbs, WeatherTab, AuthorTab, TrailHeader, DescriptionTab},
     mixins: [UnitMixin,AppMixin],
+
     data() {
         return {
             activeTab: null,
             mapImageUrl: null,
-            loadingMap: true
+            loadingMap: true,
+            loadingTopTrails: false,
+            topTrails: [],
+            tabs: [
+                {
+                    id: 'sections',
+                    title: 'Odcinki',
+                    count: this.currentTrail?.sections.length || 0,
+                    component: markRaw(SectionsTabContent)
+                },
+                {
+                    id: 'points',
+                    title: 'Punkty',
+                    count: this.currentTrail?.points.length || 0,
+                    component: PointsTabContent
+                },
+                {
+                    id: 'photos',
+                    title: `Zdjęcia`,
+                    count: this.currentTrail?.images.length || 0,
+                    component: markRaw(PhotosTabContent)
+                },
+                {
+                    id: 'links',
+                    title: 'Linki',
+                    component: markRaw(LinksList),
+                    props: {
+                        links: this.currentTrail?.links || []
+                    }
+                }
+            ]
         }
     },
     computed: {
@@ -120,34 +161,42 @@ export default {
         },
         getRegions() {
             return this.currentTrail?.regions
-        }
+        },
+
     },
 
     async created() {
         if (this.currentTrail) {
 
             this.mapImageUrl = `https://kayak-map.test/api/v1/trails/${this.currentTrail.slug}/static-map`
+            await this.fetchTopTrails()
         }
     },
     methods: {
-        async loadMapImage() {
+        async fetchTopTrails() {
+            this.loadingTopTrails = true;
 
+            apiClient.get(`/trails/${this.currentTrail.slug}/recommended?radius=100`)
+                .then(response => {
+                    this.topTrails = response.data.data;
+                    this.loadingTopTrails = false;
+                })
+                .catch(error => {
+                        this.$alertError('Wystąpił błąd podczas pobierania polecanych szlaków');
+                        this.loadingTopTrails = false;
+                        console.log(error)
+
+                });
         },
-        showFullMap() {
-            // Implement full map view navigation
-        }
     },
-    watch: {
-        'currentTrail.id': {
-            handler: 'loadMapImage',
-            immediate: true
-        }
-    }
 }
 </script>
 
 <style scoped>
 .trail-card {
     overflow: hidden; /* jeśli potrzebne dla rounded corners */
+}
+.main-page-container{
+    max-width: 1248px;
 }
 </style>

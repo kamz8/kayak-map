@@ -110,12 +110,12 @@ export default {
         ...mapGetters('trails', ['trails', 'activeTrail', 'highlightedTrail', 'boundingBox']),
         activeTrailCoords() {
             return this.activeTrail
-                ? this.activeTrail.river_track.track_points.map(point => [point[0], point[1]])
+                ? this.activeTrail.river_track?.track_points.map(point => [point[0], point[1]])
                 : [];
         },
         highlightedTrailCoords() {
             return (this.highlightedTrail)
-                ? this.highlightedTrail.river_track.track_points
+                ? this.highlightedTrail?.river_track.track_points
                 : [];
         }
     },
@@ -300,7 +300,7 @@ export default {
 
 .map-controls {
     position: absolute;
-    z-index: 2;
+    z-index: 999;
 }
 
 .top-right-controls {

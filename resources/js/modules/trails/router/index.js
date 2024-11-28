@@ -85,7 +85,15 @@ export default [
                 })
                 .catch(error => {
                     console.error('Error fetching trail details:', error);
-                    next(error);
+                    if (error.response?.status === 404) {
+                        next({
+                            name: 'not-found',
+                            params: {
+                                pathMatch: to.path.substring(1).split('/')
+                            }
+                        })
+                    }
+                    next(false);
                 });
         },
         meta: {
@@ -96,15 +104,13 @@ export default [
             sidebar: SidebarTrailsOverview,
             toolbar: TrailOverviewToolbar
         },
-
-
     },
     {
         path: '/trail/:slug',
         name: 'trail-details',
         component: trailDetails,
         beforeEnter: (to, from, next) => {
-            store.dispatch('trails/fetchTrailDetails', to.params.slug)
+                store.dispatch('trails/fetchTrailDetails', to.params.slug)
                 .then(() => {
                     const trail = store.state.trails.currentTrail;
                     const mainImageUrl = trail.main_image ? trail.main_image.path : '';
@@ -116,7 +122,7 @@ export default [
                         },
                         {
                             property: 'og:title',
-                            content: `Odkryj szlak ${trail.trail_name} | ${APP_NAME}`
+                            content: `Poznaj szlak ${trail.trail_name} | ${APP_NAME}`
                         },
                         {
                             property: 'og:description',
@@ -146,8 +152,16 @@ export default [
                     next();
                 })
                 .catch(error => {
+                    if (error.response?.status === 404) {
+                        next({
+                            name: 'not-found',
+                            params: {
+                                pathMatch: to.path.substring(1).split('/')
+                            }
+                        })
+                    }
                     console.error('Error fetching trail details:', error);
-                    next(error);
+                    next(false);
                 });
         },
         meta: {
