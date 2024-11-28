@@ -27,6 +27,13 @@ services:
       - "traefik.http.routers.kayak-prod.tls=true"
       - "traefik.http.routers.kayak-prod.tls.certresolver=myresolver"
       - "traefik.http.services.kayak-prod.loadbalancer.server.port=9000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'    # 80% jednego CPU
+          memory: 1G
+        reservations:
+          memory: 1G
 
   queue-worker:
     image: kayak-app-prod
@@ -40,6 +47,11 @@ services:
       - ./storage:/var/www/html/storage
     networks:
       - internal
+    deploy:
+      resources:
+        limits:
+          cpus: '0.4'    # 40% jednego CPU
+          memory: 512M
 
   scheduler:
     image: kayak-app-prod
@@ -67,6 +79,11 @@ services:
       - ./backups:/backups
     networks:
       - internal
+    deploy:
+      resources:
+        limits:
+          cpus: '0.4'
+          memory: 512M
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -75,7 +92,7 @@ services:
     environment:
       - PMA_HOST=db
       - PMA_PORT=3306
-      - UPLOAD_LIMIT=300M
+      - UPLOAD_LIMIT=512M
     networks:
       - internal
       - traefik-public
@@ -95,6 +112,11 @@ services:
       - redis_data:/data
     networks:
       - internal
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
 
   backup:
     image: tiredofit/db-backup
