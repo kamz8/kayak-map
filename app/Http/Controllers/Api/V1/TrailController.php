@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\NearbyTrailsRequest;
+use App\Http\Requests\RecommendedTrailsRequest;
 use App\Http\Requests\TrailRequest;
 use App\Http\Resources\NearbyTrailResource;
 use App\Http\Resources\NearbyTrailsCollection;
+use App\Http\Resources\RecommendedTrailResource;
+use App\Http\Resources\RecommendedTrailsCollection;
 use App\Http\Resources\TrailCollection;
 use App\Http\Resources\TrailResource;
 use App\Services\TrailService;
@@ -64,7 +67,7 @@ class TrailController extends Controller
         return (new TrailCollection($trails, $additionalMeta))->response();
     }
 
-    public function show($slug)
+    public function show($slug): TrailResource|JsonResponse
     {
 
         try {
@@ -91,5 +94,21 @@ class TrailController extends Controller
         $trails = $this->trailService->getNearbyTrails($latitude, $longitude, $locationName);
 
         return new NearbyTrailsCollection($trails);
+    }
+    /**
+     * Pobiera trasy rekomendowane dla użytkownika w zależności od wybranej trasy (slug) oraz odległości (radius w km)
+     *
+     * @param RecommendedTrailsRequest $request
+     * @param string $slug
+     * @return RecommendedTrailsCollection
+     */
+    public function getRecommendedTrails(RecommendedTrailsRequest $request, string $slug): RecommendedTrailsCollection
+    {
+        $sourceTrail = $this->trailService->getTrailDetails($slug);
+        $radius = $request->validated('radius', 50);
+
+        $recommendedTrails = $this->trailService->getRecommendedTrails($sourceTrail, $radius);
+
+        return new RecommendedTrailsCollection($recommendedTrails);
     }
 }

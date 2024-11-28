@@ -127,11 +127,18 @@ const actions = {
             const response = await apiClient.get(`/trail/${slug}`)
             commit('SET_CURRENT_TRAIL', response.data.data)
         } catch (error) {
-            console.error('Error fetching trail details:', error)
-            dispatch('system_messages/addMessage', {
-                type: 'error',
-                text: 'Nie udało się pobrać szczegółów trasy. Spróbuj ponownie później.'
-            }, { root: true })
+
+            if (error.response?.status === 404) {
+                throw error; // Propagate 404 to the router
+            } else {
+                dispatch('system-messages/addMessage', {
+                    type: 'error',
+                    text: 'Nie udało się pobrać szczegółów trasy. Spróbuj ponownie później.'
+                }, { root: true })
+                console.error('Error fetching trail details:', error)
+                throw error
+            }
+
         } finally {
             commit('SET_CURRENT_TRAIL_LOADING', false)
         }

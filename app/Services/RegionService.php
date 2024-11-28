@@ -2,13 +2,26 @@
 
 namespace App\Services;
 
+use App\Enums\RegionType;
 use App\Models\Region;
 use App\Models\Trail;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class RegionService
 {
+    private const CACHE_TAG_TRAILS = 'trails';
+    private const CACHE_TAG_REGIONS = 'regions';
+    private const CACHE_TTL = 86400; // 24 godziny
+
+    public function __construct(
+        private readonly GeodataService $geodataService
+    )
+    {
+    }
+
     public function getRegions(): \Illuminate\Database\Eloquent\Collection
     {
         return Region::with('children')->where('is_root', true)->get();
@@ -95,6 +108,10 @@ class RegionService
             ->first();
     }
 
+    /**
+     * @param Region|null $region
+     * @return string|null
+     */
     public function getFullSlug(?Region $region): ?string
     {
         if (!$region) {
@@ -112,6 +129,10 @@ class RegionService
         return implode('/', $slugParts);
     }
 
+    /**
+     * @param Region|null $region
+     * @return array
+     */
     public function getRegionPath(?Region $region): array
     {
         if (!$region) {
@@ -132,4 +153,177 @@ class RegionService
 
         return $path;
     }
+
+    /**
+     * @param int $regionId
+     * @return object|null
+     */
+    public function getRegionStatistics(int $regionId): object
+    {
+        return DB::table('region_trail_statistics')
+            ->where('region_id', $regionId)
+            ->first();
+    }
+
+    /**
+     * Get nearby regions of the same type
+     *
+     * @param Region $region
+     * @param float $radius Radius in kilometers
+     * @return \Illuminate\Support\Collection
+     */
+    public function getNearbyRegions(Region $region): \Illuminate\Support\Collection
+    {
+        if (!$region->center_point) {
+            return collect();
+        }
+
+        $radiusInKm = match ($region->type) {
+            RegionType::CITY => 100,  // 50km dla miast
+            RegionType::GEOGRAPHIC_AREA => 150,
+            RegionType::STATE => 250, // 200km dla województw
+            default => 50
+        };
+
+        // Najpierw pobieramy ID wszystkich przodków
+        /** @var SpatialBuilder $query */
+        return Region::query()
+            ->whereNotNull('area')
+            ->whereNotNull('center_point')
+            ->where('id', '!=', $region->id)
+            ->where('parent_id', $region->parent_id) // wystarczy ten warunek
+            ->whereDistance('center_point', $region->center_point, '<=', $radiusInKm * 1000)
+            ->orderByDistance('center_point', $region->center_point)
+            ->limit(10)
+            ->get();
+    }
+
+    public function getRegionDetails(string $slug): object
+    {
+        $region = $this->getRegionBySlug($slug);
+
+        // Pobieranie z widoku SQL
+        $statistics = DB::table('region_trail_statistics')
+            ->where('region_id', $region->id)
+            ->first();
+
+        // Pobieranie nearby_regions tylko jeśli region ma center_point
+        $nearbyRegions = $region->center_point
+            ? $this->getNearbyRegions($region)
+            : collect();
+
+        // Generowanie bounds tylko jeśli jest center_point
+        $bounds = $region->center_point
+            ? app(GeodataService::class)->createBoundingBox($region->center_point)
+            : null;
+
+        return (object)[
+            'region' => $region,
+            'statistics' => $statistics ?? (object)[],
+            'nearbyRegions' => $nearbyRegions,
+            'bounds' => $bounds
+        ];
+    }
+
+    /**
+     * Pobiera top 10 najlepszych tras w regionie.
+     *
+     * @param Region $region
+     * @return Collection
+     */
+    public function getTopTrailsInRegion(Region $region): \Illuminate\Database\Eloquent\Collection
+    {
+        $cacheKey = "top_trails_region_{$region->id}";
+
+        return Cache::store('redis')
+            ->tags([self::CACHE_TAG_TRAILS, self::CACHE_TAG_REGIONS, "region_{$region->id}"])
+            ->remember($cacheKey, now()->addSeconds(self::CACHE_TTL), function () use ($region) {
+                $query = Trail::query()
+                    ->select(['trails.*'])
+                    ->with([
+                        'riverTrack',
+                        'regions',
+                        'images'
+                    ]);
+
+                // Dodajemy join z trail_region
+                $query->join('trail_region', 'trails.id', '=', 'trail_region.trail_id')
+                    ->where('trail_region.region_id', $region->id);
+
+                if ($region->center_point instanceof Point) {
+                    $query->addSelect([
+                        \DB::raw('(
+                            6371000 * acos(
+                                cos(radians(?)) *
+                                cos(radians(start_lat)) *
+                                cos(radians(start_lng) - radians(?)) +
+                                sin(radians(?)) *
+                                sin(radians(start_lat))
+                            )
+                        ) as distance')
+                    ])->addBinding([
+                        $region->center_point->latitude,
+                        $region->center_point->longitude,
+                        $region->center_point->latitude
+                    ], 'select');
+
+                    $radius = $this->calculateRegionRadius($region);
+
+                    // Używamy center_point do stworzenia bounding box
+                    $boundingBox = $this->geodataService->createBoundingBox(
+                        $region->center_point,
+                        ($radius / 111000) * 1.5 // Zwiększamy obszar o 50%
+                    );
+
+                    $query->where(function($q) use ($boundingBox) {
+                        $q->whereBetween('start_lat', [$boundingBox[0][0], $boundingBox[1][0]])
+                            ->whereBetween('start_lng', [$boundingBox[0][1], $boundingBox[1][1]])
+                            ->orWhereBetween('end_lat', [$boundingBox[0][0], $boundingBox[1][0]])
+                            ->orWhereBetween('end_lng', [$boundingBox[0][1], $boundingBox[1][1]]);
+                    });
+
+                    $query->orderBy('distance');
+                }
+
+                return $query->where('rating', '>=', 0)
+                    ->orderByDesc('rating')
+                    ->limit(10)
+                    ->get();
+            });
+    }
+
+    /**
+     * Czyści cache dla konkretnego regionu
+     */
+    public function clearRegionCache(Region $region): void
+    {
+        Cache::store('redis')->tags(["region_{$region->id}"])->flush();
+    }
+
+    /**
+     * Czyści cały cache tras
+     */
+    public function clearTrailsCache(): void
+    {
+        Cache::store('redis')->tags([self::CACHE_TAG_TRAILS])->flush();
+    }
+
+    /**
+     * Czyści cały cache regionów
+     */
+    public function clearRegionsCache(): void
+    {
+        Cache::store('redis')->tags([self::CACHE_TAG_REGIONS])->flush();
+    }
+
+    private function calculateRegionRadius(Region $region): float
+    {
+        return match ($region->type) {
+            'country' => 500000,
+            'state' => 200000,
+            'city', 'geographic_area' => 100000,
+            default => 100000,
+        };
+    }
+
 }

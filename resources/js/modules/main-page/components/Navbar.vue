@@ -12,7 +12,7 @@
       <v-icon left class="mr-1">mdi-compass</v-icon>
       Odkrywaj
     </v-btn>
-    <v-btn text class="d-none d-md-flex">Regiony</v-btn>
+    <v-btn text class="d-none d-md-flex" to="/regions">Regiony</v-btn>
     <v-btn text class="d-none d-md-flex">Zapisane</v-btn>
     <v-spacer class="d-none d-md-block"></v-spacer>
     <v-btn text class="d-none d-md-flex">Pomoc</v-btn>

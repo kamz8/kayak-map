@@ -5,6 +5,7 @@ import laravel from 'laravel-vite-plugin';
 import fs from 'fs';
 import browsersync from "vite-plugin-browser-sync";
 
+
 const host = 'kayak-map.test';
 export default defineConfig({
     plugins: [
@@ -16,19 +17,19 @@ export default defineConfig({
             ],
             refresh: true,
         }),
-        browsersync({
+/*        browsersync({
             host: '0.0.0.0',
             port: 3000,
-            proxy: 'https://nginx',
+            proxy: host,
             https: {
                 key: fs.readFileSync(`./docker/ssl/cert.key`),
                 cert: fs.readFileSync(`./docker/ssl/cert.crt`),
             },
             open: false
-        })
+        }),*/
     ],
     optimizeDeps: {
-        include: ['leaflet', 'vue-leaflet-markercluster']
+        include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'axios', 'vue-leaflet-markercluster']
     },
     resolve: {
         alias: {
@@ -42,14 +43,15 @@ export default defineConfig({
         rollupOptions: {
             input: 'resources/js/app.js',
             output: {
-                manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                        return 'vendor';
+                assetFileNames: (assetInfo) => {
+                    if (assetInfo.name.endsWith('.eot') ||
+                        assetInfo.name.endsWith('.ttf')) {
+                        return 'fonts/[name][extname]';
                     }
-                },
-            },
-        },
-        chunkSizeWarningLimit: 1000,
+                    return 'assets/[name]-[hash][extname]';
+                }
+            }
+        }
     },
     server: {
         host: '0.0.0.0',
@@ -62,14 +64,11 @@ export default defineConfig({
             'Access-Control-Allow-Origin': '*',
         },
         hmr: {
-            host: host,
-            protocol: 'wss',
-            port: 5173,
-            overlay: false,
+            host: 'localhost',
+            proxy: host
         },
         watch: {
             usePolling: true,
-            interval: 1000,
         },
         proxy: {
             '/api': {

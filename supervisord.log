@@ -1,0 +1,241 @@
+2024-11-06 10:49:49,935 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-06 10:49:49,943 INFO supervisord started with pid 1
+2024-11-06 10:49:50,946 INFO spawned: 'php-fpm' with pid 7
+2024-11-06 10:49:52,008 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-06 11:10:51,798 WARN received SIGQUIT indicating exit request
+2024-11-06 11:10:51,828 INFO waiting for php-fpm to die
+2024-11-06 11:10:52,033 INFO stopped: php-fpm (exit status 0)
+2024-11-06 11:10:55,813 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-06 11:10:55,822 INFO supervisord started with pid 1
+2024-11-06 11:10:56,824 INFO spawned: 'php-fpm' with pid 7
+2024-11-06 11:10:57,960 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-06 11:11:21,005 WARN received SIGQUIT indicating exit request
+2024-11-06 11:11:21,008 INFO waiting for php-fpm to die
+2024-11-06 11:11:21,012 INFO stopped: php-fpm (exit status 0)
+2024-11-06 11:23:13,394 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-06 11:23:13,433 INFO supervisord started with pid 1
+2024-11-06 11:23:14,437 INFO spawned: 'php-fpm' with pid 7
+2024-11-06 11:23:15,531 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-06 11:31:33,183 WARN received SIGQUIT indicating exit request
+2024-11-06 11:31:33,213 INFO waiting for php-fpm to die
+2024-11-06 11:31:33,418 INFO stopped: php-fpm (exit status 0)
+2024-11-06 11:31:34,928 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-06 11:31:34,935 INFO supervisord started with pid 1
+2024-11-06 11:31:35,939 INFO spawned: 'php-fpm' with pid 7
+2024-11-06 11:31:37,077 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-06 11:51:00,277 WARN received SIGQUIT indicating exit request
+2024-11-06 11:51:00,323 INFO waiting for php-fpm to die
+2024-11-06 11:51:00,542 INFO stopped: php-fpm (exit status 0)
+2024-11-06 11:58:20,030 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-06 11:58:20,094 INFO supervisord started with pid 1
+2024-11-06 11:58:21,099 INFO spawned: 'php-fpm' with pid 7
+2024-11-06 11:58:22,549 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-18 11:59:56,386 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-18 11:59:56,402 INFO supervisord started with pid 1
+2024-11-18 11:59:57,405 INFO spawned: 'php-fpm' with pid 7
+2024-11-18 11:59:58,545 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-18 12:05:31,063 WARN received SIGQUIT indicating exit request
+2024-11-18 12:05:31,084 INFO waiting for php-fpm to die
+2024-11-18 12:05:31,139 INFO stopped: php-fpm (exit status 0)
+2024-11-18 12:06:39,697 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-18 12:06:39,703 INFO supervisord started with pid 1
+2024-11-18 12:06:40,707 INFO spawned: 'php-fpm' with pid 7
+2024-11-18 12:06:41,858 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-18 21:30:05,007 WARN received SIGQUIT indicating exit request
+2024-11-18 21:30:05,064 INFO waiting for php-fpm to die
+2024-11-18 21:30:05,150 INFO stopped: php-fpm (exit status 0)
+2024-11-18 21:31:46,071 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-18 21:31:46,078 INFO supervisord started with pid 1
+2024-11-18 21:31:47,081 INFO spawned: 'php-fpm' with pid 7
+2024-11-18 21:31:48,239 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-18 23:11:03,341 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-18 23:11:03,496 INFO supervisord started with pid 1
+2024-11-18 23:11:04,499 INFO spawned: 'php-fpm' with pid 7
+2024-11-18 23:11:05,731 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-18 23:44:11,459 WARN received SIGQUIT indicating exit request
+2024-11-18 23:44:11,500 INFO waiting for php-fpm to die
+2024-11-18 23:44:11,649 INFO stopped: php-fpm (exit status 0)
+2024-11-18 23:44:14,114 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-18 23:44:14,122 INFO supervisord started with pid 1
+2024-11-18 23:44:15,126 INFO spawned: 'php-fpm' with pid 6
+2024-11-18 23:44:16,240 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-18 23:45:14,944 INFO reaped unknown pid 48 (exit status 1)
+2024-11-18 23:45:17,949 INFO reaped unknown pid 51 (exit status 0)
+2024-11-18 23:45:17,950 INFO reaped unknown pid 52 (exit status 0)
+2024-11-18 23:50:05,080 INFO reaped unknown pid 233 (exit status 1)
+2024-11-18 23:50:05,136 INFO reaped unknown pid 234 (exit status 1)
+2024-11-18 23:50:07,765 INFO reaped unknown pid 239 (exit status 0)
+2024-11-18 23:50:07,766 INFO reaped unknown pid 241 (exit status 0)
+2024-11-18 23:50:07,767 INFO reaped unknown pid 240 (exit status 0)
+2024-11-18 23:50:07,768 INFO reaped unknown pid 242 (exit status 0)
+2024-11-18 23:50:25,963 INFO reaped unknown pid 522 (exit status 1)
+2024-11-18 23:50:25,965 INFO reaped unknown pid 521 (exit status 1)
+2024-11-18 23:50:28,794 INFO reaped unknown pid 527 (exit status 0)
+2024-11-18 23:50:28,794 INFO reaped unknown pid 529 (exit status 0)
+2024-11-18 23:50:28,795 INFO reaped unknown pid 528 (exit status 0)
+2024-11-18 23:50:28,796 INFO reaped unknown pid 530 (exit status 0)
+2024-11-18 23:52:09,999 INFO reaped unknown pid 769 (exit status 1)
+2024-11-18 23:52:11,830 INFO reaped unknown pid 772 (exit status 0)
+2024-11-18 23:52:11,831 INFO reaped unknown pid 773 (exit status 0)
+2024-11-19 13:05:48,089 INFO reaped unknown pid 922 (exit status 1)
+2024-11-19 13:06:18,166 INFO reaped unknown pid 948 (terminated by SIGKILL)
+2024-11-19 13:06:18,167 INFO reaped unknown pid 909 (terminated by SIGKILL)
+2024-11-19 13:06:18,167 INFO reaped unknown pid 925 (terminated by SIGKILL)
+2024-11-19 13:06:18,168 INFO reaped unknown pid 926 (terminated by SIGKILL)
+2024-11-19 13:06:18,169 INFO reaped unknown pid 952 (terminated by SIGKILL)
+2024-11-19 13:27:36,884 INFO reaped unknown pid 1058 (exit status 1)
+2024-11-19 13:28:06,720 INFO reaped unknown pid 1086 (terminated by SIGKILL)
+2024-11-19 13:28:06,721 INFO reaped unknown pid 1045 (terminated by SIGKILL)
+2024-11-19 13:28:06,721 INFO reaped unknown pid 1061 (terminated by SIGKILL)
+2024-11-19 13:28:06,723 INFO reaped unknown pid 1062 (terminated by SIGKILL)
+2024-11-19 13:28:06,723 INFO reaped unknown pid 1087 (terminated by SIGKILL)
+2024-11-19 13:39:44,114 INFO reaped unknown pid 1200 (exit status 1)
+2024-11-19 13:39:55,137 INFO reaped unknown pid 1202 (exit status 0)
+2024-11-19 13:39:55,138 INFO reaped unknown pid 1203 (exit status 0)
+2024-11-19 13:40:39,228 INFO reaped unknown pid 1338 (exit status 1)
+2024-11-19 13:40:41,893 INFO reaped unknown pid 1340 (exit status 0)
+2024-11-19 13:40:41,894 INFO reaped unknown pid 1341 (exit status 0)
+2024-11-19 13:40:52,917 INFO reaped unknown pid 1475 (exit status 1)
+2024-11-19 13:40:56,388 INFO reaped unknown pid 1477 (exit status 0)
+2024-11-19 13:40:56,389 INFO reaped unknown pid 1478 (exit status 0)
+2024-11-19 13:42:49,613 INFO reaped unknown pid 1612 (exit status 1)
+2024-11-19 13:42:52,449 INFO reaped unknown pid 1614 (exit status 0)
+2024-11-19 13:42:52,450 INFO reaped unknown pid 1615 (exit status 0)
+2024-11-19 13:45:54,813 INFO reaped unknown pid 1750 (exit status 1)
+2024-11-19 13:47:38,673 INFO reaped unknown pid 1752 (exit status 0)
+2024-11-19 13:47:38,674 INFO reaped unknown pid 1753 (exit status 0)
+2024-11-19 13:56:34,748 INFO reaped unknown pid 1901 (exit status 1)
+2024-11-19 13:57:29,857 INFO reaped unknown pid 2042 (exit status 1)
+2024-11-19 13:58:18,664 INFO reaped unknown pid 1903 (exit status 0)
+2024-11-19 13:58:18,665 INFO reaped unknown pid 1904 (exit status 0)
+2024-11-19 13:59:14,176 INFO reaped unknown pid 2044 (exit status 0)
+2024-11-19 13:59:14,177 INFO reaped unknown pid 2045 (exit status 0)
+2024-11-19 14:22:05,673 INFO reaped unknown pid 2231 (exit status 1)
+2024-11-19 14:23:50,604 INFO reaped unknown pid 2233 (exit status 0)
+2024-11-19 14:23:50,604 INFO reaped unknown pid 2234 (exit status 0)
+2024-11-19 14:45:01,034 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-19 14:45:01,041 INFO supervisord started with pid 1
+2024-11-19 14:45:02,045 INFO spawned: 'php-fpm' with pid 7
+2024-11-19 14:45:03,236 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-19 14:51:56,268 INFO reaped unknown pid 71 (exit status 1)
+2024-11-19 14:51:59,863 INFO reaped unknown pid 73 (exit status 0)
+2024-11-19 14:51:59,864 INFO reaped unknown pid 74 (exit status 0)
+2024-11-19 14:58:48,206 INFO reaped unknown pid 214 (exit status 1)
+2024-11-19 14:58:52,690 INFO reaped unknown pid 216 (exit status 0)
+2024-11-19 14:58:52,691 INFO reaped unknown pid 217 (exit status 0)
+2024-11-19 15:44:46,634 INFO reaped unknown pid 434 (exit status 1)
+2024-11-19 15:44:50,800 INFO reaped unknown pid 436 (exit status 0)
+2024-11-19 15:44:50,801 INFO reaped unknown pid 437 (exit status 0)
+2024-11-19 15:51:03,878 INFO reaped unknown pid 589 (exit status 1)
+2024-11-19 15:51:07,531 INFO reaped unknown pid 591 (exit status 0)
+2024-11-19 15:51:07,531 INFO reaped unknown pid 592 (exit status 0)
+2024-11-19 15:52:10,653 INFO reaped unknown pid 774 (exit status 1)
+2024-11-19 15:52:10,654 INFO reaped unknown pid 779 (exit status 1)
+2024-11-19 15:52:14,987 INFO reaped unknown pid 781 (exit status 0)
+2024-11-19 15:52:14,988 INFO reaped unknown pid 782 (exit status 0)
+2024-11-19 15:52:14,988 INFO reaped unknown pid 776 (exit status 0)
+2024-11-19 15:52:14,989 INFO reaped unknown pid 777 (exit status 0)
+2024-11-19 15:54:53,304 INFO reaped unknown pid 1023 (exit status 1)
+2024-11-19 15:54:56,620 INFO reaped unknown pid 1025 (exit status 0)
+2024-11-19 15:54:56,621 INFO reaped unknown pid 1026 (exit status 0)
+2024-11-19 16:31:43,749 INFO reaped unknown pid 1250 (exit status 1)
+2024-11-19 16:31:47,204 INFO reaped unknown pid 1252 (exit status 0)
+2024-11-19 16:31:47,205 INFO reaped unknown pid 1253 (exit status 0)
+2024-11-19 16:51:12,067 INFO reaped unknown pid 1462 (exit status 1)
+2024-11-19 16:51:15,938 INFO reaped unknown pid 1464 (exit status 0)
+2024-11-19 16:51:15,939 INFO reaped unknown pid 1465 (exit status 0)
+2024-11-19 16:52:09,871 INFO reaped unknown pid 1608 (exit status 1)
+2024-11-19 16:52:13,109 INFO reaped unknown pid 1610 (exit status 0)
+2024-11-19 16:52:13,244 INFO reaped unknown pid 1611 (exit status 0)
+2024-11-19 16:53:13,363 INFO reaped unknown pid 1750 (exit status 1)
+2024-11-19 16:53:16,917 INFO reaped unknown pid 1752 (exit status 0)
+2024-11-19 16:53:16,917 INFO reaped unknown pid 1753 (exit status 0)
+2024-11-20 15:32:24,665 INFO reaped unknown pid 2026 (exit status 1)
+2024-11-20 15:32:28,833 INFO reaped unknown pid 2028 (exit status 0)
+2024-11-20 15:32:28,835 INFO reaped unknown pid 2029 (exit status 0)
+2024-11-20 16:28:27,673 INFO reaped unknown pid 2182 (exit status 1)
+2024-11-20 16:28:31,141 INFO reaped unknown pid 2184 (exit status 0)
+2024-11-20 16:28:31,142 INFO reaped unknown pid 2185 (exit status 0)
+2024-11-20 23:09:03,636 INFO reaped unknown pid 2362 (exit status 1)
+2024-11-20 23:09:07,124 INFO reaped unknown pid 2364 (exit status 0)
+2024-11-20 23:09:07,125 INFO reaped unknown pid 2365 (exit status 0)
+2024-11-21 11:38:30,009 INFO reaped unknown pid 2600 (exit status 1)
+2024-11-21 11:38:34,030 INFO reaped unknown pid 2602 (exit status 0)
+2024-11-21 11:38:34,030 INFO reaped unknown pid 2603 (exit status 0)
+2024-11-21 14:24:52,391 INFO reaped unknown pid 2798 (exit status 1)
+2024-11-21 14:24:56,236 INFO reaped unknown pid 2800 (exit status 0)
+2024-11-21 14:24:56,237 INFO reaped unknown pid 2801 (exit status 0)
+2024-11-21 15:19:17,768 INFO reaped unknown pid 3035 (exit status 1)
+2024-11-21 15:19:20,895 INFO reaped unknown pid 3037 (exit status 0)
+2024-11-21 15:19:20,896 INFO reaped unknown pid 3038 (exit status 0)
+2024-11-21 15:19:57,738 INFO reaped unknown pid 3181 (exit status 1)
+2024-11-21 15:20:00,958 INFO reaped unknown pid 3183 (exit status 0)
+2024-11-21 15:20:00,958 INFO reaped unknown pid 3184 (exit status 0)
+2024-11-22 16:57:09,321 INFO reaped unknown pid 3445 (exit status 1)
+2024-11-22 16:57:16,822 INFO reaped unknown pid 3447 (exit status 0)
+2024-11-22 16:57:16,822 INFO reaped unknown pid 3448 (exit status 0)
+2024-11-25 11:48:51,675 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-25 11:48:51,716 INFO supervisord started with pid 1
+2024-11-25 11:48:52,718 INFO spawned: 'php-fpm' with pid 7
+2024-11-25 11:48:53,902 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-25 14:49:23,711 INFO reaped unknown pid 210 (exit status 1)
+2024-11-25 14:49:28,191 INFO reaped unknown pid 212 (exit status 0)
+2024-11-25 14:49:28,193 INFO reaped unknown pid 213 (exit status 0)
+2024-11-25 16:13:49,937 INFO reaped unknown pid 432 (exit status 1)
+2024-11-25 16:13:54,603 INFO reaped unknown pid 434 (exit status 0)
+2024-11-25 16:13:54,604 INFO reaped unknown pid 435 (exit status 0)
+2024-11-25 16:47:11,165 INFO reaped unknown pid 620 (exit status 1)
+2024-11-25 16:47:15,172 INFO reaped unknown pid 622 (exit status 0)
+2024-11-25 16:47:15,172 INFO reaped unknown pid 623 (exit status 0)
+2024-11-25 16:52:11,693 INFO reaped unknown pid 768 (exit status 1)
+2024-11-25 16:52:15,346 INFO reaped unknown pid 770 (exit status 0)
+2024-11-25 16:52:15,347 INFO reaped unknown pid 771 (exit status 0)
+2024-11-25 18:26:09,317 INFO reaped unknown pid 960 (exit status 1)
+2024-11-25 18:26:14,453 INFO reaped unknown pid 962 (exit status 0)
+2024-11-25 18:26:14,454 INFO reaped unknown pid 963 (exit status 0)
+2024-11-25 18:42:33,611 INFO reaped unknown pid 1129 (exit status 1)
+2024-11-25 18:42:37,570 INFO reaped unknown pid 1131 (exit status 0)
+2024-11-25 18:42:37,572 INFO reaped unknown pid 1132 (exit status 0)
+2024-11-25 19:03:46,408 INFO reaped unknown pid 1332 (exit status 1)
+2024-11-25 19:03:51,358 INFO reaped unknown pid 1334 (exit status 0)
+2024-11-25 19:03:51,360 INFO reaped unknown pid 1335 (exit status 0)
+2024-11-25 22:56:05,794 INFO reaped unknown pid 1804 (exit status 1)
+2024-11-25 22:56:10,118 INFO reaped unknown pid 1806 (exit status 0)
+2024-11-25 22:56:10,119 INFO reaped unknown pid 1807 (exit status 0)
+2024-11-25 22:58:32,009 INFO reaped unknown pid 1951 (exit status 1)
+2024-11-25 22:58:35,227 INFO reaped unknown pid 1953 (exit status 0)
+2024-11-25 22:58:35,227 INFO reaped unknown pid 1954 (exit status 0)
+2024-11-26 21:56:53,547 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-11-26 21:56:53,581 INFO supervisord started with pid 1
+2024-11-26 21:56:54,585 INFO spawned: 'php-fpm' with pid 7
+2024-11-26 21:56:55,733 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-11-26 23:06:39,373 INFO reaped unknown pid 59 (exit status 1)
+2024-11-26 23:06:44,127 INFO reaped unknown pid 61 (exit status 0)
+2024-11-26 23:06:44,128 INFO reaped unknown pid 62 (exit status 0)
+2024-11-26 23:57:06,102 INFO reaped unknown pid 252 (exit status 1)
+2024-11-26 23:57:09,933 INFO reaped unknown pid 254 (exit status 0)
+2024-11-26 23:57:09,934 INFO reaped unknown pid 255 (exit status 0)
+2024-11-27 00:51:51,205 INFO reaped unknown pid 444 (exit status 1)
+2024-11-27 00:51:54,985 INFO reaped unknown pid 446 (exit status 0)
+2024-11-27 00:51:54,985 INFO reaped unknown pid 447 (exit status 0)
+2024-11-27 01:08:37,867 INFO reaped unknown pid 607 (exit status 1)
+2024-11-27 01:08:41,304 INFO reaped unknown pid 609 (exit status 0)
+2024-11-27 01:08:41,305 INFO reaped unknown pid 610 (exit status 0)
+2024-11-27 01:11:30,446 INFO reaped unknown pid 754 (exit status 1)
+2024-11-27 01:11:33,973 INFO reaped unknown pid 756 (exit status 0)
+2024-11-27 01:11:33,974 INFO reaped unknown pid 757 (exit status 0)
+2024-11-27 01:53:28,091 INFO reaped unknown pid 919 (exit status 1)
+2024-11-27 01:53:31,839 INFO reaped unknown pid 921 (exit status 0)
+2024-11-27 01:53:31,840 INFO reaped unknown pid 922 (exit status 0)
+2024-11-27 18:27:47,593 INFO reaped unknown pid 1101 (exit status 1)
+2024-11-27 18:27:51,733 INFO reaped unknown pid 1103 (exit status 0)
+2024-11-27 18:27:51,735 INFO reaped unknown pid 1104 (exit status 0)
+2024-11-27 18:30:33,996 INFO reaped unknown pid 1248 (exit status 1)
+2024-11-27 18:30:37,262 INFO reaped unknown pid 1250 (exit status 0)
+2024-11-27 18:30:37,263 INFO reaped unknown pid 1251 (exit status 0)
+2024-11-27 19:06:30,375 INFO reaped unknown pid 1474 (exit status 1)
+2024-11-27 19:06:34,481 INFO reaped unknown pid 1476 (exit status 0)
+2024-11-27 19:06:34,481 INFO reaped unknown pid 1477 (exit status 0)
+2024-11-27 21:04:16,708 INFO reaped unknown pid 1683 (exit status 1)
+2024-11-27 21:04:20,394 INFO reaped unknown pid 1685 (exit status 0)
+2024-11-27 21:04:20,394 INFO reaped unknown pid 1686 (exit status 0)

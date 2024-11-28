@@ -8,7 +8,11 @@
         </div>
       </template>
     </v-img>
-    <v-card-title>{{ trail.name }}</v-card-title>
+    <v-card-title>
+        <router-link :to="{ name: 'trail-overview', params: { slug: trail.slug }}" class="text-decoration-underline" style="color: inherit;">
+        {{ trail.name }}
+        </router-link>
+    </v-card-title>
     <v-card-subtitle>{{ trail.location_name ?? '' }}</v-card-subtitle>
     <v-card-subtitle>
       <v-rating v-model="trail.rating" readonly size="xs" color="yellow" >{{trail.rating}}</v-rating>
@@ -27,10 +31,7 @@ export default {
       type: Object,
       required: true
     },
-    appConfig: {
-      type: Object,
-      required: true
-    }
+
   },
 };
 </script>

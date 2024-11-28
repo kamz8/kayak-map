@@ -1,48 +1,43 @@
 <?php
-
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\RiverTrack;
-use Illuminate\Http\Request;
-use phpGPX\phpGPX;
+use App\Http\Requests\GpxUploadRequest;
+use App\Jobs\ProcessGpxFileJob;
+use App\Models\GpxProcessingStatus;
+use Illuminate\Http\JsonResponse;
 
 class GPXController extends Controller
 {
-    public function upload(Request $request)
+    public function upload(GpxUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'gpx_file' => 'required|file|mimes:gpx,xml',
-            'trail_id' => 'required|exists:trails,id',
+        $file = $request->file('gpx_file');
+        $trailId = $request->input('trail_id');
+
+        // Zapisz plik tymczasowo
+        $filePath = $file->store('gpx/temp');
+
+        // Utwórz status przetwarzania
+        $status = GpxProcessingStatus::create([
+            'trail_id' => $trailId,
+            'file_path' => $filePath,
+            'status' => 'pending',
+            'message' => 'Processing queued'
         ]);
 
-        $gpxFile = $request->file('gpx_file');
-        $gpx = new phpGPX();
-        $file = $gpx->load($gpxFile->getPathname());
+        // Dispatch job
+        ProcessGpxFileJob::dispatch($filePath, $trailId, $status->id);
 
-        $points = [];
-        foreach ($file->tracks as $track) {
-            foreach ($track->segments as $segment) {
-                foreach ($segment->points as $point) {
-                    $points[] = ['lat' => $point->latitude, 'lng' => $point->longitude];
-                }
-            }
-        }
-
-        // Simplify points if needed
-        $simplifiedPoints = $this->simplifyPoints($points);
-
-        $riverTrack = new RiverTrack();
-        $riverTrack->trail_id = $request->trail_id;
-        $riverTrack->track_points = json_encode($simplifiedPoints);
-        $riverTrack->save();
-
-        return response()->json(['message' => 'GPX file uploaded and track saved successfully']);
+        return response()->json([
+            'message' => 'GPX file uploaded and queued for processing',
+            'status_id' => $status->id
+        ]);
     }
 
-    private function simplifyPoints(array $points, $tolerance = 0.0001)
+    public function status($statusId): JsonResponse
     {
-        // Implement your point simplification algorithm here
-        return $points;
+        $status = GpxProcessingStatus::findOrFail($statusId);
+
+        return response()->json($status);
     }
 }

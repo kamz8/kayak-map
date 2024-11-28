@@ -45,8 +45,14 @@ const vuetify = createVuetify({
                     'river-path-outline': '#2a4600',
                     'marker-active': '#1A6570',
                     'marker-highlighted': '#2EB3C4',
+                    'river-blue': '#263e4a',
+                    'river-blue-light': '#385c6d',
+                    'river-surface': '#5c8299',
+                    'sand': '#eccca2',
                     anchor: '#248996',
                     footer: '#1c3c1c',
+                    'sandy-brown': '#F4A460',
+                    wheat:'#F5DEB3'
 
                 },
             },
@@ -77,6 +83,48 @@ const vuetify = createVuetify({
                 },
             },
         },
+        typography: {
+            fontFamily: '"Poppins", "Inter", "Nunito", sans-serif'
+        }
+    },
+    defaults: {
+        VBtn: {
+            fontFamily: 'Nunito'
+        },
+        VTextField: {
+            fontFamily: 'Inter'
+        }
+    },
+    // Nadpisanie domyślnych fontów dla całej aplikacji
+    blueprint: {
+        typography: {
+            fontFamily: 'Inter, Poppins, Nunito, sans-serif',
+            'h1': { fontFamily: 'Poppins, sans-serif' },
+            'h2': { fontFamily: 'Poppins, sans-serif' },
+            'h3': { fontFamily: 'Poppins, sans-serif' },
+            'h4': { fontFamily: 'Poppins, sans-serif' },
+            'h5': { fontFamily: 'Poppins, sans-serif' },
+            'h6': { fontFamily: 'Poppins, sans-serif' },
+
+            // Large Headers
+            'h1-lg': { fontFamily: 'Poppins, sans-serif' },
+            'h2-lg': { fontFamily: 'Poppins, sans-serif' },
+            'h3-lg': { fontFamily: 'Poppins, sans-serif' },
+            'h4-lg': { fontFamily: 'Poppins, sans-serif' },
+            'h5-lg': { fontFamily: 'Poppins, sans-serif' },
+            'h6-lg': { fontFamily: 'Poppins, sans-serif' },
+
+            // Body & Subtitles
+            'subtitle-1': { fontFamily: 'Inter, sans-serif' },
+            'subtitle-2': { fontFamily: 'Inter, sans-serif' },
+            'body-1': { fontFamily: 'Inter, sans-serif' },
+            'body-2': { fontFamily: 'Inter, sans-serif' },
+
+            // UI Elements
+            'button': { fontFamily: 'Nunito, sans-serif' },
+            'caption': { fontFamily: 'Inter, sans-serif' },
+            'overline': { fontFamily: 'Inter, sans-serif' }
+        }
     }
 });
 

@@ -3,7 +3,7 @@
         <v-img
             :src="imageSrc"
             :alt="trailName"
-            height="300"
+            :height="height"
             cover
         >
             <template v-slot:placeholder>
@@ -56,7 +56,10 @@ export default {
         trailName: String,
         difficulty: String,
         rating: Number,
-        scenery: Number
+        scenery: Number,
+        height: {
+            default: 300
+        }
     },
     methods: {
         getDifficultyColor(difficulty) {
@@ -73,6 +76,6 @@ export default {
 
 <style>
 .v-overlay__scrim {
-    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.3), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

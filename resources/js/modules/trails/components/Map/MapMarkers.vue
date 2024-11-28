@@ -9,7 +9,7 @@
         @mouseout="clearHighlightTrail"
     >
         <l-popup :options="popupOptions" @close="handlePopupClose">
-            <trail-popup :trail="trail" @view-details="viewTrailDetails" />
+            <trail-popup class="d-print-none" :trail="trail" @view-details="viewTrailDetails" />
         </l-popup>
     </l-marker>
 </template>

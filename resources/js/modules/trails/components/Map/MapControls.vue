@@ -57,12 +57,14 @@ export default {
 <style scoped>
 .map-controls {
     position: absolute;
-    z-index: 1000;
+    z-index: 999;
+    gap: 1rem;
 }
 
 .top-right-controls {
     top: 20px;
     right: 20px;
+
 }
 
 .bottom-right-controls {

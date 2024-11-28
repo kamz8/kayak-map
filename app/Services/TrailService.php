@@ -6,12 +6,15 @@ use App\Models\Trail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\DocBlock\Tags\Reference\Url;
+use phpGPX\Models\Point;
 
 class TrailService
 {
     public function getTrails(array $filters): Collection
     {
-        $query = Trail::with(['riverTrack', 'images', 'regions']);
+        $query = Trail::with(['riverTrack', 'images', 'regions.parent', 'links']);
 
         $this->applyDifficultyFilter($query, $filters);
         $this->applySceneryFilter($query, $filters);
@@ -42,7 +45,7 @@ class TrailService
                 'riverTrack',
                 'sections.links',
                 'points.pointType',
-                'images',
+                'images.trails',
                 'regions'
             ])
             ->findOrFail($id);
@@ -162,6 +165,95 @@ class TrailService
             }
 
             return $query->limit(10)->get();
+        });
+    }
+
+    public function getRecommendedTrails(Trail $trail, int $radius): Collection
+    {
+/*        return Cache::store('redis')
+            ->tags(['trails', 'trails:recommended'])
+            ->remember(
+                "recommended_trails:{$trail->slug}:radius_{$radius}",
+                now()->hours(24),
+                fn() => $this->findRecommendedTrails($trail, $radius)
+            );*/
+        return $this->findRecommendedTrails($trail, $radius);
+    }
+
+    private function findRecommendedTrails(Trail $trail, int $radius): Collection
+    {
+        return Trail::select([
+            'trails.*',
+            DB::raw('(
+               6371 * acos(
+                   cos(radians(' . $trail->start_lat . ')) * cos(radians(start_lat)) *
+                   cos(radians(start_lng) - radians(' . $trail->start_lng . ')) +
+                   sin(radians(' . $trail->start_lat . ')) * sin(radians(start_lat))
+               )
+           ) as distance_km'),
+            DB::raw('(
+               rating * 0.6 + (1 - LEAST(
+                   6371 * acos(
+                       cos(radians(' . $trail->start_lat . ')) * cos(radians(start_lat)) *
+                       cos(radians(start_lng) - radians(' . $trail->start_lng . ')) +
+                       sin(radians(' . $trail->start_lat . ')) * sin(radians(start_lat))
+                   ) / ' . $radius . ', 1
+               )) * 0.4
+           ) * 5 as relevance_score')
+        ])
+            ->with(['riverTrack', 'images', 'regions.parent.parent'])
+            ->where('slug', '!=', $trail->slug)
+            ->where('start_lat', '!=', -1)
+            ->where('end_lat', '!=', -1)
+            ->having('distance_km', '<', $radius)
+            ->orderByDesc('relevance_score')
+            ->orderBy('distance_km')
+            ->limit(5)
+            ->get();
+    }
+
+
+    private function getTopTrailsForRegion(array $bounds, Point $centerPoint, float $radius): Collection
+    {
+        $cacheKey = "top_trails_region_" . md5(json_encode($bounds) . $centerPoint->toLngLat() . $radius);
+
+        return Cache::store('redis')->remember($cacheKey, now()->hours(24), function () use ($bounds, $centerPoint, $radius) {
+            return Trail::query()
+                ->select([
+                    'trails.*',
+                    DB::raw($this->getDistanceQuery($centerPoint))
+                ])
+                // Poprawiony eager loading z relacjami
+                ->with([
+                    'riverTrack',
+                    'images' => function($query) {
+                        $query->wherePivot('is_main', true); // Tylko główne zdjęcie
+                    },
+                    'regions'
+                ])
+                ->where(function ($q) use ($bounds) {
+                    $this->applyBoundsFilter($q, $bounds);
+                })
+                ->having('distance', '<=', $radius)
+                ->orderBy('distance')
+                ->orderByDesc('rating')
+                ->where('rating', '>', 0)
+                // Zamieniamy whereHas na exists dla lepszej wydajności
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('images')
+                        ->join('imageables', 'images.id', '=', 'imageables.image_id')
+                        ->whereColumn('imageables.imageable_id', 'trails.id')
+                        ->where('imageables.imageable_type', Trail::class)
+                        ->where('imageables.is_main', true);
+                })
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('river_tracks')
+                        ->whereColumn('river_tracks.trail_id', 'trails.id');
+                })
+                ->limit(10)
+                ->get();
         });
     }
 }
