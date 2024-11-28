@@ -17,7 +17,7 @@ export default defineConfig({
             ],
             refresh: true,
         }),
-        browsersync({
+/*        browsersync({
             host: '0.0.0.0',
             port: 3000,
             proxy: host,
@@ -26,7 +26,7 @@ export default defineConfig({
                 cert: fs.readFileSync(`./docker/ssl/cert.crt`),
             },
             open: false
-        }),
+        }),*/
     ],
     optimizeDeps: {
         include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'axios', 'vue-leaflet-markercluster']
@@ -64,11 +64,11 @@ export default defineConfig({
             'Access-Control-Allow-Origin': '*',
         },
         hmr: {
-            host: 'localhost'
+            host: 'localhost',
+            proxy: host
         },
         watch: {
             usePolling: true,
-            interval: 1000,
         },
         proxy: {
             '/api': {

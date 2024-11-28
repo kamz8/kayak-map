@@ -1,0 +1,85 @@
+# docker-compose.prod-local.yml
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kayak-app-prod
+    container_name: kayak-app-prod-local
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_KEY: ${APP_KEY}
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - ./:/var/www/html
+      - ./storage:/var/www/html/storage
+    ports:
+      - "9000:9000"
+    networks:
+      - kayak-local
+
+  nginx:
+    image: nginx:alpine
+    container_name: kayak-nginx-prod-local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - kayak-local
+
+  queue-worker:
+    image: kayak-app-prod
+    container_name: kayak-queue-prod-local
+    restart: unless-stopped
+    command: php artisan queue:work redis --tries=3
+    environment:
+      APP_ENV: production
+      QUEUE_CONNECTION: redis
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - kayak-local
+
+  db:
+    image: mariadb:latest
+    container_name: kayak-db-prod-local
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - kayak-db-local:/var/lib/mysql
+    networks:
+      - kayak-local
+
+  redis:
+    image: redis:alpine
+    container_name: kayak-redis-prod-local
+    ports:
+      - "6379:6379"
+    networks:
+      - kayak-local
+
+networks:
+  kayak-local:
+    driver: bridge
+
+volumes:
+  kayak-db-local:
