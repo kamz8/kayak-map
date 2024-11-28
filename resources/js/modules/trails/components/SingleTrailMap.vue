@@ -358,17 +358,6 @@ export default {
             deep: true
         }
     },
-    mounted() {
-        if (this.staticMode) {
-            // Disable controls and interactions for maps version
-            this.$refs.map.leafletObject.dragging.disable();
-            this.$refs.map.leafletObject.touchZoom.disable();
-            this.$refs.map.leafletObject.doubleClickZoom.disable();
-            this.$refs.map.leafletObject.scrollWheelZoom.disable();
-            this.$refs.map.leafletObject.boxZoom.disable();
-            this.$refs.map.leafletObject.keyboard.disable();
-        }
-    }
 }
 </script>
 
@@ -381,7 +370,7 @@ export default {
 
 .map-controls {
     position: absolute;
-    z-index: 1000;
+    z-index: 999;
 }
 
 .top-right-controls {
