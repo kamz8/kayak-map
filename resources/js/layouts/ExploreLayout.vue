@@ -104,7 +104,6 @@ export default {
     left: 50%;
     translate: -50%;
     z-index: 1005;
-    padding: 2em;
 }
 
 html {
