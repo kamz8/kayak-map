@@ -6,9 +6,11 @@ services:
     image: kayak-app-prod:latest
     container_name: kayak-app-prod
     restart: unless-stopped
+    ports:
+      - "2222:22"
     environment:
       APP_ENV: production
-      APP_DEBUG: 'false'
+      APP_DEBUG: ${APP_DEBUG:-false}
       APP_KEY: ${APP_KEY}
       DB_HOST: db
       DB_DATABASE: ${DB_DATABASE}
@@ -16,8 +18,20 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
+      APP_URL: https://wartkinurt.pl
+      APP_TIMEZONE: Europe/Warsaw
+      LOG_CHANNEL: stack
+      LOG_LEVEL: debug
+      PHP_FPM_PM: dynamic
+      PHP_FPM_PM_MAX_CHILDREN: 10
+      PHP_FPM_PM_START_SERVERS: 2
+      PHP_FPM_PM_MIN_SPARE_SERVERS: 2
+      PHP_FPM_PM_MAX_SPARE_SERVERS: 4
+      SSH_USER: ${SSH_USER}
+      SSH_PASSWORD: ${SSH_PASSWORD}
     volumes:
-      - ./storage:/var/www/html/storage
+      - kayak_storage:/var/www/html/storage
+      - kayak_logs:/var/www/html/storage/logs
     networks:
       - traefik-public
       - internal
@@ -26,11 +40,14 @@ services:
       - "traefik.http.routers.kayak-prod.rule=Host(`wartkinurt.pl`)"
       - "traefik.http.routers.kayak-prod.tls=true"
       - "traefik.http.routers.kayak-prod.tls.certresolver=myresolver"
-      - "traefik.http.services.kayak-prod.loadbalancer.server.port=9000"
+      - "traefik.http.routers.kayak-prod.service=kayak-prod-service"
+      - "traefik.http.services.kayak-prod-service.loadbalancer.server.port=9000"
+      - "traefik.http.services.kayak-prod-service.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.kayak-prod-service.loadbalancer.healthcheck.interval=10s"
     deploy:
       resources:
         limits:
-          cpus: '0.8'    # 80% jednego CPU
+          cpus: '0.8'
           memory: 1G
         reservations:
           memory: 1G
@@ -77,8 +94,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./backups:/backups
+    ports:
+      - "3306:3306"
     networks:
       - internal
+      - traefik-public
     deploy:
       resources:
         limits:
@@ -140,12 +160,20 @@ services:
     networks:
       - internal
 
+
 volumes:
+  kayak_storage:
+    name: kayak_storage
+  kayak_logs:
+    name: kayak_logs
   db_data:
+    name: kayak_db_data
   redis_data:
+    name: kayak_redis_data
 
 networks:
   traefik-public:
     external: true
   internal:
+    name: kayak_internal
     driver: bridge
