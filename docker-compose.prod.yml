@@ -1,8 +1,10 @@
+version: '3.8'
+
 services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     image: kayak-app-prod:latest
     container_name: kayak-app-prod
     restart: unless-stopped
@@ -42,8 +44,6 @@ services:
       - "traefik.http.routers.kayak-prod.tls.certresolver=myresolver"
       - "traefik.http.routers.kayak-prod.service=kayak-prod-service"
       - "traefik.http.services.kayak-prod-service.loadbalancer.server.port=9000"
-      - "traefik.http.services.kayak-prod-service.loadbalancer.healthcheck.path=/health"
-      - "traefik.http.services.kayak-prod-service.loadbalancer.healthcheck.interval=10s"
     deploy:
       resources:
         limits:
@@ -59,26 +59,38 @@ services:
     command: php artisan queue:work redis --tries=3 --timeout=90
     environment:
       APP_ENV: production
+      APP_KEY: ${APP_KEY}
       QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ./storage:/var/www/html/storage
+      - kayak_storage:/var/www/html/storage
     networks:
       - internal
     deploy:
       resources:
         limits:
-          cpus: '0.4'    # 40% jednego CPU
+          cpus: '0.4'
           memory: 512M
 
   scheduler:
-    image: kayak-app-prod
+    image: kayak-app-prod:latest
     container_name: kayak-scheduler-prod
     restart: unless-stopped
     command: php artisan schedule:work
     environment:
       APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      REDIS_HOST: redis
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ./storage:/var/www/html/storage
+      - kayak_storage:/var/www/html/storage
     networks:
       - internal
 
@@ -93,7 +105,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      - ./backups:/backups
+      - kayak_backups:/backups
     ports:
       - "3306:3306"
     networks:
@@ -149,17 +161,16 @@ services:
       - DB_NAME=${DB_DATABASE}
       - DB_USER=${DB_USERNAME}
       - DB_PASS=${DB_PASSWORD}
-      - DB_DUMP_FREQ=10080  # 7 dni (7 * 24 * 60 minut)
+      - DB_DUMP_FREQ=10080
       - DB_DUMP_BEGIN=0000
-      - DB_CLEANUP_TIME=43200  # 30 dni
+      - DB_CLEANUP_TIME=43200
       - COMPRESSION=gz
       - SPLIT_DB=FALSE
       - CHECKSUM=SHA1
     volumes:
-      - ./backups:/backup
+      - kayak_backups:/backup
     networks:
       - internal
-
 
 volumes:
   kayak_storage:
@@ -170,6 +181,8 @@ volumes:
     name: kayak_db_data
   redis_data:
     name: kayak_redis_data
+  kayak_backups:
+    name: kayak_backups
 
 networks:
   traefik-public:
