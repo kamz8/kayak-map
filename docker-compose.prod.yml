@@ -174,7 +174,7 @@ services:
     depends_on:
       - app
     networks:
-      - internal
+      - kayak_internal
       - traefik-public
     labels:
       - "traefik.enable=true"
