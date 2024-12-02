@@ -8,7 +8,6 @@ services:
     restart: unless-stopped
     ports:
       - "2222:22"
-      - "9000"
     environment:
       APP_ENV: production
       APP_DEBUG: ${APP_DEBUG:-false}
@@ -38,11 +37,6 @@ services:
       - internal
     labels:
       - "traefik.enable=false"
-    healthcheck:
-      test: [ "CMD-SHELL", "kill -0 `cat /var/run/php-fpm.pid` || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
     deploy:
       resources:
         limits:
