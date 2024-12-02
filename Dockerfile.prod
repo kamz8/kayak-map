@@ -12,7 +12,7 @@ FROM composer:latest as composer
 WORKDIR /app
 COPY composer.json composer.lock ./
 COPY packages ./packages
-RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoload
+RUN composer install --no-dev
 
 # Etap produkcyjny
 FROM php:8.3-fpm-alpine
@@ -29,6 +29,7 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     supervisor \
+    netcat-openbsd \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         libzip-dev \
@@ -73,6 +74,13 @@ COPY . .
 COPY --from=node-builder /app/public/build public/build
 COPY --from=composer /app/vendor vendor/
 
+# Tworzenie i konfiguracja .env
+COPY .env.example .env
+
+# Kopiowanie skryptu produkcyjnego
+COPY docker/scripts/prod-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/prod-entrypoint.sh
+
 # Optymalizacja autoloadera
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
@@ -92,4 +100,4 @@ ENV APP_ENV=production \
 
 EXPOSE 9000
 
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/local/bin/prod-entrypoint.sh"]

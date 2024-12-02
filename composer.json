@@ -80,8 +80,7 @@
         "build": "@php vendor/bin/testbench workbench:build --ansi",
         "serve": [
             "Composer\\Config::disableProcessTimeout",
-            "@build",
-            "@php vendor/bin/testbench serve"
+            "@build"
         ],
         "lint": [
             "@php vendor/bin/pint",
@@ -93,7 +92,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "orchestra/testbench-core"
+            ]
         }
     },
     "config": {
