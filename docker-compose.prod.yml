@@ -1,4 +1,4 @@
- services:
+services:
   app:
     build:
       context: .
@@ -39,10 +39,10 @@
     labels:
       - "traefik.enable=false"
     healthcheck:
-        test: [ "CMD-SHELL", "kill -0 `cat /var/run/php-fpm.pid` || exit 1" ]
-        interval: 10s
-        timeout: 5s
-        retries: 3
+      test: [ "CMD-SHELL", "kill -0 `cat /var/run/php-fpm.pid` || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     deploy:
       resources:
         limits:
