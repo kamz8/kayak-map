@@ -178,8 +178,10 @@ services:
     container_name: kayak-nginx
     restart: unless-stopped
     volumes:
-      - .:/var/www/html
+      - kayak_storage:/var/www/html/storage
       - /home/user/docker/nginx:/etc/nginx/conf.d
+    volumes_from:
+      - app:ro
     depends_on:
       - app
     networks:
