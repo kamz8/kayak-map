@@ -198,9 +198,17 @@ services:
 
 volumes:
   kayak_storage:
-    name: kayak_storage
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/services/kayak-prod/storage
+      o: bind
   kayak_logs:
-    name: kayak_logs
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/services/kayak-prod/storage/logs
+      o: bind
   db_data:
     name: kayak_db_data
   redis_data:
