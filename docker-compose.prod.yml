@@ -179,6 +179,7 @@ services:
     restart: unless-stopped
     volumes:
       - kayak_storage:/var/www/html/storage
+      - app_public:/var/www/html/public
       - /home/user/docker/nginx:/etc/nginx/conf.d
     volumes_from:
       - app:ro
@@ -210,6 +211,12 @@ volumes:
     driver_opts:
       type: none
       device: /home/services/kayak-prod/storage
+      o: bind
+  app_public:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/www/html/public
       o: bind
   kayak_logs:
     driver: local
