@@ -4,8 +4,10 @@ return [
     'default' => 'default',
     'documentations' => [
         'default' => [
+            'enabled' => env('APP_ENV') !== 'production',
             'api' => [
                 'title' => 'Kajaki (WatkiNurt) API Documentation',
+                'version' => '0.8.0',
             ],
 
             'routes' => [
@@ -308,8 +310,13 @@ return [
                 ],
             ],
         ],
+        'annotations' => [
+            base_path('app\\Http\\Controllers'),
+            base_path('app\\OpenApi'),
+        ],
         /*
          * Constants which can be used in annotations
+         *
          */
         'constants' => [
             'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://my-default-host.com'),

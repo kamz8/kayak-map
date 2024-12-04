@@ -17,6 +17,21 @@ export default defineConfig({
             ],
             refresh: true,
         }),
+        {
+            name: 'swagger-generator',
+            handleHotUpdate({ file, server }) {
+                // Sprawdzamy, czy zmieniony plik znajduje się w katalogu kontrolerów lub modeli
+                if (file.includes('app/Http/Controllers') || file.includes('app/Models')) {
+                    exec('php artisan l5-swagger:generate', (error, stdout, stderr) => {
+                        if (error) {
+                            console.error(`Błąd generowania dokumentacji: ${error}`);
+                            return;
+                        }
+                        console.log('Dokumentacja Swagger została wygenerowana pomyślnie');
+                    });
+                }
+            },
+        },
         browsersync({
             host: '0.0.0.0',
             port: 3000,

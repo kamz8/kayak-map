@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class /**
+/**
  * @OA\Schema(
  *     schema="Section",
  *     @OA\Property(property="id", type="integer"),
@@ -21,7 +21,9 @@ class /**
  *     @OA\Property(property="nuisance", type="string"),
  *     @OA\Property(property="cleanliness", type="string")
  * )
- */Section extends Model
+ */
+
+class Section extends Model
 {
     use HasFactory;
 

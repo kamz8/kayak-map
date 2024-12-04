@@ -8,7 +8,8 @@
         "herd": "vite --config=vite.config.herd.js",
         "docker:dev": "docker-compose -f docker-compose.dev.yml up --build -d",
         "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
-        "move-manifest": "node move-manifest.js"
+        "move-manifest": "node move-manifest.js",
+        "swagger": "php artisan l5-swagger:generate"
     },
     "devDependencies": {
         "@vitejs/plugin-basic-ssl": "^1.1.0",
