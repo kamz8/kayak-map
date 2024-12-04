@@ -4,7 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+/**
+ * @OA\Schema(
+ *     schema="PointDescription",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="point_id", type="integer"),
+ *     @OA\Property(property="point_type", type="integer"),
+ *     @OA\Property(property="description", type="string")
+ * )
+ */
 class PointDescription extends Model
 {
     protected $table = 'point_description';

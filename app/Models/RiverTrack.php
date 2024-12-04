@@ -8,7 +8,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\LineString;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
-
+/**
+ * @OA\Schema(
+ *     schema="RiverTrack",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="trail_id", type="integer"),
+ *     @OA\Property(property="track_points", type="object",
+ *         @OA\Property(property="type", type="string"),
+ *         @OA\Property(property="coordinates", type="array", @OA\Items(
+ *             type="array", @OA\Items(type="number")
+ *         ))
+ *     )
+ * )
+ */
 class RiverTrack extends Model
 {
     use HasFactory, HasSpatial;

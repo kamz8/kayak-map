@@ -10,6 +10,7 @@
     "require": {
         "php": "^8.2",
         "ext-xml": "*",
+        "darkaonline/l5-swagger": "^8.6",
         "geocoder-php/nominatim-provider": "^5.7",
         "guzzlehttp/guzzle": "^7.8",
         "kamz8/laravel-overpass": "0.1.0-alpha",

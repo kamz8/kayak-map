@@ -15,6 +15,26 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  * @method static create(array $array)
  * @method static find(int $trailId)
  */
+
+/**
+ * @OA\Schema(
+ *     schema="Trail",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="river_name", type="string"),
+ *     @OA\Property(property="trail_name", type="string"),
+ *     @OA\Property(property="slug", type="string"),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="start_lat", type="number", format="float"),
+ *     @OA\Property(property="start_lng", type="number", format="float"),
+ *     @OA\Property(property="end_lat", type="number", format="float"),
+ *     @OA\Property(property="end_lng", type="number", format="float"),
+ *     @OA\Property(property="trail_length", type="integer"),
+ *     @OA\Property(property="author", type="string"),
+ *     @OA\Property(property="difficulty", type="string", enum={"łatwy", "umiarkowany", "trudny"}),
+ *     @OA\Property(property="scenery", type="integer"),
+ *     @OA\Property(property="rating", type="number", format="float")
+ * )
+ */
 class Trail extends Model
 {
     use HasFactory;

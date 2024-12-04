@@ -8,7 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-class Section extends Model
+class /**
+ * @OA\Schema(
+ *     schema="Section",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="trail_id", type="integer"),
+ *     @OA\Property(property="name", type="string"),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="polygon_coordinates", type="array", @OA\Items(type="object")),
+ *     @OA\Property(property="scenery", type="integer"),
+ *     @OA\Property(property="difficulty", type="string"),
+ *     @OA\Property(property="nuisance", type="string"),
+ *     @OA\Property(property="cleanliness", type="string")
+ * )
+ */Section extends Model
 {
     use HasFactory;
 

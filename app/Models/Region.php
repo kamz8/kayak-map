@@ -20,6 +20,26 @@ use MatanYadaev\EloquentSpatial\Objects\Polygon;
  * @method static where(string $string, string $slug)
  * @property mixed $trails
  */
+
+/**
+ * @OA\Schema(
+ *     schema="Region",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="name", type="string"),
+ *     @OA\Property(property="slug", type="string"),
+ *     @OA\Property(property="type", type="string", enum={"country", "state", "city", "geographic_area"}),
+ *     @OA\Property(property="parent_id", type="integer", nullable=true),
+ *     @OA\Property(property="is_root", type="boolean"),
+ *     @OA\Property(property="center_point", type="object",
+ *         @OA\Property(property="type", type="string"),
+ *         @OA\Property(property="coordinates", type="array", @OA\Items(type="number"))
+ *     ),
+ *     @OA\Property(property="area", type="object",
+ *         @OA\Property(property="type", type="string"),
+ *         @OA\Property(property="coordinates", type="array", @OA\Items(type="array"))
+ *     )
+ * )
+ */
 class Region extends Model
 {
     use HasFactory, HasSpatial;
