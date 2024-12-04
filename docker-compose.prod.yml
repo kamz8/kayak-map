@@ -179,8 +179,7 @@ services:
     restart: unless-stopped
     volumes:
       - /home/user/docker/nginx:/etc/nginx/conf.d
-    volumes_from:
-      - app:ro    # współdzielenie volumenów z app, w tym /var/www/html/public
+      - app_public:/var/www/html/public
     depends_on:
       - app
     networks:
@@ -204,6 +203,12 @@ services:
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
 
 volumes:
+  app_public:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/docker/volumes/kayak-app-prod_app_public/_data
+      o: bind
   kayak_storage: # ten volumen jest na hoście w /home/services/kayak-prod/storage
     driver: local
     driver_opts:
