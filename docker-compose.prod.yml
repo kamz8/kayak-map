@@ -179,7 +179,6 @@ services:
     restart: unless-stopped
     volumes:
       - /home/user/docker/nginx:/etc/nginx/conf.d
-      - app_public:/var/www/html
     volumes_from:
       - app:ro    # współdzielenie volumenów z app, w tym /var/www/html/public
     depends_on:
@@ -210,12 +209,6 @@ volumes:
     driver_opts:
       type: none
       device: /home/services/kayak-prod/storage
-      o: bind
-  app_public:
-    driver: local
-    driver_opts:
-      type: none
-      device: /var/www/html/public
       o: bind
   kayak_logs:
     driver: local
