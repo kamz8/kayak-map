@@ -181,6 +181,9 @@ services:
     volumes:
       - /home/user/docker/nginx:/etc/nginx/conf.d
       - app_public:/var/www/html/public
+      - kayak_storage:/var/www/html/storage
+    volumes_from:
+      - app:ro
     depends_on:
       - app
     networks:
