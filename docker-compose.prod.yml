@@ -178,6 +178,7 @@ services:
     container_name: kayak-nginx
     restart: unless-stopped
     volumes:
+      - .:/var/www/html
       - /home/user/docker/nginx:/etc/nginx/conf.d    # konfiguracja nginx
     volumes_from:
       - app:ro    # współdzielenie volumenów z app, w tym /var/www/html/public
