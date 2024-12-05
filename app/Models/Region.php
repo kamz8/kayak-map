@@ -16,8 +16,8 @@ use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 
 /**
- * @method static create(array $array)
- * @method static where(string $string, string $slug)
+ * @method maps create(array $array)
+ * @method maps where(string $string, string $slug)
  * @property mixed $trails
  */
 
@@ -41,6 +41,13 @@ class Region extends Model
         'area' => Polygon::class,
         'type' => RegionType::class, // Dodaj to pole
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('with-parents', function ($builder) {
+            $builder->with('parent');
+        });
+    }
 
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
@@ -84,4 +91,17 @@ class Region extends Model
     {
         return $query->where('name', 'like', "%{$searchTerm}%");
     }
+
+    // Define a local scope for loading full ancestry
+    public function scopeWithAncestors($query)
+    {
+        return $query->with(['parent.parent.parent']); // Adjust depth as needed
+    }
+
+    // Define a local scope for loading full tree
+    public function scopeWithFullTree($query)
+    {
+        return $query->with(['parent.parent.parent', 'children.children.children']); // Adjust depth as needed
+    }
+
 }

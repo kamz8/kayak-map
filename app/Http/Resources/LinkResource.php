@@ -18,7 +18,6 @@ class LinkResource extends JsonResource
             'id' => $this->id,
             'url' => $this->url,
             'meta_data' => json_decode($this->meta_data, true),
-            'section_id' => $this->section_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at
         ];

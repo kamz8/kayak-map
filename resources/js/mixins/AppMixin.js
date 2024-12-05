@@ -1,5 +1,6 @@
 import appConfigFile from "@/config/appConfig.js";
 import unitMixin from "@/mixins/UnitMixin.js";
+import mapMixin from "@/mixins/MapMixin.js";
 export default {
     data () {
       return{
@@ -28,6 +29,14 @@ export default {
 
         // Otwieramy w nowej karcie
         window.open(googleMapsUrl, '_blank');
-    }
+    },
+        getDifficultyColor(difficulty) {
+            switch (difficulty) {
+                case 'łatwy': return 'green';
+                case 'umiarkowany': return 'orange';
+                case 'trudny': return 'red';
+                default: return 'grey';
+            }
+        },
     }
 };

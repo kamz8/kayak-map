@@ -17,10 +17,12 @@
                     </v-col>
                     <v-col cols="6">
                         <v-btn
+                            tag="a"
                             :ripple="false"
                             variant="plain"
                             class="text-subtitle-2 text-none font-weight-medium justify-center"
                             style="width: 100%; height: 100%;"
+                            :to="{name: 'trail-details', param: {'slug': currentTrail.slug}}"
                         >
                             Zobacz szczegóły szlaku
                         </v-btn>
@@ -71,7 +73,6 @@
 <script>
 import { mapGetters } from 'vuex';
 import UnitMixin from '@/mixins/UnitMixin';
-import appConfig from "@/config/appConfig.js";
 import DescriptionTab from "@/modules/trails/components/Details/DescriptionTab.vue";
 import TrailHeader from "@/modules/trails/components/Details/TrailHeader.vue";
 import AuthorTab from "@/modules/trails/components/Details/AuthorTab.vue";
@@ -84,16 +85,12 @@ export default {
     data() {
         return {
             activeTab: null,
-            appConfig
         }
     },
     computed: {
         ...mapGetters('trails', ['currentTrail']),
         trailImageSrc() {
             return this.currentTrail.main_image?.path || this.appConfig.placeholderImage;
-        },
-        appConfig() {
-            return appConfig
         },
     },
     methods: {

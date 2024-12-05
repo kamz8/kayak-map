@@ -59,9 +59,7 @@ export default defineConfig({
             input: 'resources/js/app.js',
             output: {
                 assetFileNames: (assetInfo) => {
-                    if (assetInfo.name.endsWith('.woff2') ||
-                        assetInfo.name.endsWith('.woff') ||
-                        assetInfo.name.endsWith('.eot') ||
+                    if (assetInfo.name.endsWith('.eot') ||
                         assetInfo.name.endsWith('.ttf')) {
                         return 'fonts/[name][extname]';
                     }
@@ -81,11 +79,11 @@ export default defineConfig({
             'Access-Control-Allow-Origin': '*',
         },
         hmr: {
-            host: 'localhost'
+            host: 'localhost',
+            proxy: host
         },
         watch: {
             usePolling: true,
-            interval: 1000,
         },
         proxy: {
             '/api': {

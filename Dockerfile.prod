@@ -1,46 +1,103 @@
-FROM php:8.2-fpm
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    nodejs \
-    npm \
-    nginx
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# Get latest Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy application files
-COPY . /var/www/html
-
-# Install dependencies
-RUN composer install --optimize-autoloader --no-dev
+# Etap budowania
+FROM node:20-alpine as node-builder
+WORKDIR /app
+COPY package*.json ./
+COPY vite.config.js ./
+COPY resources/js ./resources/js
+COPY resources/css ./resources/css
 RUN npm ci && npm run build
 
-# Copy Nginx configuration
-COPY docker/nginx.render.conf /etc/nginx/sites-available/default
+# Etap composer
+FROM composer:latest as composer
+WORKDIR /app
+COPY composer.json composer.lock ./
+COPY packages ./packages
+RUN composer install --no-dev
 
-# Ensure Laravel directories are writable
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Etap produkcyjny
+FROM php:8.3-fpm-alpine
 
-# Create a script to start both Nginx and PHP-FPM
-RUN echo '#!/bin/bash\nnginx\nphp-fpm' > /start.sh \
-    && chmod +x /start.sh
+# Instalacja zależności produkcyjnych
+RUN apk add --no-cache \
+    libzip \
+    libpng \
+    libjpeg \
+    freetype \
+    libwebp \
+    chromium \
+    chromium-chromedriver \
+    nodejs \
+    npm \
+    supervisor \
+    netcat-openbsd \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        libzip-dev \
+        libpng-dev \
+        libjpeg-turbo-dev \
+        freetype-dev \
+        libwebp-dev \
+    && docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+        --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        zip \
+        gd \
+        bcmath \
+        opcache \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && npm install -g puppeteer \
+    && apk del .build-deps
 
-# Expose port 80
-EXPOSE 80
+# Konfiguracja Browsershot
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    BROWSERSHOT_NODE_BINARY=/usr/bin/node \
+    BROWSERSHOT_NPM_BINARY=/usr/bin/npm \
+    BROWSERSHOT_CHROME_PATH=/usr/bin/chromium-browser \
+    CHROME_PATH=/usr/bin/chromium-browser \
+    CHROME_DRIVER_PATH=/usr/bin/chromedriver
 
-# Start Nginx and PHP-FPM
-CMD ["/start.sh"]
+# Konfiguracja PHP i OPcache
+COPY docker/php/prod.ini /usr/local/etc/php/conf.d/
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/
+
+# Konfiguracja supervisora
+COPY docker/supervisord.conf /etc/supervisor/conf.d/
+
+# Kopiowanie aplikacji
+WORKDIR /var/www/html
+COPY . .
+COPY --from=node-builder /app/public/build public/build
+COPY --from=composer /app/vendor vendor/
+
+# Tworzenie i konfiguracja .env
+COPY .env.example .env
+
+# Kopiowanie skryptu produkcyjnego
+COPY docker/scripts/prod-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/prod-entrypoint.sh
+
+# Optymalizacja autoloadera
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+
+# Czyszczenie i ustawienie uprawnień
+RUN mkdir -p storage/framework/{cache,views,sessions} storage/logs && \
+    chown -R www-data:www-data . && \
+    chmod -R 755 storage bootstrap/cache && \
+    chmod -R 775 storage/framework storage/logs
+
+# Konfiguracja zmiennych środowiskowych
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    PHP_OPCACHE_VALIDATE_TIMESTAMPS=0 \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES=10000 \
+    PHP_OPCACHE_MEMORY_CONSUMPTION=192
+
+EXPOSE 9000
+
+CMD ["/usr/local/bin/prod-entrypoint.sh"]

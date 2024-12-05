@@ -7,9 +7,8 @@ use App\Http\Controllers\Api\V1\ReverseGeocodingController;
 use App\Http\Controllers\Api\V1\RiverTrackController;
 use App\Http\Controllers\Api\V1\TrailController;
 use App\Http\Controllers\Api\V1\TrailGeocodingController;
+use App\Http\Controllers\Api\V1\TrailMapController;
 use App\Http\Controllers\Api\V1\WeatherProxyController;
-use App\Http\Controllers\Api\V1;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*Route::get('/user', function (Request $request) {
@@ -24,6 +23,7 @@ Route::middleware('api')->prefix('v1')->group(function () {
     Route::get('trails', [TrailController::class, 'index']);
     Route::get('/trails/nearby', [TrailController::class, 'getNearbyTrails']);
     Route::get('trail/{slug}', [TrailController::class, 'show']);
+    Route::get('/trails/{slug}/recommended', [TrailController::class, 'getRecommendedTrails']);
     Route::get('/river-track/{id}', [RiverTrackController::class, 'show']);
     Route::post('/upload-gpx', [GPXController::class, 'upload']);
 
@@ -45,6 +45,9 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
     Route::get('search', [SearchController::class, 'search'])->middleware('throttle:60,1');
 
+    Route::get('/trails/{slug}/static-map', [TrailMapController::class, 'getStaticMap'])
+        ->name('api.trails.static-map');
+
+    Route::get('/trails/{slug}/test-map', [TrailMapController::class, 'testMap']);
+
 });
-
-

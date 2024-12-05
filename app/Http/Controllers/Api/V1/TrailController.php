@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\NearbyTrailsRequest;
+use App\Http\Requests\RecommendedTrailsRequest;
 use App\Http\Requests\TrailRequest;
 use App\Http\Resources\NearbyTrailResource;
 use App\Http\Resources\NearbyTrailsCollection;
+use App\Http\Resources\RecommendedTrailResource;
+use App\Http\Resources\RecommendedTrailsCollection;
 use App\Http\Resources\TrailCollection;
 use App\Http\Resources\TrailResource;
 use App\Services\TrailService;
@@ -14,42 +17,7 @@ use App\Services\RegionService;
 use Illuminate\Http\JsonResponse;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Symfony\Component\HttpFoundation\Response;
-/**
- * @OA\Get(
- *     path="/trails",
- *     summary="Pobierz listę szlaków",
- *     tags={"Trails"},
- *     @OA\Parameter(
- *         name="start_lat",
- *         in="query",
- *         required=true,
- *         @OA\Schema(type="number", format="float")
- *     ),
- *     @OA\Parameter(
- *         name="end_lat",
- *         in="query",
- *         required=true,
- *         @OA\Schema(type="number", format="float")
- *     ),
- *     @OA\Parameter(
- *         name="start_lng",
- *         in="query",
- *         required=true,
- *         @OA\Schema(type="number", format="float")
- *     ),
- *     @OA\Parameter(
- *         name="end_lng",
- *         in="query",
- *         required=true,
- *         @OA\Schema(type="number", format="float")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Lista szlaków",
- *         @OA\JsonContent(ref="#/components/schemas/TrailCollection")
- *     )
- * )
- */
+
 class TrailController extends Controller
 {
     protected TrailService $trailService;
@@ -60,47 +28,7 @@ class TrailController extends Controller
         $this->trailService = $trailService;
         $this->regionService = $regionService;
     }
-    /**
-     * @OA\Get(
-     *     path="/api/v1/trails",
-     *     tags={"Trails"},
-     *     summary="Get list of trails",
-     *     @OA\Parameter(
-     *         name="start_lat",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="number", format="float")
-     *     ),
-     *     @OA\Parameter(
-     *         name="end_lat",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="number", format="float")
-     *     ),
-     *     @OA\Parameter(
-     *         name="start_lng",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="number", format="float")
-     *     ),
-     *     @OA\Parameter(
-     *         name="end_lng",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="number", format="float")
-     *     ),
-     *     @OA\Parameter(
-     *         name="difficulty",
-     *         in="query",
-     *         @OA\Schema(type="string", enum={"łatwy", "umiarkowany", "trudny"})
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of trails",
-     *         @OA\JsonContent(ref="#/components/schemas/TrailCollection")
-     *     )
-     * )
-     */
+
     public function index(TrailRequest $request): JsonResponse
     {
         $filters = $request->validated();
@@ -139,29 +67,7 @@ class TrailController extends Controller
         return (new TrailCollection($trails, $additionalMeta))->response();
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/v1/trails/{slug}",
-     *     tags={"Trails"},
-     *     summary="Get trail details",
-     *     @OA\Parameter(
-     *         name="slug",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Trail details",
-     *         @OA\JsonContent(ref="#/components/schemas/TrailResource")
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Trail not found"
-     *     )
-     * )
-     */
-    public function show($slug)
+    public function show($slug): TrailResource|JsonResponse
     {
 
         try {
@@ -178,35 +84,6 @@ class TrailController extends Controller
      * @param NearbyTrailsRequest $request
      * @return NearbyTrailsCollection
      */
-    /**
-     * @OA\Get(
-     *     path="/api/v1/nearby-trails",
-     *     tags={"Trails"},
-     *     summary="Get nearby trails",
-     *     @OA\Parameter(
-     *         name="lat",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="number", format="float")
-     *     ),
-     *     @OA\Parameter(
-     *         name="long",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="number", format="float")
-     *     ),
-     *     @OA\Parameter(
-     *         name="location_name",
-     *         in="query",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of nearby trails",
-     *         @OA\JsonContent(ref="#/components/schemas/NearbyTrailsCollection")
-     *     )
-     * )
-     */
     public function getNearbyTrails(NearbyTrailsRequest $request): NearbyTrailsCollection
     {
         $request->validated();
@@ -217,5 +94,21 @@ class TrailController extends Controller
         $trails = $this->trailService->getNearbyTrails($latitude, $longitude, $locationName);
 
         return new NearbyTrailsCollection($trails);
+    }
+    /**
+     * Pobiera trasy rekomendowane dla użytkownika w zależności od wybranej trasy (slug) oraz odległości (radius w km)
+     *
+     * @param RecommendedTrailsRequest $request
+     * @param string $slug
+     * @return RecommendedTrailsCollection
+     */
+    public function getRecommendedTrails(RecommendedTrailsRequest $request, string $slug): RecommendedTrailsCollection
+    {
+        $sourceTrail = $this->trailService->getTrailDetails($slug);
+        $radius = $request->validated('radius', 50);
+
+        $recommendedTrails = $this->trailService->getRecommendedTrails($sourceTrail, $radius);
+
+        return new RecommendedTrailsCollection($recommendedTrails);
     }
 }

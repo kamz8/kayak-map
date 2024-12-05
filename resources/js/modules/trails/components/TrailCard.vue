@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-auto my-4" max-width="344" outlined>
+    <v-card class="mx-auto my-4" max-width="344" outlined :to="{name:'trail-overview', params: {slug: trail.slug}}">
         <div class="carousel-container" @mouseover="showArrows = true" @mouseleave="showArrows = false">
             <v-carousel
                 v-model="currentSlide"
@@ -32,14 +32,14 @@
                         </div>
                     </v-carousel-item>
                 </template>
-                <template  v-if="sortedImages.length">
+                <template  v-if="sortedImages.length > 1">
                     <v-btn
                         v-if="showArrows"
                         icon
                         small
                         density="comfortable"
                         class="custom-arrow left-arrow"
-                        @click="prevSlide"
+                        @click.prevent="prevSlide"
                     >
                         <v-icon>mdi-chevron-left</v-icon>
                     </v-btn>
@@ -49,7 +49,7 @@
                         density="comfortable"
                         small
                         class="custom-arrow right-arrow"
-                        @click="nextSlide"
+                        @click.prevent="nextSlide"
                     >
                         <v-icon>mdi-chevron-right</v-icon>
                     </v-btn>
@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <v-card-title v-mutate><v-btn density="comfortable"  variant="plain" size="samll" tag="a" color="blue-darken-4" class="text-decoration-underline pl-0" :to="{name:'trail-overview', params: {slug: trail.slug}}">{{ trail.trail_name }}</v-btn></v-card-title>
+        <v-card-title v-mutate tag="h4" v-tooltip="trail.trail_name"><span class="text-truncate text-decoration-underline text-river-blue">{{ trail.trail_name }}</span></v-card-title>
         <v-card-subtitle>
             <v-rating v-model="trail.rating" readonly size="xs" density="compact"></v-rating>
         </v-card-subtitle>
@@ -128,7 +128,7 @@ export default {
             if (diff === 0) return 'dot-large';
             if (diff === 1 || diff === totalSlides - 1) return 'dot-small';
             if (diff === 2 || diff === totalSlides - 2) return 'dot-medium';
-            if (diff === 3 || diff === totalSlides - 3) return 'dot-large';
+            if (diff === 3 || diff === totalSlides - 3) return 'dot-medium';
             if (diff === 4 || diff === totalSlides - 4) return 'dot-x-small';
             return 'dot-hidden';
         },

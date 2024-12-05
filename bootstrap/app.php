@@ -57,6 +57,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json($response, $statusCode);
             }
 
-            return false; // Pozwala na domyślne renderowanie dla non-API requests
+            return false;
         });
     })->create();

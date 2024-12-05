@@ -22,7 +22,7 @@ class RegionResource extends JsonResource
                 'latitude' => $this->center_point->latitude,
                 'longitude' => $this->center_point->longitude,
             ] : null,
-//            'parent' => $this->when($this->parent, new RegionResource($this->parent)),
+            'parent' => $this->when($this->parent, new RegionResource($this->parent)),
 //            'area' => $this->area ? GeoHelper::formatArea($this->area) : null,
             'children' => RegionResource::collection($this->whenLoaded('children')),
 
