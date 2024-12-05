@@ -17,7 +17,7 @@ export default defineConfig({
             ],
             refresh: true,
         }),
-        {
+/*        {
             name: 'swagger-generator',
             handleHotUpdate({ file, server }) {
                 // Sprawdzamy, czy zmieniony plik znajduje się w katalogu kontrolerów lub modeli
@@ -31,17 +31,7 @@ export default defineConfig({
                     });
                 }
             },
-        },
-        browsersync({
-            host: '0.0.0.0',
-            port: 3000,
-            proxy: host,
-            https: {
-                key: fs.readFileSync(`./docker/ssl/cert.key`),
-                cert: fs.readFileSync(`./docker/ssl/cert.crt`),
-            },
-            open: false
-        }),
+        },*/
     ],
     optimizeDeps: {
         include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'axios', 'vue-leaflet-markercluster']

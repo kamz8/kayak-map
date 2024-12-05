@@ -60,6 +60,8 @@ export default {
         this.$router.afterEach(() => {
             this.loading = false
         })
+
+        console.log(import.meta.env.VITE_API_URL)
     }
 };
 </script>
