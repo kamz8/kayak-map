@@ -73,7 +73,7 @@ export default {
         },
     },
     created() {
-        if (this.name === 'md' || this.name === 'lg') {
+        if (this.name === 'md' || this.name === 'lg' || this.name === 'xl' || this.name === 'xxl') {
             this.drawer = true
         }
     }
