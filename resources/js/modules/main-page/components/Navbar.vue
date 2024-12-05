@@ -4,7 +4,7 @@
     <v-toolbar-title class="d-none d-md-flex align-center">
       <router-link to="/" class="d-flex align-center text-decoration-none">
         <v-img src="/storage/assets/logo.svg" alt="Logo" height="60" width="60" contain></v-img>
-        <div class="ml-2 font-weight-bold logo-text text-black">KAYAK</div>
+        <div class="ml-2 font-weight-bold logo-text text-black">WARTKI NURT</div>
       </router-link>
     </v-toolbar-title>
     <v-spacer class="d-none d-md-block"></v-spacer>
@@ -22,7 +22,7 @@
     <v-toolbar-title class="d-flex d-md-none align-center">
       <router-link to="/" class="d-flex align-center text-decoration-none">
         <v-img src="/storage/assets/logo.svg" alt="Logo" height="40" width="40" contain></v-img>
-        <div class="ml-2 font-weight-bold logo-text text-black">KAYAK</div>
+        <div class="ml-2 font-weight-bold logo-text text-black">WartkiNurt</div>
       </router-link>
     </v-toolbar-title>
     <v-spacer class="d-md-none"></v-spacer>

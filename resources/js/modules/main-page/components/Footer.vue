@@ -6,7 +6,7 @@
           <figure class="d-flex align-center text-decoration-none" style="width: auto">
             <v-img src="/storage/assets/logo.svg" alt="Logo" height="80" width="80" max-width="80px"
                    class="mb-2 invert-img" contain></v-img>
-            <div class="text-h4 font-weight-bold logo-text text-white">KAYAK</div>
+            <div class="text-h4 font-weight-bold logo-text text-white">WARTKI NURT</div>
           </figure>
         </v-col>
       </v-row>
@@ -62,7 +62,7 @@
 
       <v-row>
         <v-col cols="12" class="text-center">
-          <span class="white--text">© 2024 KAYAK. Wszelkie prawa zastrzeżone.</span>
+          <span class="white--text">© 2024 WartkiNurt. Wszelkie prawa zastrzeżone.</span>
         </v-col>
       </v-row>
     </v-container>
@@ -106,13 +106,13 @@ export default {
         ]
       }
     ],
-    socialIcons: [
+/*    socialIcons: [
       {name: 'Facebook', icon: 'mdi-facebook', href: '#'},
       {name: 'Instagram', icon: 'mdi-instagram',href: '#'},
       {name: 'YouTube', icon: 'mdi-youtube',href: '#'},
       {name: 'Twitter', icon: 'mdi-twitter',href: '#'},
       {name: 'LinkedIn', icon: 'mdi-linkedin',href: '#'},
-    ],
+    ],*/
   }),
 }
 </script>
