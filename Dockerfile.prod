@@ -81,6 +81,8 @@ COPY .env.example .env
 COPY docker/scripts/prod-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/prod-entrypoint.sh
 
+
+
 # Optymalizacja autoloadera
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
@@ -97,6 +99,9 @@ ENV APP_ENV=production \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS=0 \
     PHP_OPCACHE_MAX_ACCELERATED_FILES=10000 \
     PHP_OPCACHE_MEMORY_CONSUMPTION=192
+
+FROM nginx:alpine
+COPY --from=app /var/www/html/public /var/www/html/public
 
 EXPOSE 9000
 
