@@ -61,6 +61,7 @@
 
 <script>
 import axios from 'axios';
+import apiClient from "@/plugins/apiClient.js";
 
 export default {
     name: "WeatherTab",
@@ -113,7 +114,7 @@ export default {
             }
 
             try {
-                const response = await axios.get(`/api/v1/weather`, {
+                const response = await apiClient.get(`/api/v1/weather`, {
                     params: {
                         lat: this.latitude,
                         lon: this.longitude

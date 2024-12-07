@@ -73,6 +73,7 @@ import HeroSection from "@/modules/main-page/components/Hero.vue";
 import NearbyTrailCard from "@/modules/main-page/components/NearbyTrailCard.vue";
 import axios from 'axios';
 import SectionExplore from "@/modules/main-page/components/sections/SectionExplore.vue";
+import apiClient from "@/plugins/apiClient.js";
 
 export default {
   name: 'Home',
@@ -178,7 +179,7 @@ export default {
               // Zapisz wyniki w cache z TTL 24 godziny (86400 sekund)
               this.trails = await this.$cache.remember(`trailsNearby_${locationName}`, 86400,
                   async () => {
-                      const response = await axios.get(`/api/v1/trails/nearby`, {
+                      const response = await apiClient.get(`/api/v1/trails/nearby`, {
                           params: { lat, long, location_name: locationName },
                       });
                       return response.data.data;

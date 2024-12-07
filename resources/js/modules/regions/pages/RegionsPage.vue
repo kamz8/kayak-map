@@ -21,7 +21,6 @@ import SectionTwo from "@/modules/main-page/components/sections/SectionExplore.v
 import SectionThree from "@/modules/main-page/components/sections/SectionThree.vue";
 import HeroSection from "@/modules/main-page/components/Hero.vue";
 import NearbyTrailCard from "@/modules/main-page/components/NearbyTrailCard.vue";
-import axios from 'axios';
 
 export default {
   name: 'Home',

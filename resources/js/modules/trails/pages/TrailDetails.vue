@@ -168,7 +168,7 @@ export default {
     async created() {
         if (this.currentTrail) {
 
-            this.mapImageUrl = `https://kayak-map.test/api/v1/trails/${this.currentTrail.slug}/static-map`
+            this.mapImageUrl = `./api/v1/trails/${this.currentTrail.slug}/static-map`
             await this.fetchTopTrails()
         }
     },
