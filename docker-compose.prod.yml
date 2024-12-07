@@ -31,9 +31,7 @@ services:
       SSH_USER: ${SSH_USER}
       SSH_PASSWORD: ${SSH_PASSWORD}
     volumes:
-      - ./public:/var/www/html/public
       - kayak_storage:/var/www/html/storage
-      - kayak_logs:/var/www/html/storage/logs
       - /home/services/kayak-prod/.env:/var/www/html/.env
     networks:
       - traefik-public
@@ -182,7 +180,6 @@ services:
     restart: unless-stopped
     volumes:
       - /home/user/docker/nginx:/etc/nginx/conf.d
-      - ./public:/var/www/html/public
       - kayak_storage:/var/www/html/storage
     volumes_from:
       - app:ro
