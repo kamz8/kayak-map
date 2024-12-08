@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
+    image: kayak-app-prod:latest
     container_name: kayak-app-prod
     restart: unless-stopped
     ports:
