@@ -31,7 +31,7 @@ services:
       SSH_USER: ${SSH_USER}
       SSH_PASSWORD: ${SSH_PASSWORD}
     volumes:
-      - app:/var/www/html/public
+      - .:/var/www/html/public
       - kayak_storage:/var/www/html/storage
       - /home/services/kayak-prod/.env:/var/www/html/.env
     networks:
@@ -180,7 +180,7 @@ services:
     container_name: kayak-nginx
     restart: unless-stopped
     volumes:
-      - app:/var/www/html/public
+      - .:/var/www/html/public
       - /home/user/docker/nginx:/etc/nginx/conf.d
       - kayak_storage:/var/www/html/storage
     volumes_from:
@@ -208,13 +208,6 @@ services:
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
 
 volumes:
-  app:
-    name: kayak_app
-    driver: local
-    driver_opts:
-      types_opts: none
-      device: /var/snap/docker/common/var-lib-docker/volumes/portainer_data/_data/compose/20
-      o: bind
   kayak_storage:
     driver: local
     driver_opts:
