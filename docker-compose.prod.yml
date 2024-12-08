@@ -4,7 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     container_name: kayak-app-prod
-    working_dir: var/www/html
     restart: unless-stopped
     ports:
       - "2222:22"
