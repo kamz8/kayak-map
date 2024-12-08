@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     container_name: kayak-app-prod
+    working_dir: var/www/html
     restart: unless-stopped
     ports:
       - "2222:22"
@@ -183,8 +184,6 @@ services:
       - app_public:/var/www/html/public
       - /home/user/docker/nginx:/etc/nginx/conf.d
       - kayak_storage:/var/www/html/storage
-    volumes_from:
-      - app:ro
     depends_on:
       - app
     networks:
