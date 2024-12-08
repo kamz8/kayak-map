@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    image: kayak-app-prod
     container_name: kayak-app-prod
     restart: unless-stopped
     ports:
@@ -82,8 +81,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    image: kayak-scheduler-prod
-    container_name: kayak-scheduler-prod
     restart: unless-stopped
     command: php artisan schedule:work
     environment:
