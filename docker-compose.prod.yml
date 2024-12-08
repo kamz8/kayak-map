@@ -214,6 +214,7 @@ volumes:
     driver_opts:
       types_opts: none
       device: /var/snap/docker/common/var-lib-docker/volumes/portainer_data/_data/compose/20
+      o: bind
   kayak_storage:
     driver: local
     driver_opts:
