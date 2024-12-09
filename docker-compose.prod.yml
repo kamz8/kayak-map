@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     image: kayak-app-prod:latest
     container_name: kayak-app-prod
     restart: unless-stopped
@@ -51,7 +51,7 @@ services:
   queue-worker:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     image: kayak-app-prod:latest
     container_name: kayak-queue-prod
     restart: unless-stopped
@@ -81,7 +81,7 @@ services:
   scheduler:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     image: kayak-app-prod:latest
     container_name: kayak-scheduler-prod
     restart: unless-stopped
