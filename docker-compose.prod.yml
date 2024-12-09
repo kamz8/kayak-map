@@ -32,7 +32,7 @@ services:
       SSH_USER: ${SSH_USER}
       SSH_PASSWORD: ${SSH_PASSWORD}
     volumes:
-      - app_public:/var/www/html/public
+      - kayak_app:/var/www/html
       - kayak_storage:/var/www/html/storage
       - /home/services/kayak-prod/.env:/var/www/html/.env
     networks:
@@ -184,7 +184,7 @@ services:
     container_name: kayak-nginx
     restart: unless-stopped
     volumes:
-      - app_public:/var/www/html/public
+      - kayak_app:/var/www/html
       - /home/user/docker/nginx:/etc/nginx/conf.d
       - kayak_storage:/var/www/html/storage
     depends_on:
@@ -201,7 +201,7 @@ services:
 
 volumes:
   app_public:
-    name: kayak_app_public
+    name: kayak_app
   kayak_storage:
     driver: local
     driver_opts:
