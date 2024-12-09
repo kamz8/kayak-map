@@ -1,6 +1,5 @@
 <?php
-
-namespace App\OpenApi\Models\Schema;
+namespace App\OpenApi\Resources;
 
 /**
  * @OA\Schema(

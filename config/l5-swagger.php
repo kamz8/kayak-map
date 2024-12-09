@@ -7,7 +7,7 @@ return [
             'enabled' => env('APP_ENV') !== 'production',
             'api' => [
                 'title' => 'Kajaki (WatkiNurt) API Documentation',
-                'version' => '0.8.0',
+                'version' => '0.5.0',
             ],
 
             'routes' => [
@@ -46,7 +46,8 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                  */
                 'annotations' => [
-                    base_path('app'),
+                    base_path('app/Http/Controllers'),
+                    base_path('app/OpenApi'),
                 ],
             ],
         ],
@@ -101,6 +102,7 @@ return [
              * `scanOptions.exclude` overwrites this
              */
             'excludes' => [],
+            'annotations' => base_path('app/Http/Controllers/Api/V1'),
         ],
 
         'scanOptions' => [
@@ -276,7 +278,7 @@ return [
          */
         'ui' => [
             'display' => [
-                'dark_mode' => env('L5_SWAGGER_UI_DARK_MODE', false),
+                'dark_mode' => env('L5_SWAGGER_UI_DARK_MODE', true),
                 /*
                  * Controls the default expansion setting for the operations and tags. It can be :
                  * 'list' (expands only the tags),
@@ -311,9 +313,11 @@ return [
             ],
         ],
         'annotations' => [
-            base_path('app\\Http\\Controllers'),
-            base_path('app\\OpenApi'),
+            base_path('app/Http/Controllers/Api/V1'),
+            base_path('app/OpenApi/Models'),
         ],
+
+
         /*
          * Constants which can be used in annotations
          *
