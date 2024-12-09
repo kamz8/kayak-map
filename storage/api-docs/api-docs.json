@@ -1,154 +1,331 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "API Szlaków Kajakowych",
-        "description": "Dokumentacja API dla aplikacji szlaków kajakowych",
+        "title": "Kayak Trails API",
+        "description": "API documentation for kayak trails application. Complete API reference for managing kayak routes, weather data, and geographical information.",
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api/v1",
-            "description": "Serwer lokalny"
+            "url": "api.wartkinurt.pl/api/v1",
+            "description": "Main API Server"
         }
     ],
     "paths": {
+        "/gpx/upload": {
+            "post": {
+                "tags": [
+                    "GPX"
+                ],
+                "summary": "Upload pliku GPX",
+                "operationId": "403e3588dd338d2fefc111a95c7886f3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "gpx_file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "trail_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "File uploaded successfully"
+                    }
+                }
+            }
+        },
+        "/gpx/status/{statusId}": {
+            "get": {
+                "tags": [
+                    "GPX"
+                ],
+                "summary": "Status przetwarzania GPX",
+                "operationId": "b1009e5a65edd63f067f1383aa27fc9e",
+                "parameters": [
+                    {
+                        "name": "statusId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Processing status"
+                    }
+                }
+            }
+        },
+        "/regions": {
+            "get": {
+                "tags": [
+                    "Regions"
+                ],
+                "summary": "Lista regionów",
+                "operationId": "fa7dd77521f3aeda21756e0b7b1633a5",
+                "responses": {
+                    "200": {
+                        "description": "Lista regionów"
+                    }
+                }
+            }
+        },
+        "/regions/{slug}": {
+            "get": {
+                "tags": [
+                    "Regions"
+                ],
+                "summary": "Szczegóły regionu",
+                "operationId": "7d6f210980bf49b82cebf14b440125d4",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Szczegóły regionu"
+                    }
+                }
+            }
+        },
+        "/regions/{slug}/top-trails": {
+            "get": {
+                "tags": [
+                    "Regions"
+                ],
+                "summary": "Najlepsze szlaki w regionie",
+                "operationId": "67e261e8186c08620948f165d06f2042",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista najlepszych szlaków"
+                    }
+                }
+            }
+        },
+        "/geocoding/reverse": {
+            "get": {
+                "tags": [
+                    "Geocoding"
+                ],
+                "summary": "Odwrotne geokodowanie",
+                "operationId": "e4bc28f12f44f5bf5d15cf16775f2038",
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "maximum": 90,
+                            "minimum": -90
+                        }
+                    },
+                    {
+                        "name": "lang",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "maximum": 180,
+                            "minimum": -180
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Location data"
+                    },
+                    "404": {
+                        "description": "Unable to geocode coordinates"
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Wyszukiwarka",
+                "operationId": "d90cee8865312d0cda4eb27ed737f5ac",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "all",
+                                "trail",
+                                "region"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results"
+                    }
+                }
+            }
+        },
         "/trails": {
             "get": {
                 "tags": [
                     "Trails"
                 ],
-                "summary": "Pobierz listę szlaków",
-                "operationId": "ccbc89b79250b0f22cbefe7e39a15114",
+                "summary": "Lista szlaków",
+                "operationId": "cab4a03c2fc46cd0c1d35aefd8eee8ca",
                 "parameters": [
                     {
                         "name": "start_lat",
                         "in": "query",
-                        "required": true,
                         "schema": {
-                            "type": "number",
-                            "format": "float"
+                            "type": "number"
                         }
                     },
                     {
                         "name": "end_lat",
                         "in": "query",
-                        "required": true,
                         "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "start_lng",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "end_lng",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
+                            "type": "number"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista szlaków",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TrailCollection"
-                                }
-                            }
-                        }
+                        "description": "Lista szlaków"
                     }
                 }
             }
         },
-        "/api/v1/trails": {
+        "/trails/{slug}": {
             "get": {
                 "tags": [
                     "Trails"
                 ],
-                "summary": "Get list of trails",
-                "operationId": "a702ce51fb197b6cdbe21e311d3a4bae",
+                "summary": "Szczegóły szlaku",
+                "operationId": "77d41a2458bc4560ec8e4c12553aa0a3",
                 "parameters": [
                     {
-                        "name": "start_lat",
-                        "in": "query",
-                        "required": true,
+                        "name": "slug",
+                        "in": "path",
                         "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "end_lat",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "start_lng",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "end_lng",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "difficulty",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "łatwy",
-                                "umiarkowany",
-                                "trudny"
-                            ]
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of trails",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TrailCollection"
-                                }
-                            }
-                        }
+                        "description": "Szczegóły szlaku"
                     }
                 }
             }
         },
-        "/api/v1/trails/{slug}": {
+        "/trails/nearby": {
             "get": {
                 "tags": [
                     "Trails"
                 ],
-                "summary": "Get trail details",
-                "operationId": "243bf3465191ee636a5191c3079e3106",
+                "summary": "Pobliskie szlaki",
+                "operationId": "514ecc99ae32b8f9697ac1abca214258",
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "long",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista pobliskich szlaków"
+                    }
+                }
+            }
+        },
+        "/trails/{slug}/recommended": {
+            "get": {
+                "tags": [
+                    "Trails"
+                ],
+                "summary": "Rekomendowane szlaki",
+                "operationId": "940680aa976fa4892b0d518eb37c2bb6",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista rekomendowanych szlaków"
+                    }
+                }
+            }
+        },
+        "/trails/{slug}/static-map": {
+            "get": {
+                "tags": [
+                    "Maps"
+                ],
+                "summary": "Statyczna mapa szlaku",
+                "operationId": "7e43424b95ec6aa5f0349a63fa9e67a2",
                 "parameters": [
                     {
                         "name": "slug",
@@ -161,50 +338,29 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Trail details",
+                        "description": "Map image",
                         "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TrailResource"
-                                }
-                            }
+                            "image/png": {}
                         }
                     },
-                    "404": {
-                        "description": "Trail not found"
+                    "500": {
+                        "description": "Error generating map"
                     }
                 }
             }
         },
-        "/api/v1/nearby-trails": {
+        "/trails/{slug}/test-map": {
             "get": {
                 "tags": [
-                    "Trails"
+                    "Maps"
                 ],
-                "summary": "Get nearby trails",
-                "operationId": "58066a8884667428b1f16c8e0ccd485a",
+                "summary": "Test generowania mapy szlaku. Zwraca html, któy będzie zapisany",
+                "operationId": "5e7e6ac1db10ba5279167dcbdef6d788",
                 "parameters": [
                     {
-                        "name": "lat",
-                        "in": "query",
+                        "name": "slug",
+                        "in": "path",
                         "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "long",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number",
-                            "format": "float"
-                        }
-                    },
-                    {
-                        "name": "location_name",
-                        "in": "query",
                         "schema": {
                             "type": "string"
                         }
@@ -212,14 +368,45 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of nearby trails",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/NearbyTrailsCollection"
-                                }
-                            }
+                        "description": "Test map HTML"
+                    }
+                }
+            }
+        },
+        "/weather": {
+            "get": {
+                "tags": [
+                    "Weather"
+                ],
+                "summary": "Dane pogodowe",
+                "operationId": "8c5a17438246e6ea0e3206c5248a0c7f",
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
                         }
+                    },
+                    {
+                        "name": "lon",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dane pogodowe"
+                    },
+                    "400": {
+                        "description": "Missing latitude or longitude"
+                    },
+                    "500": {
+                        "description": "Error fetching weather data"
                     }
                 }
             }
@@ -227,39 +414,272 @@
     },
     "components": {
         "schemas": {
-            "GpxProcessingStatus": {
-                "title": "GPX Processing Status",
+            "GpxUploadRequest": {
+                "title": "GPX Upload Request",
+                "description": "Parametry żądania przesyłania pliku GPX",
                 "properties": {
-                    "id": {
-                        "type": "integer"
+                    "gpx_file": {
+                        "description": "Plik GPX szlaku (max 10MB, dozwolone rozszerzenia: gpx, xml)",
+                        "type": "string",
+                        "format": "binary"
                     },
                     "trail_id": {
-                        "type": "integer"
-                    },
-                    "file_path": {
-                        "type": "string"
-                    },
-                    "status": {
-                        "type": "string"
-                    },
-                    "message": {
-                        "type": "string"
-                    },
-                    "processed_at": {
-                        "type": "string",
-                        "format": "date-time"
+                        "description": "ID szlaku, do którego zostanie przypisany plik GPX",
+                        "type": "integer",
+                        "example": 1
                     }
                 },
                 "type": "object"
             },
-            "Image": {
-                "title": "Image",
+            "LatLangRequest": {
+                "title": "Latitude Longitude Request",
+                "description": "Parametry żądania zawierające współrzędne geograficzne",
+                "properties": {
+                    "lat": {
+                        "description": "Szerokość geograficzna",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 90,
+                        "minimum": -90,
+                        "example": 50.0619
+                    },
+                    "lang": {
+                        "description": "Długość geograficzna",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 180,
+                        "minimum": -180,
+                        "example": 19.9368
+                    }
+                },
+                "type": "object"
+            },
+            "NearbyTrailsRequest": {
+                "title": "Nearby Trails Request",
+                "description": "Parametry żądania wyszukiwania pobliskich szlaków",
+                "properties": {
+                    "lat": {
+                        "description": "Szerokość geograficzna punktu centralnego",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 90,
+                        "minimum": -90,
+                        "example": 50.0619
+                    },
+                    "long": {
+                        "description": "Długość geograficzna punktu centralnego",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 180,
+                        "minimum": -180,
+                        "example": 19.9368
+                    },
+                    "location_name": {
+                        "description": "Nazwa lokalizacji (alternatywa dla współrzędnych)",
+                        "type": "string",
+                        "example": "Kraków",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "RecommendedTrailsRequest": {
+                "title": "Recommended Trails Request",
+                "description": "Parametry żądania pobierania rekomendowanych szlaków",
+                "properties": {
+                    "radius": {
+                        "description": "Maksymalny promień wyszukiwania rekomendowanych szlaków w kilometrach",
+                        "type": "integer",
+                        "default": 50,
+                        "maximum": 100,
+                        "minimum": 1,
+                        "example": 30
+                    }
+                },
+                "type": "object"
+            },
+            "SearchRequest": {
+                "title": "Search Request",
+                "description": "Parametry żądania wyszukiwania",
+                "properties": {
+                    "query": {
+                        "description": "Fraza wyszukiwania",
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 2,
+                        "example": "Dunajec"
+                    },
+                    "type": {
+                        "description": "Typ wyszukiwanych elementów",
+                        "type": "string",
+                        "default": "all",
+                        "enum": [
+                            "all",
+                            "trail",
+                            "country",
+                            "state",
+                            "city"
+                        ]
+                    },
+                    "limit": {
+                        "description": "Limit wyników wyszukiwania",
+                        "type": "integer",
+                        "default": 50,
+                        "maximum": 100,
+                        "minimum": 1,
+                        "example": 20
+                    }
+                },
+                "type": "object"
+            },
+            "TrailRequest": {
+                "title": "Trail Request",
+                "description": "Parametry żądania filtrowania szlaków",
+                "properties": {
+                    "difficulty": {
+                        "description": "Filtry poziomu trudności szlaku",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "łatwy",
+                                "umiarkowany",
+                                "trudny"
+                            ]
+                        },
+                        "example": [
+                            "łatwy",
+                            "umiarkowany"
+                        ]
+                    },
+                    "scenery": {
+                        "description": "Minimalna ocena krajobrazów",
+                        "type": "integer",
+                        "maximum": 10,
+                        "minimum": 0,
+                        "example": 7
+                    },
+                    "start_lat": {
+                        "description": "Szerokość geograficzna początku obszaru wyszukiwania",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 90,
+                        "minimum": -90,
+                        "example": 49.5
+                    },
+                    "end_lat": {
+                        "description": "Szerokość geograficzna końca obszaru wyszukiwania",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 90,
+                        "minimum": -90,
+                        "example": 50.5
+                    },
+                    "start_lng": {
+                        "description": "Długość geograficzna początku obszaru wyszukiwania",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 180,
+                        "minimum": -180,
+                        "example": 19
+                    },
+                    "end_lng": {
+                        "description": "Długość geograficzna końca obszaru wyszukiwania",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 180,
+                        "minimum": -180,
+                        "example": 20
+                    },
+                    "search_query": {
+                        "description": "Fraza wyszukiwania dla szlaków",
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "Dunajec"
+                    },
+                    "min_length": {
+                        "description": "Minimalna długość szlaku w metrach",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 5000
+                    },
+                    "max_length": {
+                        "description": "Maksymalna długość szlaku w metrach",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 20000
+                    },
+                    "rating": {
+                        "description": "Minimalna ocena szlaku",
+                        "type": "number",
+                        "format": "float",
+                        "maximum": 5,
+                        "minimum": 0,
+                        "example": 4
+                    }
+                },
+                "type": "object"
+            },
+            "ImageResource": {
+                "title": "Image Resource",
+                "description": "Resource containing image data",
                 "properties": {
                     "id": {
-                        "type": "integer"
+                        "type": "integer",
+                        "example": 1
                     },
                     "path": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "/storage/images/trail1.jpg"
+                    },
+                    "is_main": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "order": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "vattr": {
+                        "properties": {
+                            "caption": {
+                                "type": "string",
+                                "example": "Beautiful view"
+                            },
+                            "alt": {
+                                "type": "string",
+                                "example": "Mountain landscape"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "LinkResource": {
+                "title": "Link Resource",
+                "description": "Resource containing link data",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "url": {
+                        "type": "string",
+                        "example": "https://example.com"
+                    },
+                    "meta_data": {
+                        "type": "object",
+                        "example": {
+                            "title": "Example Link",
+                            "description": "Link description"
+                        }
+                    },
+                    "section_id": {
+                        "type": "integer",
+                        "example": 1
                     },
                     "created_at": {
                         "type": "string",
@@ -272,50 +692,69 @@
                 },
                 "type": "object"
             },
-            "Imageable": {
-                "title": "Imageable",
-                "properties": {
-                    "image_id": {
-                        "type": "integer"
-                    },
-                    "imageable_id": {
-                        "type": "integer"
-                    },
-                    "imageable_type": {
-                        "type": "string"
-                    },
-                    "is_main": {
-                        "type": "boolean"
-                    },
-                    "order": {
-                        "type": "integer"
-                    },
-                    "vattr": {
-                        "type": "object"
-                    }
-                },
-                "type": "object"
-            },
-            "Link": {
-                "title": "Link",
+            "NearbyTrailResource": {
                 "properties": {
                     "id": {
                         "type": "integer"
                     },
-                    "section_id": {
-                        "type": "integer"
-                    },
-                    "url": {
+                    "name": {
                         "type": "string"
                     },
-                    "meta_data": {
+                    "image": {
+                        "$ref": "#/components/schemas/ImageResource"
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "distance": {
+                        "type": "string"
+                    },
+                    "difficulty": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "length": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "location_name": {
+                        "type": "string"
+                    },
+                    "location_type": {
                         "type": "string"
                     }
                 },
                 "type": "object"
             },
-            "Point": {
-                "title": "Point",
+            "NearbyTrailsCollection": {
+                "title": "Kolekcja pobliskich szlaków",
+                "description": "Kolekcja zawierająca listę pobliskich szlaków",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "success"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NearbyTrailResource"
+                        }
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Top 10 nearby trails retrieved successfully."
+                    },
+                    "total_trails": {
+                        "type": "integer",
+                        "example": 10
+                    }
+                },
+                "type": "object"
+            },
+            "PointResource": {
                 "properties": {
                     "id": {
                         "type": "integer"
@@ -326,68 +765,52 @@
                     "point_type_id": {
                         "type": "integer"
                     },
-                    "at_length": {
+                    "point_type_key": {
+                        "type": "string",
+                        "example": "parking"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Parking przy moście"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "length_at": {
                         "type": "number",
                         "format": "float"
                     },
-                    "name": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
                     "lat": {
                         "type": "number",
-                        "format": "decimal"
+                        "format": "float"
                     },
                     "lng": {
                         "type": "number",
-                        "format": "decimal"
+                        "format": "float"
                     },
-                    "order": {
-                        "type": "integer"
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "type": "object"
             },
-            "PointDescription": {
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "point_id": {
-                        "type": "integer"
-                    },
-                    "point_type": {
-                        "type": "integer"
-                    },
-                    "description": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "PointType": {
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "Region": {
+            "RegionResource": {
                 "properties": {
                     "id": {
                         "type": "integer"
                     },
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "Mazowieckie"
                     },
                     "slug": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "mazowieckie"
                     },
                     "type": {
                         "type": "string",
@@ -403,54 +826,62 @@
                         "nullable": true
                     },
                     "is_root": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "example": false
                     },
                     "center_point": {
                         "properties": {
-                            "type": {
-                                "type": "string"
+                            "latitude": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 52.237049
                             },
-                            "coordinates": {
-                                "type": "array",
-                                "items": {
-                                    "type": "number"
-                                }
+                            "longitude": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 21.017532
                             }
                         },
                         "type": "object"
                     },
-                    "area": {
-                        "properties": {
-                            "type": {
-                                "type": "string"
-                            },
-                            "coordinates": {
-                                "type": "array",
-                                "items": {
-                                    "type": "array"
-                                }
-                            }
-                        },
-                        "type": "object"
+                    "parent": {
+                        "$ref": "#/components/schemas/RegionResource"
+                    },
+                    "children": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RegionResource"
+                        }
                     }
                 },
                 "type": "object"
             },
-            "River": {
+            "ReverseGeocodeResource": {
                 "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "name": {
+                    "country": {
                         "type": "string"
                     },
-                    "path": {
-                        "type": "object"
+                    "state": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "lat": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "lang": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "slug": {
+                        "type": "string"
                     }
                 },
                 "type": "object"
             },
-            "RiverTrack": {
+            "RiverTrackResource": {
                 "properties": {
                     "id": {
                         "type": "integer"
@@ -459,145 +890,54 @@
                         "type": "integer"
                     },
                     "track_points": {
-                        "properties": {
-                            "type": {
-                                "type": "string"
-                            },
-                            "coordinates": {
-                                "type": "array",
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "number"
-                                    }
-                                }
-                            }
-                        },
-                        "type": "object"
-                    }
-                },
-                "type": "object"
-            },
-            "Section": {
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "trail_id": {
-                        "type": "integer"
-                    },
-                    "name": {
                         "type": "string"
                     },
-                    "description": {
-                        "type": "string"
-                    },
-                    "polygon_coordinates": {
-                        "type": "array",
-                        "items": {
-                            "type": "object"
-                        }
-                    },
-                    "scenery": {
-                        "type": "integer"
-                    },
-                    "difficulty": {
-                        "type": "string"
-                    },
-                    "nuisance": {
-                        "type": "string"
-                    },
-                    "cleanliness": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "Trail": {
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "river_name": {
-                        "type": "string"
-                    },
-                    "trail_name": {
-                        "type": "string"
-                    },
-                    "slug": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "start_lat": {
-                        "type": "number",
-                        "format": "float"
-                    },
-                    "start_lng": {
-                        "type": "number",
-                        "format": "float"
-                    },
-                    "end_lat": {
-                        "type": "number",
-                        "format": "float"
-                    },
-                    "end_lng": {
-                        "type": "number",
-                        "format": "float"
-                    },
-                    "trail_length": {
-                        "type": "integer"
-                    },
-                    "author": {
-                        "type": "string"
-                    },
-                    "difficulty": {
+                    "created_at": {
                         "type": "string",
-                        "enum": [
-                            "łatwy",
-                            "umiarkowany",
-                            "trudny"
-                        ]
+                        "format": "date-time"
                     },
-                    "scenery": {
-                        "type": "integer"
-                    },
-                    "rating": {
-                        "type": "number",
-                        "format": "float"
-                    }
-                },
-                "type": "object"
-            },
-            "User": {
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "email": {
-                        "type": "string"
-                    },
-                    "email_verified_at": {
+                    "updated_at": {
                         "type": "string",
                         "format": "date-time"
                     }
                 },
                 "type": "object"
             },
+            "SearchResultResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "state_name": {
+                        "type": "string"
+                    },
+                    "country_name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SectionResource": {},
             "TrailCollection": {
                 "title": "Kolekcja szlaków",
                 "description": "Kolekcja zawierająca listę szlaków wraz z metadanymi",
                 "properties": {
-                    "data": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Trail"
-                        }
-                    },
+                    "data": {},
                     "meta": {
                         "properties": {
                             "total_trails": {
@@ -658,13 +998,131 @@
                     }
                 },
                 "type": "object"
+            },
+            "TrailResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "river_name": {
+                        "type": "string"
+                    },
+                    "trail_name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "main_image": {
+                        "$ref": "#/components/schemas/ImageResource"
+                    },
+                    "start_lat": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "start_lng": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "end_lat": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "end_lng": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "trail_length": {
+                        "type": "integer"
+                    },
+                    "author": {
+                        "type": "string"
+                    },
+                    "difficulty": {
+                        "type": "string"
+                    },
+                    "scenery": {
+                        "type": "integer"
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "images": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImageResource"
+                        }
+                    },
+                    "river_track": {
+                        "$ref": "#/components/schemas/RiverTrackResource"
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SectionResource"
+                        }
+                    },
+                    "points": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PointResource"
+                        }
+                    },
+                    "regions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RegionResource"
+                        }
+                    }
+                },
+                "type": "object"
             }
         }
     },
     "tags": [
         {
+            "name": "GPX",
+            "description": "GPX file processing endpoints"
+        },
+        {
+            "name": "Regions",
+            "description": "Endpoints for managing geographical regions"
+        },
+        {
+            "name": "Geocoding",
+            "description": "Geocoding endpoints"
+        },
+        {
+            "name": "Search",
+            "description": "Search functionality endpoints"
+        },
+        {
             "name": "Trails",
-            "description": "Trails"
+            "description": "Endpoints for managing kayak trails"
+        },
+        {
+            "name": "Maps",
+            "description": "Map generation endpoints"
+        },
+        {
+            "name": "Weather",
+            "description": "Weather data endpoints"
         }
-    ]
+    ],
+    "externalDocs": {
+        "description": "Find out more about our API",
+        "url": "https://wartkinurt.pl/api-docs"
+    }
 }

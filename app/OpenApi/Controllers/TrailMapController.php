@@ -4,47 +4,54 @@ namespace App\OpenApi\Controllers;
 
 /**
  * @OA\Tag(
- *     name="Trail Maps",
- *     description="Generowanie statycznej mapy (grafiki jpg) dla zobrazowania mapy szlaku.
- *      Generuje nam mapę leflet z zaznaczonym punktem start, stop, oraz ścieżką szlaku"
+ *     name="Maps",
+ *     description="Endpointy map"
  * )
  */
 class TrailMapController
 {
     /**
      * @OA\Get(
-     *     path="/trail-map/{slug}/static",
-     *     summary="Pobierz statyczną mapę szlaku",
-     *     description="Generuje i zwraca statyczną mapę dla wybranego szlaku",
-     *     operationId="getStaticMap",
-     *     tags={"Trail Maps"},
+     *     path="/trails/{slug}/static-map",
+     *     summary="Statyczna mapa szlaku",
+     *     tags={"Maps"},
      *     @OA\Parameter(
      *         name="slug",
      *         in="path",
      *         required=true,
-     *         description="Slug szlaku",
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Wygenerowana mapa",
+     *         description="Map image",
      *         @OA\MediaType(
-     *             mediaType="image/png",
-     *             @OA\Schema(type="string", format="binary")
+     *             mediaType="image/png"
      *         )
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Błąd generowania mapy",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Nie udało się wygenerować mapy")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Szlak nie znaleziony"
+     *         description="Error generating map"
      *     )
      * )
      */
+    public function getStaticMap() {}
 
+    /**
+     * @OA\Get(
+     *     path="/trails/{slug}/test-map",
+     *     summary="Test generowania mapy szlaku. Zwraca html, któy będzie zapisany",
+     *     tags={"Maps"},
+     *     @OA\Parameter(
+     *         name="slug",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Test map HTML"
+     *     )
+     * )
+     */
+    public function testMap() {}
 }
