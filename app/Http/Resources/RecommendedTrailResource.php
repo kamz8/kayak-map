@@ -6,7 +6,30 @@ use App\Http\Resources\BaseResource\BaseTrailResource;
 use App\Traits\HasLocationInfo;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-
+/**
+ * @OA\Schema(
+ *     schema="RecommendedTrailResource",
+ *     type="object",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="river_name", type="string"),
+ *     @OA\Property(property="trail_name", type="string"),
+ *     @OA\Property(property="slug", type="string"),
+ *     @OA\Property(property="rating", type="number"),
+ *     @OA\Property(property="main_image", ref="#/components/schemas/ImageResource"),
+ *     @OA\Property(property="trail_length", type="integer"),
+ *     @OA\Property(property="author", type="string"),
+ *     @OA\Property(property="difficulty", type="string"),
+ *     @OA\Property(property="scenery", type="integer"),
+ *     @OA\Property(property="length", type="integer"),
+ *     @OA\Property(property="location_name", type="string"),
+ *     @OA\Property(property="location_type", type="string"),
+ *     @OA\Property(property="location_slug", type="string"),
+ *     @OA\Property(property="relevance_score", type="number"),
+ *     @OA\Property(property="distance_from_current", type="string"),
+ *     @OA\Property(property="images", type="array", @OA\Items(ref="#/components/schemas/ImageResource")),
+ *     @OA\Property(property="location_tags", type="array", @OA\Items(type="string"))
+ * )
+ */
 class RecommendedTrailResource extends BaseTrailResource
 {
     use HasLocationInfo;

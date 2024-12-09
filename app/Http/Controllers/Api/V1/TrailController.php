@@ -102,6 +102,7 @@ class TrailController extends Controller
      * @param string $slug
      * @return RecommendedTrailsCollection
      */
+
     public function getRecommendedTrails(RecommendedTrailsRequest $request, string $slug): RecommendedTrailsCollection
     {
         $sourceTrail = $this->trailService->getTrailDetails($slug);

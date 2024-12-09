@@ -8,8 +8,8 @@ namespace App\Http\Controllers;
  *     description="Dokumentacja API dla aplikacji szlaków kajakowych"
  * )
  * @OA\Server(
- *     url="http://localhost:8000/api/v1",
- *     description="Serwer lokalny"
+ *     url="api.wartkinurt.pl/api/v1",
+ *     description="Główne api aplikacji"
  * )
  */
 abstract class Controller
