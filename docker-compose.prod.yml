@@ -51,7 +51,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    image: kayak-queue-prod
     container_name: kayak-queue-prod
     restart: unless-stopped
     command: php artisan queue:work redis --tries=3 --timeout=90
