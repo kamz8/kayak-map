@@ -100,9 +100,6 @@ ENV APP_ENV=production \
     PHP_OPCACHE_MAX_ACCELERATED_FILES=10000 \
     PHP_OPCACHE_MEMORY_CONSUMPTION=192
 
-FROM nginx:alpine
-COPY --from=app /var/www/html/public /var/www/html/public
-
 EXPOSE 9000
 
 CMD ["/usr/local/bin/prod-entrypoint.sh"]
