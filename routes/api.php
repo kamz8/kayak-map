@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\GPXController;
 use App\Http\Controllers\Api\V1\RegionController;
@@ -49,5 +50,12 @@ Route::middleware('api')->prefix('v1')->group(function () {
         ->name('api.trails.static-map');
 
     Route::get('/trails/{slug}/test-map', [TrailMapController::class, 'testMap']);
+
+    Route::controller(AuthController::class)->group(function () {
+        Route::post('auth/login', 'login')->name('login');
+        Route::post('auth/refresh', 'refresh')->name('refresh');
+        Route::post('auth/logout', 'logout')->middleware('auth:api')->name('logout');
+        Route::get('auth/me', 'me')->middleware('auth:api')->name('me');
+    });
 
 });
