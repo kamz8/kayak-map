@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'mariadb'),
 
     /*
     |--------------------------------------------------------------------------
@@ -107,6 +107,30 @@ return [
             'prefix_indexes' => true,
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+        ],
+
+        'testing' => [
+            'driver' => 'mariadb',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_TESTING', '127.0.0.1'),
+            'port' => env('DB_PORT_TESTING', '3307'),  // Inny port dla bazy testowej
+            'database' => env('DB_DATABASE_TESTING', 'wartkinurt_testing'),
+            'username' => env('DB_USERNAME_TESTING', 'admin'),
+            'password' => env('DB_PASSWORD_TESTING', 'password'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'modes' => [
+                'ONLY_FULL_GROUP_BY',
+                'STRICT_TRANS_TABLES',
+                'NO_ZERO_IN_DATE',
+                'NO_ZERO_DATE',
+                'ERROR_FOR_DIVISION_BY_ZERO',
+                'NO_ENGINE_SUBSTITUTION',
+            ],
         ],
 
     ],

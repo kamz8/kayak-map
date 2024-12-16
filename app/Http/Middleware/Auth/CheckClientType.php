@@ -12,17 +12,19 @@ class CheckClientType
         if (!$request->hasHeader('X-Client-Type')) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Client type not specified'
+                'message' => 'X-Client-Type header is required'
             ], 400);
         }
 
         $clientType = $request->header('X-Client-Type');
-        $allowedTypes = ['web', 'mobile', 'dashboard'];
+        $allowedTypes = array_values(config('auth.clients.types', ['web', 'android', 'ios']));
 
         if (!in_array($clientType, $allowedTypes)) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid client type'
+                'error' => [
+                    'code' => 400,
+                    'message' => 'Invalid client type. Allowed types: ' . implode(', ', $allowedTypes)
+                ]
             ], 400);
         }
 

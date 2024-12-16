@@ -37,7 +37,7 @@ return [
 
     'guards' => [
         'web' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
         'api' => [
@@ -116,4 +116,30 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+       |--------------------------------------------------------------------------
+       | Registration Settings
+       |--------------------------------------------------------------------------
+       |
+       | Here you can configure the registration settings for your application.
+       | You can enable or disable registration functionality and set throttling
+       | parameters to protect against automated registration attempts.
+       |
+       */
+    'registration' => [
+        'enabled' => env('ALLOW_REGISTRATION', false),
+        'throttle' => [
+            'max_attempts' => 3, // Maximum number of registration attempts allowed
+            'decay_minutes' => 60, // Time period (in minutes) for throttling
+        ],
+    ],
+
+    'clients' => [
+        'types' => [
+            'web' => 'web',
+            'android' => 'android',
+            'ios' => 'ios'
+        ],
+        'default' => 'web'
+    ],
 ];

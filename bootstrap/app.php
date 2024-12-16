@@ -16,39 +16,79 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'throttle.nominatim' => ThrottleNominatimRequests::class,
             'force.json' => \App\Http\Middleware\ForceJsonResponse::class,
+            'auth.check.client.type' => \App\Http\Middleware\Auth\CheckClientType::class,
+            'validate.api.key' => \App\Http\Middleware\Auth\ApiKeyMiddleware::class,
+            'jwt.auth' => \PHPOpenSourceSaver\JWTAuth\Http\Middleware\GetUserFromToken::class,
+            'jwt.refresh' => \PHPOpenSourceSaver\JWTAuth\Middleware\RefreshToken::class,
         ]);
 
         $middleware->group('api', [
             'force.json',
-            // inne middleware...
+            'auth.check.client.type',
         ]);
+
+        $middleware->group('api.auth', [
+            'force.json',
+            'auth.check.client.type',
+            'jwt.auth'
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $e, $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
-                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                // 1. Najpierw HttpResponseException bo jest specyficzny
+                if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) {
+                    $response = $e->getResponse();
                     return response()->json([
                         'error' => [
-                            'code' => 422,
-                            'message' => $e->getMessage(),
-                            'errors' => $e->errors(),
+                            'code' => $response->getStatusCode(),
+                            'message' => $response->getData()->message ?? 'Too Many Attempts'
                         ]
+                    ], $response->getStatusCode());
+                }
+
+                // ValidationException
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    return response()->json([
+                            'code' => 422,
+                            'message' => 'The given data was invalid.',
+                            'errors' => $e->errors(),
                     ], 422);
                 }
 
-                $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
-                $message = $e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-                    ? 'The requested API endpoint does not exist.'
-                    : $e->getMessage();
+                // 3. Następnie HttpExceptionInterface dla wszystkich HTTP wyjątków
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                    return response()->json([
+                        'error' => [
+                            'code' => $e->getStatusCode(),
+                            'message' => $e->getMessage()
+                        ]
+                    ], $e->getStatusCode());
+                }
+
+                // W sekcji exceptions
+                if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                    return response()->json([
+                        'error' => [
+                            'code' => 401,
+                            'message' => 'Unauthorized'
+                        ]
+                    ], 401);
+                }
+
+                // 4. Na końcu ogólna obsługa pozostałych wyjątków
+                $statusCode = 500;
+                $message = $e->getMessage() ?: 'Server Error';
 
                 $response = [
                     'error' => [
                         'code' => $statusCode,
-                        'message' => $e->getMessage(),
+                        'message' => $message,
                     ]
                 ];
 
-                if ($statusCode === 500 && config('app.debug')) {
+                if (config('app.debug')) {
                     $response['error']['trace'] = $e->getTraceAsString();
                     $response['error']['file'] = $e->getFile();
                     $response['error']['line'] = $e->getLine();
@@ -59,4 +99,5 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return false;
         });
-    })->create();
+    })
+    ->create();

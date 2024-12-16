@@ -1,21 +1,25 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
-use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\Auth\RegisterController;
+use App\Http\Controllers\Api\V1\Auth\SocialAuthController;
 use App\Http\Controllers\Api\V1\GPXController;
 use App\Http\Controllers\Api\V1\RegionController;
 use App\Http\Controllers\Api\V1\ReverseGeocodingController;
 use App\Http\Controllers\Api\V1\RiverTrackController;
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\TrailController;
 use App\Http\Controllers\Api\V1\TrailGeocodingController;
 use App\Http\Controllers\Api\V1\TrailMapController;
 use App\Http\Controllers\Api\V1\WeatherProxyController;
+use App\Http\Middleware\Auth\CheckRegistrationEnabled;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 /*Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');*/
-
 
 Route::middleware('api')->prefix('v1')->group(function () {
     Route::get('/', function () {
@@ -51,11 +55,33 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
     Route::get('/trails/{slug}/test-map', [TrailMapController::class, 'testMap']);
 
-    Route::controller(AuthController::class)->group(function () {
-        Route::post('auth/login', 'login')->name('login');
-        Route::post('auth/refresh', 'refresh')->name('refresh');
-        Route::post('auth/logout', 'logout')->middleware('auth:api')->name('logout');
-        Route::get('auth/me', 'me')->middleware('auth:api')->name('me');
+    Route::prefix('auth')->group(function () {
+        Route::middleware('throttle:6,1')->group(function () {
+            Route::post('login', [AuthController::class, 'login']);
+            Route::post('refresh', [AuthController::class, 'refresh']);
+        });
+
+        // Public authentication routes
+        Route::middleware([
+            'throttle:registration',
+            CheckRegistrationEnabled::class,
+        ])->group(function () {
+            Route::post('register', RegisterController::class);
+        });
+
+        // Protected routes
+        Route::middleware('api.auth')->group(function () {
+            Route::post('logout', [AuthController::class, 'logout']);
+            Route::get('me', [AuthController::class, 'me']);
+        });
+
+        Route::prefix('social')->group(function () {
+            Route::post('{provider}/callback', [SocialAuthController::class, 'callback'])
+                ->where('provider', 'google|facebook');
+        });
     });
+
+
+
 
 });
