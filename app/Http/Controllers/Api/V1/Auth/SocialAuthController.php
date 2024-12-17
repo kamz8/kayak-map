@@ -17,7 +17,7 @@ class SocialAuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/social/{provider}/callback",
+     *     path="/auth/social/{provider}/callback",
      *     summary="Authenticate user with social provider",
      *     tags={"Auth"},
      *     @OA\Parameter(

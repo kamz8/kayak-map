@@ -23,7 +23,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/login",
+     *     path="/auth/login",
      *     summary="Logowanie użytkownika",
      *     tags={"Auth"},
      *     @OA\RequestBody(
@@ -62,7 +62,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/refresh",
+     *     path="/auth/refresh",
      *     summary="Odświeżenie tokena JWT",
      *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
@@ -95,7 +95,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/logout",
+     *     path="/auth/logout",
      *     summary="Wylogowanie użytkownika",
      *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
@@ -114,7 +114,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/auth/me",
+     *     path="/auth/me",
      *     summary="Pobranie danych zalogowanego użytkownika",
      *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
