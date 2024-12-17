@@ -1,5 +1,5 @@
 <template>
-  <v-footer app color="footer" class="pa-0">
+  <v-footer app color="footer" class="pa-0" style="position: initial">
     <v-container class="pa-8 mx-auto" max-width="1240px">
       <v-row justify="start" class="mb-8">
         <v-col cols="12" class="text-center">

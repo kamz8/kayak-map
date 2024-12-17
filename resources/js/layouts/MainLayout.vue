@@ -13,7 +13,7 @@
         <v-main>
             <slot />
         </v-main>
-        <Footer />
+        <Footer class="v-footer" />
     </v-app>
 </template>
 
@@ -40,4 +40,8 @@ export default {
 .v-app-bar {
     box-shadow: none;
 }
+/*.v-footer {
+    margin-top: auto; !* Footer będzie się trzymał na dole *!
+}*/
+
 </style>
