@@ -108,4 +108,91 @@ class SocialAuthService
             'last_name' => $parts[1] ?? ''
         ];
     }
+
+    public function handleDataDeletionCallback(string $provider, string $signedRequest): array
+    {
+        // Weryfikacja podpisu (zależy od dostawcy)
+        if (!$this->verifySignedRequest($provider, $signedRequest)) {
+            throw new \InvalidArgumentException('Nieprawidłowy podpis żądania');
+        }
+
+        // Dekodowanie żądania (przykład dla Facebooka)
+        $requestData = $this->decodeSignedRequest($provider, $signedRequest);
+
+        // Znajdź konto społecznościowe
+        $socialAccount = SocialAccount::where('provider', $provider)
+            ->where('provider_id', $requestData['user_id'])
+            ->first();
+
+        if (!$socialAccount) {
+            return [
+                'status' => 'error',
+                'message' => 'Nie znaleziono konta'
+            ];
+        }
+
+        // Usuń powiązane dane
+        DB::transaction(function () use ($socialAccount) {
+            // Usuń zdjęcia użytkownika
+            $socialAccount->user->images()->detach();
+
+            // Usuń konta społecznościowe
+            $socialAccount->user->socialAccounts()->delete();
+
+            // Opcjonalnie: usuń użytkownika lub dezaktywuj
+            $socialAccount->user->delete();
+        });
+
+        return [
+            'status' => 'success',
+            'message' => 'Dane użytkownika zostały usunięte'
+        ];
+    }
+
+    private function verifySignedRequest(string $provider, string $signedRequest): bool
+    {
+        // Implementacja weryfikacji podpisu zależna od dostawcy
+        switch ($provider) {
+            case 'facebook':
+                return $this->verifyFacebookSignedRequest($signedRequest);
+            // Dodaj innych dostawców
+            default:
+                throw new \InvalidArgumentException('Nieobsługiwany dostawca');
+        }
+    }
+    //Remove user data
+    private function verifyFacebookSignedRequest(string $signedRequest): bool
+    {
+        // Przykładowa weryfikacja (wymaga klucza tajnego Facebooka)
+        $appSecret = config('services.facebook.app_secret');
+
+        try {
+            // Tutaj dodaj logikę weryfikacji podpisu Facebooka
+            // Typowo polega to na sprawdzeniu podpisu kryptograficznego
+            return true; // Placeholder
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    private function decodeSignedRequest(string $provider, string $signedRequest): array
+    {
+        // Dekodowanie żądania zależy od dostawcy
+        switch ($provider) {
+            case 'facebook':
+                return $this->decodeFacebookSignedRequest($signedRequest);
+            default:
+                throw new \InvalidArgumentException('Nieobsługiwany dostawca');
+        }
+    }
+
+    private function decodeFacebookSignedRequest(string $signedRequest): array
+    {
+        // Przykładowa implementacja dekodowania żądania Facebooka
+        // W praktyce wymaga odpowiedniego parsowania i weryfikacji
+        return [
+            'user_id' => '', // ID użytkownika z żądania
+            'delete_data' => true
+        ];
+    }
 }
