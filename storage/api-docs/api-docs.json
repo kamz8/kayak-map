@@ -12,13 +12,13 @@
         }
     ],
     "paths": {
-        "/api/v1/auth/login": {
+        "/auth/login": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Logowanie użytkownika",
-                "operationId": "9d0bb5c770cbec19b0b9566606ef4adb",
+                "operationId": "e5e32c5c121d50e864abf0f704b71593",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -66,13 +66,13 @@
                 }
             }
         },
-        "/api/v1/auth/refresh": {
+        "/auth/refresh": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Odświeżenie tokena JWT",
-                "operationId": "437b695fba1c5eecef1841f958322adc",
+                "operationId": "e5a4627e54da71851a760487c5b64b99",
                 "responses": {
                     "200": {
                         "description": "Token odświeżony",
@@ -95,13 +95,13 @@
                 ]
             }
         },
-        "/api/v1/auth/logout": {
+        "/auth/logout": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Wylogowanie użytkownika",
-                "operationId": "3a27a9e02ceb521eb3f98c8d2394aef9",
+                "operationId": "1536ec034ecbb551483aeacfd4eea588",
                 "responses": {
                     "200": {
                         "description": "Pomyślnie wylogowano"
@@ -117,13 +117,13 @@
                 ]
             }
         },
-        "/api/v1/auth/me": {
+        "/auth/me": {
             "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Pobranie danych zalogowanego użytkownika",
-                "operationId": "7edb820901b8b3a880fc4d7a0a7290fb",
+                "operationId": "bf21b27a7e826768548b5b14ee2d44f2",
                 "responses": {
                     "200": {
                         "description": "Dane użytkownika",
@@ -280,6 +280,55 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/auth/social/{provider}/callback": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Authenticate user with social provider",
+                "operationId": "a24f740e71bcf117279350b0038aef3b",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "facebook"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "access_token"
+                                ],
+                                "properties": {
+                                    "access_token": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "422": {
+                        "description": "Invalid token"
                     }
                 }
             }
