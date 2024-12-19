@@ -1,5 +1,5 @@
 <template>
-  <v-footer app color="footer" class="pa-0" style="position: initial">
+  <v-footer app color="footer" class="pa-0" >
     <v-container class="pa-8 mx-auto" max-width="1240px">
       <v-row justify="start" class="mb-8">
         <v-col cols="12" class="text-center">
@@ -106,6 +106,7 @@ export default {
         ]
       }
     ],
+      socialIcons:[]
 /*    socialIcons: [
       {name: 'Facebook', icon: 'mdi-facebook', href: '#'},
       {name: 'Instagram', icon: 'mdi-instagram',href: '#'},

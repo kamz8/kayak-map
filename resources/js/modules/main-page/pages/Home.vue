@@ -179,7 +179,8 @@ export default {
               // Zapisz wyniki w cache z TTL 24 godziny (86400 sekund)
               this.trails = await this.$cache.remember(`trailsNearby_${locationName}`, 86400,
                   async () => {
-                      const response = await apiClient.get(`/api/v1/trails/nearby`, {
+                  console.log(apiClient)
+                      const response = await apiClient.get(`/trails/nearby`, {
                           params: { lat, long, location_name: locationName },
                       });
                       return response.data.data;
@@ -194,7 +195,7 @@ export default {
           this.isLoading = true;
 
           const fetchFunction = async () => {
-              const response = await axios.get(`/api/v1/trails/nearby?location_name=Polska`);
+              const response = await axios.get(`/trails/nearby?location_name=Polska`);
               return response.data.data;
           };
 

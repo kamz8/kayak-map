@@ -1,5 +1,8 @@
 <template>
-    <v-app-bar app flat border>
+    <v-app-bar app flat border
+       :fixed="true"
+       style="position: fixed"
+    >
         <!-- Desktop Navbar -->
         <v-toolbar-title class="d-none d-md-flex align-center">
             <router-link to="/" class="d-flex align-center text-decoration-none">
@@ -50,11 +53,12 @@ export default {
             desktopLinks: [
                 { text: 'Odkrywaj', url: '/explore', icon: 'mdi-compass' },
                 { text: 'Regiony', url: '/regions' },
-                { text: 'Zapisane', url: '/saved',hide: process.env.NODE_ENV !== 'development'  },
+                { text: 'Zapisane', url: '/saved',hide: true  },
             ],
             desktopActions: [
                 { text: 'Pomoc', url: '/help',hide: true },
                 { text: 'Pobierz app', color: 'green',hide: true },
+                { text: 'Zaloguj',url:'/login',color:'river-blue', hide: process.env.NODE_ENV !== 'development' },
             ],
             mobileLinks: [
                 { text: 'Odkrywaj', url: '/explore', icon: 'mdi-compass' },
@@ -62,6 +66,7 @@ export default {
                 { text: 'Zapisane', url: '/saved', icon: 'mdi-bookmark',hide: true },
                 { text: 'Pomoc', url: '/help', icon: 'mdi-help-circle',hide:true },
                 { text: 'Pobierz app', url: '/download', icon: 'mdi-download',hide:true },
+                { text: 'Zaloguj',url:'/login',color:'river-blue', hide: process.env.NODE_ENV !== 'development' },
             ],
         };
     },
@@ -85,6 +90,12 @@ export default {
 }
 .logo-text {
     font-size: 20px;
+}
+
+.sticky-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 @media (max-width: 599px) {
     .logo-text {

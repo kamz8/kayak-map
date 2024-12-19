@@ -114,7 +114,7 @@ export default {
             }
 
             try {
-                const response = await apiClient.get(`/api/v1/weather`, {
+                const response = await apiClient.get(`/weather`, {
                     params: {
                         lat: this.latitude,
                         lon: this.longitude

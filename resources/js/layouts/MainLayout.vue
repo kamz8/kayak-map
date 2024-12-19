@@ -1,14 +1,5 @@
 <template>
     <v-app>
-        <v-progress-linear
-            :active="pageLoading"
-            :indeterminate="true"
-            color="primary"
-            absolute
-            height="5px"
-            class="ma-0"
-            style="top: 0px;"
-        />
         <Navbar />
         <v-main>
             <slot />

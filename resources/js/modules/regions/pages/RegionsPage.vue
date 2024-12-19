@@ -5,7 +5,7 @@
         <v-row class="mt-5 mb-4">
 
           <v-col cols="12">
-            <h2>Tutaj będzie strona dla regionów, miastm wsi i kołchozów </h2>
+            <h2>Zobacz wszystkie regiony dostępne w naszej aplikacji </h2>
           </v-col>
         </v-row>
 
