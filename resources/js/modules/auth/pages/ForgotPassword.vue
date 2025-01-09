@@ -56,14 +56,13 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import {mapActions, mapGetters} from 'vuex'
 
 export default {
     name: 'ForgotPassword',
     data() {
         return {
             email: '',
-            loading: false,
             apiErrors: {
                 email: []
             },
@@ -74,45 +73,46 @@ export default {
         }
     },
 
+    computed: {
+        ...mapGetters('auth', ['loading'])
+    },
+
     methods: {
         ...mapActions('auth', ['sendResetLink']),
+
         clearApiErrors() {
             this.apiErrors = {
                 email: []
             }
         },
+
         async handleSubmit() {
             try {
                 const { valid } = await this.$refs.form.validate()
                 if (!valid) return
 
-                this.loading = true
                 this.clearApiErrors()
 
-                await this.$store.dispatch('auth/sendResetLink', { email: this.email })
+                // Używamy zmapowanej akcji
+                await this.sendResetLink({ email: this.email })
 
                 this.$alertSuccess('Link do resetowania hasła został wysłany na podany adres email')
                 this.$router.push('/login')
-
             } catch (error) {
-                // Obsługa błędów walidacji z API (422)
                 if (error.response?.status === 422) {
                     const errors = error.response.data.errors
-
                     if (errors.email) {
                         this.apiErrors.email = Array.isArray(errors.email)
                             ? errors.email
                             : [errors.email]
                     }
                 } else {
-                    // Ogólny błąd
+                    console.log(error)
                     this.$alertError(
                         error.response?.data?.message ||
                         'Wystąpił błąd podczas wysyłania linku'
                     )
                 }
-            } finally {
-                this.loading = false
             }
         }
     },

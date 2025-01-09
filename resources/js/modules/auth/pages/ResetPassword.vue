@@ -28,6 +28,7 @@
             class="mb-4"
             color="primary"
             bg-color="grey-lighten-5"
+            :loading="loading"
         ></v-text-field>
 
         <v-text-field
@@ -41,6 +42,7 @@
             @click:append-inner="showPassword = !showPassword"
             color="primary"
             bg-color="grey-lighten-5"
+            :loading="loading"
         ></v-text-field>
 
         <v-text-field
@@ -53,6 +55,7 @@
             color="primary"
             bg-color="grey-lighten-5"
             class="mb-4"
+            :loading="loading"
         ></v-text-field>
 
         <v-btn

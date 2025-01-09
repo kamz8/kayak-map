@@ -80,6 +80,12 @@ services:
             - db_data:/var/lib/mysql
         networks:
             - laravel
+    mailhog:
+        image: mailhog/mailhog
+        container_name: mailhog
+        ports:
+            - "8025:8025" # Panel Web MailHog
+            - "1025:1025" # SMTP MailHog
     wartkinurt_mysql_testing:
         image: mariadb:11.2
         container_name: wartkinurt_mariadb_testing

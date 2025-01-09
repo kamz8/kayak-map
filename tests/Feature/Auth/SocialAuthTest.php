@@ -111,6 +111,41 @@ class SocialAuthTest extends TestCase
         ]);
     }
 
+    /** @test */
+    public function it_can_get_provider_auth_url()
+    {
+        $expectedUrl = 'https://accounts.google.com/oauth/auth';
+
+        $providerMock = Mockery::mock('Laravel\Socialite\Contracts\Provider');
+        $providerMock->shouldReceive('stateless')->andReturn($providerMock);
+        $providerMock->shouldReceive('redirect')->andReturn($providerMock);
+        $providerMock->shouldReceive('getTargetUrl')->andReturn($expectedUrl);
+
+        Socialite::shouldReceive('driver')
+            ->with('google')
+            ->andReturn($providerMock);
+
+        $response = $this->getJson('/api/v1/auth/social/google/redirect', $this->headers);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => ['url']
+            ])
+            ->assertJson([
+                'data' => [
+                    'url' => $expectedUrl
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_error_for_invalid_provider()
+    {
+        $response = $this->getJson('/api/v1/auth/social/invalid-provider/redirect', $this->headers);
+
+        $response->assertStatus(422);
+    }
+
     private function createMockSocialiteUser($provider=null, $email=null): \Laravel\Socialite\Two\User
     {
         $user = new \Laravel\Socialite\Two\User();

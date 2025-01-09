@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Image;
 use App\Models\SocialAccount;
 use Illuminate\Support\Facades\Log;
+use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -194,5 +195,13 @@ class SocialAuthService
             'user_id' => '', // ID użytkownika z żądania
             'delete_data' => true
         ];
+    }
+
+    public function getAuthUrl(string $provider): string
+    {
+        return Socialite::driver($provider)
+            ->stateless()
+            ->redirect()
+            ->getTargetUrl();
     }
 }

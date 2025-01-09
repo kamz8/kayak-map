@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
 use App\Http\Controllers\Api\V1\Auth\SocialAuthController;
 use App\Http\Controllers\Api\V1\GPXController;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Route;
     return $request->user();
 })->middleware('auth:sanctum');*/
 
-Route::middleware('api')->prefix('v1')->group(function () {
+Route::middleware('api')->group(function () {
     Route::get('/', function () {
         return ['message'=>'Witamy w naszym api', ];
     });
@@ -60,7 +61,8 @@ Route::middleware('api')->prefix('v1')->group(function () {
             Route::post('login', [AuthController::class, 'login']);
             Route::post('refresh', [AuthController::class, 'refresh']);
         });
-
+        Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink']);
+        Route::post('reset-password', [PasswordResetController::class, 'reset']);
         // Public authentication routes
         Route::middleware([
             'throttle:registration',
@@ -76,12 +78,20 @@ Route::middleware('api')->prefix('v1')->group(function () {
         });
 
         Route::prefix('social')->group(function () {
+            Route::get('{provider}/redirect', [SocialAuthController::class, 'getAuthUrl']);
+
             Route::post('{provider}/callback', [SocialAuthController::class, 'callback'])
                 ->where('provider', 'google|facebook');
         });
     });
 
-
-
-
 });
+
+Route::fallback(function() {
+    return response()->json([
+        'error' => [
+            'code' => 404,
+            'message' => 'API endpoint not found'
+        ]
+    ], 404);
+})->middleware('api');

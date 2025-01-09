@@ -48,6 +48,7 @@ export default {
         };
 
         app.config.globalProperties.$alertInfo = createAlertHelper('info');
+        app.config.globalProperties.$alertSuccess = createAlertHelper('success');
         app.config.globalProperties.$alertWarning = createAlertHelper('warning');
         app.config.globalProperties.$alertError = createAlertHelper('error');
         app.config.globalProperties.$config = (dotString) => {

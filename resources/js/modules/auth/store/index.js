@@ -199,8 +199,17 @@ const actions = {
         }
     },
 
-    async sendResetLink({ commit, dispatch }) {
+    async sendResetLink({ commit }, { email }) {
+        try {
+            commit('SET_LOADING', true);
+            const response = await apiClient.post('/auth/forgot-password', { email });
 
+            return response.data;
+        } catch (error) {
+            throw error;
+        } finally {
+            commit('SET_LOADING', false);
+        }
     },
 
     async resetPassword({ commit }, formData) {

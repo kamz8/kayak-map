@@ -61,4 +61,38 @@ class SocialAuthController extends Controller
             ], 422);
         }
     }
+
+    /**
+     * @OA\Get(
+     *     path="/auth/social/{provider}/auth-url",
+     *     summary="Get authentication URL for social provider",
+     *     tags={"Auth"},
+     *     @OA\Parameter(
+     *         name="provider",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", enum={"google", "facebook"})
+     *     ),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=422, description="Invalid provider")
+     * )
+     */
+    public function getAuthUrl(string $provider): ApiResource | JsonResponse
+    {
+        try {
+            $url = $this->socialAuthService->getAuthUrl($provider);
+
+            return new ApiResource([
+                'url' => $url
+            ]);
+        } catch (\Exception $e) {
+            logger()->error($e->getMessage());
+            return response()->json([
+                'error' => [
+                    'code' => 422,
+                    'message' => 'Failed to get auth URL for ' . $provider
+                ]
+            ], 422);
+        }
+    }
 }
