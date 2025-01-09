@@ -200,7 +200,7 @@ services:
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
 
 volumes:
-  app_public:
+  kayak_app:
     name: kayak_app
   kayak_storage:
     driver: local
