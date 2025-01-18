@@ -35,7 +35,6 @@ services:
       - kayak_app:/var/www/html
       - kayak_storage:/var/www/html/storage
       - /home/services/kayak-prod/.env:/var/www/html/.env
-      - /home/services/kayak-prod/docker/scripts/post-deploy.sh:/usr/local/bin/post-deploy.sh
     networks:
       - traefik-public
       - internal
@@ -48,7 +47,6 @@ services:
           memory: 1G
         reservations:
           memory: 1G
-    command: sh -c "chmod +x /usr/local/bin/post-deploy.sh && /usr/local/bin/post-deploy.sh && php-fpm"
 
   queue-worker:
     build:
