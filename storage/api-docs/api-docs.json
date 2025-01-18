@@ -333,6 +333,37 @@
                 }
             }
         },
+        "/auth/social/{provider}/auth-url": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get authentication URL for social provider",
+                "operationId": "a0b9a9028abf766b16dac110055588f5",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "facebook"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "422": {
+                        "description": "Invalid provider"
+                    }
+                }
+            }
+        },
         "/gpx/upload": {
             "post": {
                 "tags": [
