@@ -10,7 +10,7 @@
                 <div class="ml-2 font-weight-bold logo-text text-black">WARTKI NURT</div>
             </router-link>
         </v-toolbar-title>
-        <v-spacer class="d-none d-md-block"></v-spacer>
+<!--        <v-spacer class="d-none d-md-block"></v-spacer>-->
         <v-btn v-for="link in visibleDesktopLinks" :key="link.text" text class="d-none d-md-flex" :to="link.url">
             <v-icon v-if="link.icon" left class="mr-1">{{ link.icon }}</v-icon>
             {{ link.text }}
