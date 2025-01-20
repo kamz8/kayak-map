@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+
     container_name: kayak-app-prod
     restart: unless-stopped
     ports:
@@ -31,6 +32,7 @@ services:
       SSH_USER: ${SSH_USER}
       SSH_PASSWORD: ${SSH_PASSWORD}
     volumes:
+      - kayak_app:/var/www/html
       - kayak_storage:/var/www/html/storage
       - /home/services/kayak-prod/.env:/var/www/html/.env
     networks:
@@ -80,7 +82,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-
     container_name: kayak-scheduler-prod
     restart: unless-stopped
     command: php artisan schedule:work
@@ -209,7 +210,6 @@ services:
 volumes:
   kayak_app:
     name: kayak_app
-
   kayak_storage:
     driver: local
     driver_opts:
