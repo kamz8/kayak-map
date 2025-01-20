@@ -208,11 +208,7 @@ services:
       - "traefik.http.routers.dashboard.tls.certresolver=myresolver"
 volumes:
   kayak_app:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/services/kayak-prod
-      o: bind
+    name: kayak_app
 
   kayak_storage:
     driver: local
