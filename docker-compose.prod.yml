@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 46.202.189.31:5000/kayak-app-prod:latest
+    image: kayak-app-prod:latest
     container_name: kayak-app-prod
     restart: unless-stopped
     ports:
@@ -52,7 +52,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 46.202.189.31:5000/kayak-app-prod:latest
+    image: kayak-app-prod:latest
     container_name: kayak-queue-prod
     restart: unless-stopped
     command: php artisan queue:work redis --tries=3 --timeout=90
@@ -82,7 +82,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 46.202.189.31:5000/kayak-app-prod:latest
+    image: kayak-app-prod:latest
     container_name: kayak-scheduler-prod
     restart: unless-stopped
     command: php artisan schedule:work
