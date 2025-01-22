@@ -55,6 +55,9 @@ const vuetify = createVuetify({
                     wheat:'#F5DEB3'
 
                 },
+                variables: {
+                    fontFamily: 'Popins,  sans-serif', // Własna czcionka
+                },
             },
             dark: {
                 dark: true,

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->morphs('imageable');
             $table->boolean('is_main')->default(false);
             $table->integer('order')->default(0);
+            $table->json('vattr')->nullable();
             $table->timestamps();
         });
     }
