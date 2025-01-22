@@ -30,8 +30,9 @@
                     cols="12"
                     sm="4"
                     md="3"
+                    xl="2"
                 >
-                    <region-card :region="region" />
+                    <region-card :region="region" :useImageAnalysis="true"/>
                 </v-col>
             </v-row>
         </v-container>

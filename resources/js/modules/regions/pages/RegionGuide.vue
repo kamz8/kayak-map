@@ -56,7 +56,7 @@ export default {
                             {
                                 id: 1,
                                 name: "Park Narodowy Auksztocki",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 45,
                                 image: "https://images.pexels.com/photos/338936/pexels-photo-338936.jpeg"
                             },
@@ -82,7 +82,7 @@ export default {
                             {
                                 id: 3,
                                 name: "Biebrzański Park Narodowy",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 28,
                                 image: "https://images.pexels.com/photos/1761279/pexels-photo-1761279.jpeg"
                             },
@@ -96,7 +96,7 @@ export default {
                             {
                                 id: 5,
                                 name: "Drawieński Park Narodowy",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 18,
                                 image: "https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg"
                             },
@@ -110,7 +110,7 @@ export default {
                             {
                                 id: 7,
                                 name: "Biebrzański Park Narodowy",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 28,
                                 image: "https://images.pexels.com/photos/1761279/pexels-photo-1761279.jpeg"
                             },
@@ -124,7 +124,7 @@ export default {
                             {
                                 id: 9,
                                 name: "Drawieński Park Narodowy",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 18,
                                 image: "https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg"
                             },
@@ -150,7 +150,7 @@ export default {
                             {
                                 id: 7,
                                 name: "Karpacki Park Narodowy",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 15,
                                 image: "https://images.pexels.com/photos/8961345/pexels-photo-8961345.jpeg"
                             },
@@ -164,9 +164,9 @@ export default {
                             {
                                 id: 9,
                                 name: "Park Narodowy Synewyr",
-                                type: "national_park",
+                                type: "geographic_area",
                                 trailsCount: 12,
-                                image: "https://images.pexels.com/photos/3442567/pexels-photo-3442567.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                                image: "https://images.pexels.com/photos/3442567/pexels-photo-3442567.jpeg"
                             }
                         ]
                     }

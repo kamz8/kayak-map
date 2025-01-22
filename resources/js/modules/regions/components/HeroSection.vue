@@ -5,7 +5,7 @@
             :height="parallaxHeight"
         >
             <div class="gradient-overlay"></div>
-            <v-container class="fill-height py-16">
+            <v-container tag="header" class="fill-height py-16">
                 <!-- Nagłówek -->
                 <v-row>
                     <v-col cols="12" class="text-center">
@@ -13,7 +13,7 @@
                             Odkryj ponad {{ stats.totalTrails }} szlaków kajakowych
                         </h1>
                         <p class="text-h6 text-sm-h5 font-weight-regular text-white mb-16">
-                            w {{ countries.length }} krajach Europy Wschodniej
+                            w {{ countries.length }} krajach Europy
                         </p>
                     </v-col>
                 </v-row>
@@ -80,6 +80,14 @@
                         </div>
                     </div>
                 </div>
+                <v-spacer class="py-1"></v-spacer>
+<!--                <v-row tag="footer">
+                    <v-col cols="12">
+                        <p class="text-h6 text-sm-h6 text-center text-capitalize font-weight-regular text-teal-lighten-4 mb-16">
+                            Kliknij w interesujący ciebie kraj i odkryj jego szlaki
+                        </p>
+                    </v-col>
+                </v-row>-->
             </v-container>
         </v-parallax>
     </div>
@@ -158,6 +166,11 @@ export default {
 <style scoped>
 .hero-wrapper {
     position: relative;
+    font-family: "Inter", "Poppins", sans-serif;
+}
+
+.hero-wrapper [class='h-*']{
+    font-family: "Poppins", sans-serif;
 }
 
 :deep(.nav-arrow) {
