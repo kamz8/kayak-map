@@ -9,10 +9,10 @@
                 <!-- Nagłówek -->
                 <v-row>
                     <v-col cols="12" class="text-center">
-                        <h1 class="text-h3 text-sm-h2 font-weight-bold text-white mb-4">
+                        <h1 class="text-h3 text-sm-h2 font-weight-bold text-white mb-4 font-poppins">
                             Odkryj ponad {{ stats.totalTrails }} szlaków kajakowych
                         </h1>
-                        <p class="text-h6 text-sm-h5 font-weight-regular text-white mb-16">
+                        <p class="text-h6 text-sm-h5 font-weight-regular text-white mb-16 font-inter">
                             w {{ countries.length }} krajach Europy
                         </p>
                     </v-col>
