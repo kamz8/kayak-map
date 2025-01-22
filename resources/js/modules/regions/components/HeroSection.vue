@@ -95,6 +95,7 @@
 
 <script>
 import CountryCard from './CountryCard.vue'
+import {useGoTo} from "vuetify";
 
 export default {
     name: 'HeroSection',
@@ -118,7 +119,10 @@ export default {
             default: () => []
         }
     },
-
+    setup () {
+      const goTo = useGoTo()
+      return { goTo }
+    },
     data() {
         return {
             selectedCard: 1,
@@ -138,6 +142,14 @@ export default {
         handleCardClick(country, toggle) {
             if (toggle) toggle()
             this.$emit('select-country', country)
+
+          this.$nextTick(() => {
+            this.goTo('#region-section', {
+              duration: 300,
+              offset: this.$vuetify.display.mobile ? 80 : 100,
+              easing: 'easeInOutCubic'
+            })
+          })
         },
 
         handleTouchStart(event) {

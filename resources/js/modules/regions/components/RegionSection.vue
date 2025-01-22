@@ -1,5 +1,5 @@
 <template>
-    <v-sheet color="grey-lighten-4" class="py-16">
+    <v-sheet tag="section" id="region-section" color="grey-lighten-4" class="py-16">
         <v-container>
             <v-row justify="center">
                 <v-col cols="12" class="text-center">
@@ -16,7 +16,7 @@
                         prepend-icon="mdi-arrow-left"
                         variant="text"
                         color="primary"
-                        @click="$emit('clear-selection')"
+                        @click="clearSelection"
                     >
                         Powrót do wyboru kraju
                     </v-btn>
@@ -41,7 +41,8 @@
 
 <script>
 import RegionCard from './RegionCard.vue'
-
+import AppMixin from "@/mixins/AppMixin.js";
+import {useGoTo} from "vuetify";
 export default {
     name: 'RegionsSection',
 
@@ -55,7 +56,24 @@ export default {
             required: true
         }
     },
-
+    setup () {
+        const goTo = useGoTo()
+        return { goTo }
+    },
+    methods: {
+        clearSelection () {
+            this.scrollToTop();
+            this.$nextTick(() => {
+                this.$emit('clear-selection')
+            })
+        },
+        scrollToTop() {
+            this.goTo("#app", {
+                duration: 300,
+                easing: 'easeInOutCubic'
+            })
+        },
+    },
     emits: ['clear-selection']
 }
 </script>

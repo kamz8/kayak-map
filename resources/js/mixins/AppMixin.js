@@ -38,5 +38,6 @@ export default {
                 default: return 'grey';
             }
         },
+
     }
 };
