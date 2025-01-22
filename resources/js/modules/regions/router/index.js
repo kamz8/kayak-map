@@ -2,7 +2,7 @@ export default [
     {
         path: '/regions',
         name: 'regions',
-        component: () => import('../pages/RegionsPage.vue'),
+        component: () => import('@/modules/regions/pages/RegionGuide.vue'),
         meta: {
             layout: 'MainLayout',
             title: 'KAYAK - Regiony kajakowe',
