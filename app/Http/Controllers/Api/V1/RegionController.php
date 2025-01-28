@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRegionRequest;
 use App\Http\Requests\UpdateRegionRequest;
+use App\Http\Resources\PaginatedRegionCollection;
 use App\Http\Resources\RegionCollection;
 use App\Http\Resources\RegionDetailsResource;
+use App\Http\Resources\RegionIndexResource;
 use App\Http\Resources\RegionResource;
+use App\Http\Resources\SimpleRegionResource;
 use App\Models\Region;
 
 
@@ -88,10 +91,15 @@ class RegionController extends Controller
         ]);
     }
 
-    public function index(): RegionCollection
+    public function index(): JsonResponse
     {
         $regions = $this->regionService->getRootRegions();
-        return new RegionCollection($regions);
+        return response()->json([
+            'data' => RegionIndexResource::collection($regions),
+            'meta' => [
+                'total_regions' => $regions->count()
+            ]
+        ]);
     }
 
 
@@ -99,6 +107,31 @@ class RegionController extends Controller
     {
         $region = $this->regionService->getRegionDetails($slug);
         return response()->json(new RegionDetailsResource($region));
+    }
+
+    /**
+     * Zwraca spłaszczoną, paginowaną listę wszystkich regionów dla danego kraju
+     */
+    public function countryRegions(Request $request, string $countrySlug): JsonResponse
+    {
+        $perPage = min($request->input('per_page', 15), 30);
+
+        try {
+            $regions = $this->regionService->getFlatRegionsForCountry($countrySlug, $perPage);
+            if (!$regions->count()) { return $this->notFoundResponse('Regions for this country not found'); }
+
+            return response()->json(
+                new PaginatedRegionCollection($regions->through(function ($region) {
+                    return new SimpleRegionResource($region);
+                }))
+            );
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch regions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
 }
