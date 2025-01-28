@@ -211,6 +211,7 @@ export default {
                 fog: 'Mgła',
                 thunderstorm: 'Burza',
                 lightrainshowers_day: 'Lekkie opady deszczu',
+                lightrain: 'Lekki deszcz',
                 clearsky_night: 'Bezchmurna noc',
                 fair_night: 'Pogodna noc',
                 partlycloudy_night: 'Częściowe zachmurzenie w nocy',
