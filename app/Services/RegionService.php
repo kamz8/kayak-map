@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\RegionType;
+use App\Helpers\CacheKeyGeneratorHelper;
 use App\Models\Region;
 use App\Models\Trail;
 use Illuminate\Support\Collection;
@@ -233,7 +234,7 @@ class RegionService
      */
     public function getTopTrailsInRegion(Region $region): \Illuminate\Database\Eloquent\Collection
     {
-        $cacheKey = "top_trails_region_{$region->id}";
+        $cacheKey = CacheKeyGeneratorHelper::forRequest();
 
         return Cache::store('redis')
             ->tags([self::CACHE_TAG_TRAILS, self::CACHE_TAG_REGIONS, "region_{$region->id}"])
@@ -328,8 +329,9 @@ class RegionService
 
     public function getFlatRegionsForCountry(string $countrySlug, int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
     {
+        $cacheKey = CacheKeyGeneratorHelper::forRequest(); // generate hash key for request
         return Cache::tags([self::CACHE_TAG_REGIONS])->remember(
-            "flat_regions_{$countrySlug}_page_" . request('page', 1),
+            $cacheKey,
             self::CACHE_TTL,
             function () use ($countrySlug, $perPage) {
                 $countryId = Region::where('slug', $countrySlug)
@@ -374,7 +376,7 @@ class RegionService
                     ->with(['images' => function($query) {
                         $query->wherePivot('is_main', true);
                     }])
-                    ->orderBy('regions.type')
+//                    ->orderBy('regions.type')
                     ->orderBy('regions.name')
                     ->paginate($perPage);
             }
