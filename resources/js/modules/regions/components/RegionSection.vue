@@ -20,6 +20,13 @@
                     >
                         Powrót do wyboru kraju
                     </v-btn>
+                    <v-btn
+                        variant="text"
+                        color="river-blue-light"
+                        :to="'/region/'+country.slug"
+                    >
+                        Odkryj więcej
+                    </v-btn>
                 </v-col>
             </v-row>
 

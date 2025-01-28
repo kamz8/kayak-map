@@ -5,10 +5,10 @@
         elevation="2"
     >
         <v-img
-            :src="region.image"
+            :src="region.main_image?.path"
             cover
             class="region-card-img"
-            :alt="'Zdjęcie główne pokzaujące region:'+region.name"
+            :alt="'Zdjęcie główne pokazujące region:'+region.name"
             lazy-src="/storage/assets/region-placeholder.webp"
         >
             <template v-slot:placeholder>
@@ -67,7 +67,7 @@
                 <v-icon size="small" color="primary" class="mr-1">
                     mdi-map-marker-path
                 </v-icon>
-                <span class="text-body-2">{{ region.trailsCount }} szlaków</span>
+                <span class="text-body-2">{{ region.total_trails_count }} szlaków</span>
             </div>
         </v-card-text>
 
@@ -80,6 +80,7 @@
                 class="px-0"
                 append-icon="mdi-arrow-right"
                 @click="viewDetails"
+                :disabled="region.total_trails_count===0"
             >
                 Zobacz więcej
             </v-btn>
@@ -139,6 +140,9 @@ export default {
                 'country': 'river-blue'      // ciemny niebieski
             }
             return typeColors[this.region.type] || 'info'
+        },
+        viewDetailsLink() {
+            return this.$router.push(`/regions/${this.region.full_path}`)
         }
     },
 
@@ -177,9 +181,6 @@ export default {
             const averageBrightness = brightness / (samplesCount / 4)
             this.isLightImage = averageBrightness > 128
         },
-        viewDetails() {
-            this.$router.push(`/regions/${this.region.id}`)
-        }
     }
 }
 </script>

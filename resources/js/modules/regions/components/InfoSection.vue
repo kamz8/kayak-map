@@ -43,7 +43,9 @@ export default {
                 {
                     icon: 'mdi-compass',
                     title: 'Największa baza szlaków',
-                    description: `Polska przoduje z ${this.countries[0].trailsCount} szczegółowo opisanymi trasami`
+                    description: this.countries && this.countries.length > 0 ?
+                        `Polska przoduje z ${this.countries[0].trailsCount} szczegółowo opisanymi trasami` :
+                        'Tysiące opisanych tras kajakowych'
                 },
                 {
                     icon: 'mdi-image-filter-hdr-outline',

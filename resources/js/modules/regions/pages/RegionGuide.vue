@@ -26,6 +26,7 @@ import HeroSection from '../components/HeroSection.vue'
 import InfoSection from '../components/InfoSection.vue'
 import RegionsSection from '../components/RegionSection.vue'
 import axios from 'axios';
+import apiClient from "@/plugins/apiClient.js";
 
 export default {
     name: 'RegionsPage',
@@ -41,145 +42,132 @@ export default {
             selectedCountry: null,
             stats: {
                 totalTrails: 169,
-                totalRegions: 45,
-                countries: [
-                    {
-                        id: 'lt',
-                        name: "Litwa",
-                        trailsCount: 256,
-                        regionsCount: 18,
-                        nationalParks: 5,
-                        image: "https://images.pexels.com/photos/1315892/pexels-photo-1315892.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                        description: "Odkryj malownicze szlaki przez litewskie jeziora i lasy",
-                        color: '#1c7a19',
-                        regions: [
-                            {
-                                id: 1,
-                                name: "Park Narodowy Auksztocki",
-                                type: "geographic_area",
-                                trailsCount: 45,
-                                image: "https://images.pexels.com/photos/338936/pexels-photo-338936.jpeg"
-                            },
-                            {
-                                id: 2,
-                                name: "Region Wileński",
-                                type: "state",
-                                trailsCount: 32,
-                                image: "https://images.pexels.com/photos/5851051/pexels-photo-5851051.jpeg"
-                            }
-                        ]
-                    },
-                    {
-                        id: 'pl',
-                        name: "Polska",
-                        trailsCount: 142,
-                        regionsCount: 16,
-                        nationalParks: 8,
-                        image: "https://images.pexels.com/photos/1761279/pexels-photo-1761279.jpeg",
-                        description: "Spływ rzekami przez najpiękniejsze parki narodowe",
-                        color: '#922820',
-                        regions: [
-                            {
-                                id: 3,
-                                name: "Biebrzański Park Narodowy",
-                                type: "geographic_area",
-                                trailsCount: 28,
-                                image: "https://images.pexels.com/photos/1761279/pexels-photo-1761279.jpeg"
-                            },
-                            {
-                                id: 4,
-                                name: "Województwo Podlaskie",
-                                type: "state",
-                                trailsCount: 35,
-                                image: "https://images.pexels.com/photos/1626481/pexels-photo-1626481.jpeg"
-                            },
-                            {
-                                id: 5,
-                                name: "Drawieński Park Narodowy",
-                                type: "geographic_area",
-                                trailsCount: 18,
-                                image: "https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg"
-                            },
-                            {
-                                id: 6,
-                                name: "Województwo Zachodniopomorskie",
-                                type: "state",
-                                trailsCount: 42,
-                                image: "https://images.pexels.com/photos/1665928/pexels-photo-1665928.jpeg"
-                            },
-                            {
-                                id: 7,
-                                name: "Biebrzański Park Narodowy",
-                                type: "geographic_area",
-                                trailsCount: 28,
-                                image: "https://images.pexels.com/photos/1761279/pexels-photo-1761279.jpeg"
-                            },
-                            {
-                                id: 8,
-                                name: "Województwo Podlaskie",
-                                type: "state",
-                                trailsCount: 35,
-                                image: "https://images.pexels.com/photos/1626481/pexels-photo-1626481.jpeg"
-                            },
-                            {
-                                id: 9,
-                                name: "Drawieński Park Narodowy",
-                                type: "geographic_area",
-                                trailsCount: 18,
-                                image: "https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg"
-                            },
-                            {
-                                id: 10,
-                                name: "Województwo Zachodniopomorskie",
-                                type: "state",
-                                trailsCount: 42,
-                                image: "https://images.pexels.com/photos/1665928/pexels-photo-1665928.jpeg"
-                            }
-                        ]
-                    },
-                    {
-                        id: 'ua',
-                        name: "Ukraina",
-                        trailsCount: 60,
-                        regionsCount: 11,
-                        nationalParks: 4,
-                        image: "https://images.pexels.com/photos/3442567/pexels-photo-3442567.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-                        description: "Dzikie szlaki przez ukraińskie Karpaty",
-                        color: 'river-blue',
-                        regions: [
-                            {
-                                id: 7,
-                                name: "Karpacki Park Narodowy",
-                                type: "geographic_area",
-                                trailsCount: 15,
-                                image: "https://images.pexels.com/photos/8961345/pexels-photo-8961345.jpeg"
-                            },
-                            {
-                                id: 8,
-                                name: "Obwód Zakarpacki",
-                                type: "state",
-                                trailsCount: 22,
-                                image: "https://images.pexels.com/photos/2832034/pexels-photo-2832034.jpeg"
-                            },
-                            {
-                                id: 9,
-                                name: "Park Narodowy Synewyr",
-                                type: "geographic_area",
-                                trailsCount: 12,
-                                image: "https://images.pexels.com/photos/3442567/pexels-photo-3442567.jpeg"
-                            }
-                        ]
-                    }
-                ]
+                totalRegions: 3,
+                countries: [],
+
+            },
+            countryColors: {
+                'polska': '#922820',
+                'litwa': '#1c7a19',
+                'ukraina': 'river-blue'
+            },
+            countryDescriptions: {
+                'Polska': 'Spływ rzekami przez najpiękniejsze parki narodowe',
+                'Litwa': 'Odkryj malownicze szlaki przez litewskie jeziora i lasy',
+                'Ukraina': 'Dzikie szlaki przez ukraińskie Karpaty'
+            },
+            loading: false,
+            perPage: 8,
+            currentPage: 1,
+            loadingRegions: false,
+        }
+    },
+    methods: {
+        async fetchCounty() {
+            try {
+                const response = await apiClient.get(`regions`);
+                const apiData = response.data.data;
+
+                // Mapujemy dane z API do formatu wymaganego przez komponenty
+                this.stats.countries = apiData.map(country => ({
+                    id: country.slug,
+                    name: country.name,
+                    trailsCount: country.statistics.total_trails_count,
+                    regionsCount: country.statistics.cities_count,
+                    nationalParks: country.statistics.national_parks_count,
+                    image: country.main_image?.path,
+                    description: this.countryDescriptions[country.name] || 'Odkryj malownicze szlaki kajakowe',
+                    color: this.countryColors[country.slug],
+                    slug: country.slug,
+                    regions: []
+                }));
+
+                // Aktualizacja ogólnych statystyk
+/*                this.stats.totalTrails = apiData.reduce((sum, country) =>
+                    sum + country.statistics.total_trails_count, 0);*/
+                this.stats.totalRegions = apiData.reduce((sum, country) =>
+                    sum + country.statistics.cities_count, 0);
+
+            } catch (error) {
+                console.error('Error fetching regions:', error);
+                this.$alert({
+                    type: 'error',
+                    text: 'Nie udało się pobrać szczegółów regionów. Spróbuj ponownie później.'
+                });
             }
+        },
+
+        async fetchCountryRegion(countrySlug) {
+            this.loadingRegions = true;
+            try {
+                const response = await apiClient.get(`regions/country/${countrySlug}`, {
+                    params: {
+                        page: 1 // pierwsza strona
+                    }
+                });
+
+                if (this.selectedCountry) {
+                    // ustawiamy pobrane regiony i dane z paginacji
+                    this.selectedCountry.regions = response.data.data;
+                    this.selectedCountry.pagination = response.data.meta;
+                }
+            } catch (error) {
+                console.error('Error fetching regions:', error);
+                this.$error({
+                    text: 'Nie udało się pobrać szczegółów regionów.'
+                });
+            } finally {
+                this.loadingRegions = false;
+            }
+        },
+
+        async loadMoreRegions() {
+            if (!this.selectedCountry?.pagination?.next_page_url) return;
+
+            this.loadingRegions = true;
+            try {
+                const response = await apiClient.get(`regions/country/${this.selectedCountry.slug}`, {
+                    params: {
+                        perPage: this.perPage,
+                        page: this.selectedCountry.pagination.current_page + 1
+                    }
+                });
+
+                // Dodajemy nowe regiony do istniejących
+                this.selectedCountry.regions = [
+                    ...this.selectedCountry.regions,
+                    ...response.data.data
+                ];
+
+                // Aktualizujemy paginację
+                this.selectedCountry.pagination = response.data.meta;
+
+            } catch (error) {
+                console.error('Error loading more regions:', error);
+                this.$error({
+                    text: 'Nie udało się załadować więcej regionów.'
+                });
+            } finally {
+                this.loadingRegions = false;
+            }
+        },
+
+        hasMoreRegions() {
+            if (!this.selectedCountry || !this.selectedCountry._allRegions) return false;
+
+            return this.selectedCountry.regions.length < this.selectedCountry._allRegions.length;
+        },
+
+        selectCountry(country) {
+            this.selectedCountry = country;
+            this.fetchCountryRegion(country.slug);
         }
     },
 
-    methods: {
-        selectCountry(country) {
-            this.selectedCountry = country
-        }
+    created() {
+        this.fetchCounty();
     }
+
 }
 
 </script>
