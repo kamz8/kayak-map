@@ -37,6 +37,8 @@ Route::middleware('api')->group(function () {
         Route::get('/', [RegionController::class, 'index']);
         Route::get('{slug}', [RegionController::class, 'show']);
         Route::get('{slug}/top-trails', [RegionController::class, 'topTrails']);
+        Route::get('/country/{countrySlug}', [RegionController::class, 'countryRegions'])
+            ->name('regions.country'); // lista regionów dla kraju
     });
     Route::get('regions/{slug}/top-trails-nearby', [RegionController::class, 'getTopTrailsNearby']);
     Route::get('regions/{slug}/trails', [RegionController::class, 'getTrailsByRegion']);
