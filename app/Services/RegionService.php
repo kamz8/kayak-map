@@ -377,6 +377,7 @@ class RegionService
                         $query->wherePivot('is_main', true);
                     }])
 //                    ->orderBy('regions.type')
+                    ->orderByDesc('trails_count')
                     ->orderBy('regions.name')
                     ->paginate($perPage);
             }
