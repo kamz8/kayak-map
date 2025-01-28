@@ -5,11 +5,12 @@
         elevation="2"
     >
         <v-img
-            :src="region.main_image?.path"
+            :src="region?.main_image?.path"
             cover
             class="region-card-img"
             :alt="'Zdjęcie główne pokazujące region:'+region.name"
             lazy-src="/storage/assets/region-placeholder.webp"
+            loading="lazy"
         >
             <template v-slot:placeholder>
                 <v-row
@@ -24,6 +25,18 @@
                         color="grey-lighten-5"
                     />
                 </v-row>
+            </template>
+
+            <template v-slot:error>
+                <div class="fill-height d-flex flex-column align-center justify-center bg-grey-lighten-3">
+                    <v-icon
+                        icon="mdi-image-off"
+                        size="32"
+                        color="grey-darken-1"
+                        class="mb-2"
+                    />
+                    <span class="text-caption text-grey-darken-1">Brak dostępnych zdjęć</span>
+                </div>
             </template>
 
             <!-- Metoda 1: Używając analizy obrazu -->
@@ -79,8 +92,8 @@
                 color="primary"
                 class="px-0"
                 append-icon="mdi-arrow-right"
-                @click="viewDetails"
-                :disabled="region.total_trails_count===0"
+                :to="{ name: 'region', params: { slug: region.full_path } }"
+                :disabled="!region.total_trails_count"
             >
                 Zobacz więcej
             </v-btn>
@@ -141,9 +154,6 @@ export default {
             }
             return typeColors[this.region.type] || 'info'
         },
-        viewDetailsLink() {
-            return this.$router.push(`/regions/${this.region.full_path}`)
-        }
     },
 
     methods: {

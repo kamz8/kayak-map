@@ -102,6 +102,7 @@ export default {
             try {
                 const response = await apiClient.get(`regions/country/${countrySlug}`, {
                     params: {
+                        perPage: this.perPage,
                         page: 1 // pierwsza strona
                     }
                 });
