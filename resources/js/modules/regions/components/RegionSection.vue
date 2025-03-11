@@ -42,6 +42,18 @@
                     <region-card :region="region" :useImageAnalysis="true"/>
                 </v-col>
             </v-row>
+            <v-row>
+                <v-col class="text-center">
+                    <v-btn v-if="country.pagination && country.pagination.has_more_pages"
+                           variant="tonal" color="primary"
+                           rounded="lg"
+                           :loading="isLoadMore"
+                           density="default"
+                           size="large"
+                           @click="requestLoadMore"
+                    >Pokaż więcej</v-btn>
+                </v-col>
+            </v-row>
         </v-container>
     </v-sheet>
 </template>
@@ -61,11 +73,27 @@ export default {
         country: {
             type: Object,
             required: true
+        },
+        loadingRegions: {
+            type: Boolean,
+            default: false,
         }
     },
     setup () {
         const goTo = useGoTo()
         return { goTo }
+    },
+    data() {
+        return {
+            isLoadMore: false,
+        }
+    },
+    provide() {
+        return {
+            loadMoreRegions: this.requestLoadMore,
+            setRegionsLoadingState: this.setLoadingState,
+            getRegionsLoadingState: () => this.isLoadMore
+        }
     },
     methods: {
         clearSelection () {
@@ -80,7 +108,28 @@ export default {
                 easing: 'easeInOutCubic'
             })
         },
+        requestLoadMore() {
+            if (!this.country.pagination.has_more_pages) return;
+
+            this.isLoadMore = true;
+            const nextPage = this.country.pagination.current_page + 1;
+            const payload = {
+                page: nextPage,
+                per_page: 8
+            }
+            this.$emit('load-more', payload);
+        },
+        setLoadingState(state) {
+            this.isLoadMore = state;
+        }
     },
-    emits: ['clear-selection']
+    watch: {
+        loadingRegions(newVal) {
+            if (newVal === false) {
+                this.isLoadMore = false;
+            }
+        }
+    },
+    emits: ['clear-selection', 'load-more']
 }
 </script>

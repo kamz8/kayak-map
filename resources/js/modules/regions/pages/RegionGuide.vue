@@ -1,24 +1,24 @@
 <template>
-  <v-container fluid class="pa-0 mx-0" style="min-height: 500px">
+    <v-container fluid class="pa-0 mx-0" style="min-height: 500px">
+        <hero-section
+            :stats="stats"
+            :countries="stats.countries"
+            @select-country="selectCountry"
+        />
 
-          <hero-section
-              :stats="stats"
-              :countries="stats.countries"
-              @select-country="selectCountry"
-          />
+        <info-section
+            :countries="stats.countries"
+        />
 
-          <info-section
-              :countries="stats.countries"
-          />
-
-          <regions-section
-              v-if="selectedCountry"
-              :country="selectedCountry"
-              @clear-selection="selectedCountry = null"
-          />
-
-  </v-container>
-
+        <regions-section
+            v-if="selectedCountry"
+            :country="selectedCountry"
+            @clear-selection="selectedCountry = null"
+            @load-more="handleLoadMoreRegions"
+            ref="regionsSection"
+            :loadingRegions="loadingRegions"
+        />
+    </v-container>
 </template>
 
 <script>
@@ -44,7 +44,6 @@ export default {
                 totalTrails: 169,
                 totalRegions: 3,
                 countries: [],
-
             },
             countryColors: {
                 'polska': '#922820',
@@ -59,9 +58,16 @@ export default {
             loading: false,
             perPage: 8,
             currentPage: 1,
-            loadingRegions: false,
+            loadingRegions: false
         }
     },
+
+    inject: {
+        // Opcjonalne wartości z provide, na wypadek gdyby ten komponent był używany w innym kontekście
+        getRegionsLoadingState: { default: () => false },
+        setRegionsLoadingState: { default: () => {} }
+    },
+
     methods: {
         async fetchCounty() {
             try {
@@ -82,9 +88,6 @@ export default {
                     regions: []
                 }));
 
-                // Aktualizacja ogólnych statystyk
-/*                this.stats.totalTrails = apiData.reduce((sum, country) =>
-                    sum + country.statistics.total_trails_count, 0);*/
                 this.stats.totalRegions = apiData.reduce((sum, country) =>
                     sum + country.statistics.cities_count, 0);
 
@@ -102,61 +105,65 @@ export default {
             try {
                 const response = await apiClient.get(`regions/country/${countrySlug}`, {
                     params: {
-                        perPage: this.perPage,
-                        page: 1 // pierwsza strona
+                        per_page: this.perPage,
+                        page: 1
                     }
                 });
 
                 if (this.selectedCountry) {
-                    // ustawiamy pobrane regiony i dane z paginacji
                     this.selectedCountry.regions = response.data.data;
                     this.selectedCountry.pagination = response.data.meta;
                 }
             } catch (error) {
                 console.error('Error fetching regions:', error);
-                this.$error({
+                this.$alertError({
                     text: 'Nie udało się pobrać szczegółów regionów.'
                 });
             } finally {
                 this.loadingRegions = false;
+
+                // Użyj provide/inject aby zaktualizować stan ładowania w komponencie RegionsSection
+                if (this.$refs.regionsSection) {
+                    this.$refs.regionsSection.setLoadingState(false);
+                }
             }
         },
 
-        async loadMoreRegions() {
-            if (!this.selectedCountry?.pagination?.next_page_url) return;
+        async handleLoadMoreRegions(payload) {
+            if (!this.selectedCountry?.pagination?.has_more_pages) return;
 
             this.loadingRegions = true;
+
+            // Aktualizacja stanu ładowania w RegionsSection za pomocą provide/inject
+            if (this.$refs.regionsSection) {
+                this.$refs.regionsSection.setLoadingState(true);
+            }
+
             try {
                 const response = await apiClient.get(`regions/country/${this.selectedCountry.slug}`, {
-                    params: {
-                        perPage: this.perPage,
-                        page: this.selectedCountry.pagination.current_page + 1
-                    }
+                    params: payload
                 });
 
-                // Dodajemy nowe regiony do istniejących
-                this.selectedCountry.regions = [
-                    ...this.selectedCountry.regions,
-                    ...response.data.data
-                ];
-
-                // Aktualizujemy paginację
-                this.selectedCountry.pagination = response.data.meta;
-
+                if (this.selectedCountry) {
+                    this.selectedCountry.regions = [
+                        ...this.selectedCountry.regions,
+                        ...response.data.data
+                    ];
+                    this.selectedCountry.pagination = response.data.meta;
+                }
             } catch (error) {
                 console.error('Error loading more regions:', error);
-                this.$error({
+                this.$alertError({
                     text: 'Nie udało się załadować więcej regionów.'
                 });
             } finally {
                 this.loadingRegions = false;
+
+                // Aktualizacja stanu ładowania w RegionsSection za pomocą provide/inject
+                if (this.$refs.regionsSection) {
+                    this.$refs.regionsSection.setLoadingState(false);
+                }
             }
-        },
-
-        hasMoreRegions() {
-            if (!this.selectedCountry || !this.selectedCountry._allRegions) return false;
-
-            return this.selectedCountry.regions.length < this.selectedCountry._allRegions.length;
         },
 
         selectCountry(country) {
@@ -168,21 +175,18 @@ export default {
     created() {
         this.fetchCounty();
     }
-
 }
-
 </script>
 
 <style scoped>
 .scrolling-wrapper {
-  display: flex;
-  overflow-y: auto;
-  max-height: 100%;
-  flex-wrap: nowrap;
+    display: flex;
+    overflow-y: auto;
+    max-height: 100%;
+    flex-wrap: nowrap;
 }
 
 @media (max-width: 1200px) {
-
 }
 
 @media (max-width: 960px) {
@@ -192,16 +196,16 @@ export default {
 }
 
 .skeleton-image {
-  height: 200px; /* Ustaw wysokość obrazu podobnie jak w pełnej karcie */
+    height: 200px;
 }
 
 .skeleton-title {
-  height: 24px;
-  width: 70%;
+    height: 24px;
+    width: 70%;
 }
 
 .skeleton-subtitle {
-  height: 18px;
-  width: 50%;
+    height: 18px;
+    width: 50%;
 }
 </style>
