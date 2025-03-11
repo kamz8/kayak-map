@@ -13,7 +13,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
     (config) => {
 
-        console.log(import.meta.env.VITE_API_URL)
+        // console.log(import.meta.env.VITE_API_URL)
         // Upewniamy się, że config.headers istnieje
         config.headers = config.headers || {};
 
@@ -24,9 +24,6 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`
         }
-
-        // Debugowanie nagłówków
-        console.log('Request headers:', config.headers);
 
         return config
     },

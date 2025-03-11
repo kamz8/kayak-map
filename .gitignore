@@ -4,6 +4,7 @@
 public/storage
 /public/hot
 /storage/*.key
+/storage
 /vendor
 .env
 .env.local

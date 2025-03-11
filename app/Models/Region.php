@@ -42,6 +42,8 @@ class Region extends Model
         'type' => RegionType::class, // Dodaj to pole
     ];
 
+    protected $appends = ['full_path'];
+
     protected static function booted(): void
     {
         static::addGlobalScope('with-parents', function ($builder) {
@@ -56,7 +58,7 @@ class Region extends Model
 
     public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Region::class, 'parent_id');
+        return $this->hasMany(Region::class, 'parent_id')->where('is_root', false);
     }
 
     public function trails(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
@@ -104,4 +106,60 @@ class Region extends Model
         return $query->with(['parent.parent.parent', 'children.children.children']); // Adjust depth as needed
     }
 
+    /**
+     * Pobiera liczbę parków narodowych w regionie
+     */
+    public function getNationalParksCountAttribute(): int
+    {
+        return $this->children()
+            ->where('type', RegionType::GEOGRAPHIC_AREA)
+            ->count();
+    }
+
+    /**
+     * Pobiera liczbę miast w regionie
+     */
+    public function getCitiesCountAttribute(): int
+    {
+        return $this->children()
+            ->where('type', RegionType::CITY)
+            ->count();
+    }
+
+    /**
+     * Pobiera łączną liczbę szlaków w regionie i jego podregionach
+     */
+    public function getTotalTrailsCountAttribute(): int
+    {
+        // Pobierz ID wszystkich podregionów
+        $regionIds = $this->children()->pluck('id')->push($this->id);
+
+        // Policz unikalne szlaki
+        return Trail::whereHas('regions', function ($query) use ($regionIds) {
+            $query->whereIn('regions.id', $regionIds);
+        })->count();
+    }
+
+    /**
+     * Główne zdjęcie regionu
+     */
+    public function getMainImageAttribute()
+    {
+        return $this->images()
+            ->wherePivot('is_main', true)
+            ->first();
+    }
+
+    public function getFullPathAttribute(): ?string
+    {
+        $slugParts = [];
+        $currentRegion = $this;
+
+        while ($currentRegion) {
+            array_unshift($slugParts, $currentRegion->slug);
+            $currentRegion = $currentRegion->parent;
+        }
+
+        return implode('/', $slugParts);
+    }
 }

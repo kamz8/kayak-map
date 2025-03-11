@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\RegionType;
+use App\Helpers\CacheKeyGeneratorHelper;
 use App\Models\Region;
 use App\Models\Trail;
 use Illuminate\Support\Collection;
@@ -39,7 +40,7 @@ class RegionService
 
     public function getRootRegions()
     {
-        return Region::where('is_root', true)->get();
+        return Region::where('is_root', true)->with('children.children.children')->get();
     }
 
     public function getRegionBySlug($slug)
@@ -233,7 +234,7 @@ class RegionService
      */
     public function getTopTrailsInRegion(Region $region): \Illuminate\Database\Eloquent\Collection
     {
-        $cacheKey = "top_trails_region_{$region->id}";
+        $cacheKey = CacheKeyGeneratorHelper::forRequest();
 
         return Cache::store('redis')
             ->tags([self::CACHE_TAG_TRAILS, self::CACHE_TAG_REGIONS, "region_{$region->id}"])
@@ -326,4 +327,60 @@ class RegionService
         };
     }
 
+    public function getFlatRegionsForCountry(string $countrySlug, int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        $cacheKey = CacheKeyGeneratorHelper::forRequest(); // generate hash key for request
+        return Cache::tags([self::CACHE_TAG_REGIONS])->remember(
+            $cacheKey,
+            self::CACHE_TTL,
+            function () use ($countrySlug, $perPage) {
+                $countryId = Region::where('slug', $countrySlug)
+                    ->where('type', RegionType::COUNTRY)
+                    ->value('id');
+
+                if (!$countryId) {
+                    return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+                }
+
+                return Region::query()
+                    ->select([
+                        'regions.*',
+                        DB::raw('(
+                        SELECT COUNT(DISTINCT t.id)
+                        FROM trails t
+                        JOIN trail_region tr ON tr.trail_id = t.id
+                        WHERE tr.region_id = regions.id
+                    ) as trails_count'),
+                        // Poprawiony parent_name - używamy JOIN zamiast subquery
+                        DB::raw('p.name as parent_name'),
+                        // Poprawiona ścieżka przodków
+                        DB::raw("CONCAT_WS(' > ',
+                        COALESCE(p2.name, ''),
+                        COALESCE(p.name, '')
+                    ) as full_path")
+                    ])
+                    ->leftJoin('regions as p', 'regions.parent_id', '=', 'p.id')
+                    ->leftJoin('regions as p2', 'p.parent_id', '=', 'p2.id')
+                    ->whereIn('regions.id', function($query) use ($countryId) {
+                        $query->select('r.id')
+                            ->from('regions as r')
+                            ->where(function($q) use ($countryId) {
+                                $q->where('r.parent_id', $countryId)
+                                    ->orWhereIn('r.parent_id', function($sq) use ($countryId) {
+                                        $sq->select('id')
+                                            ->from('regions')
+                                            ->where('parent_id', $countryId);
+                                    });
+                            });
+                    })
+                    ->with(['images' => function($query) {
+                        $query->wherePivot('is_main', true);
+                    }])
+//                    ->orderBy('regions.type')
+                    ->orderByDesc('trails_count')
+                    ->orderBy('regions.name')
+                    ->paginate($perPage);
+            }
+        );
+    }
 }
