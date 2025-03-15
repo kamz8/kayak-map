@@ -1,0 +1,264 @@
+version: '3.8'
+
+services:
+  app:
+    image: ${DOCKER_REGISTRY}/kayak-app:${TAG:-latest}
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 20s
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
+        delay: 5s
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 1G
+        reservations:
+          memory: 1G
+    environment:
+      APP_ENV: production
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_KEY: ${APP_KEY}
+      DB_HOST: db
+      DB_CONNECTION: mysql
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CACHE_DRIVER: redis
+      REDIS_HOST: redis
+      QUEUE_CONNECTION: redis
+      APP_URL: https://wartkinurt.pl
+      APP_TIMEZONE: Europe/Warsaw
+      LOG_CHANNEL: stack
+      LOG_LEVEL: debug
+      PHP_FPM_PM: dynamic
+      PHP_FPM_PM_MAX_CHILDREN: 10
+      PHP_FPM_PM_START_SERVERS: 2
+      PHP_FPM_PM_MIN_SPARE_SERVERS: 2
+      PHP_FPM_PM_MAX_SPARE_SERVERS: 4
+      SSH_USER: ${SSH_USER}
+      SSH_PASSWORD: ${SSH_PASSWORD}
+    volumes:
+      - kayak_app:/var/www/html
+      - kayak_storage:/var/www/html/storage
+      - /home/services/kayak-prod/.env:/var/www/html/.env
+    networks:
+      - traefik-public
+      - internal
+    healthcheck:
+      test: ["CMD", "php", "artisan", "health:check"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=false"
+
+  queue-worker:
+    image: ${DOCKER_REGISTRY}/kayak-app:${TAG:-latest}
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: '0.4'
+          memory: 512M
+    command: php artisan queue:work redis --tries=3 --timeout=90
+    environment:
+      APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      CACHE_DRIVER: redis
+    volumes:
+      - kayak_storage:/var/www/html/storage
+      - /home/services/kayak-prod/.env:/var/www/html/.env
+    networks:
+      - internal
+
+  scheduler:
+    image: ${DOCKER_REGISTRY}/kayak-app:${TAG:-latest}
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    command: php artisan schedule:work
+    environment:
+      APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      REDIS_HOST: redis
+      DB_CONNECTION: mysql
+      CACHE_DRIVER: redis
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - kayak_storage:/var/www/html/storage
+      - /home/services/kayak-prod/.env:/var/www/html/.env
+    networks:
+      - internal
+
+  db:
+    image: mariadb:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: '0.4'
+          memory: 512M
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - kayak_backups:/backups
+    ports:
+      - "3306:3306"
+    networks:
+      - internal
+      - traefik-public
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - UPLOAD_LIMIT=512M
+    networks:
+      - internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pma.rule=Host(`db.wartkinurt.pl`)"
+      - "traefik.http.routers.pma.tls=true"
+      - "traefik.http.routers.pma.tls.certresolver=myresolver"
+      - "traefik.http.services.pma.loadbalancer.server.port=80"
+
+  redis:
+    image: redis:alpine
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+  backup:
+    image: tiredofit/db-backup
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      - DB_TYPE=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${DB_DATABASE}
+      - DB_USER=${DB_USERNAME}
+      - DB_PASS=${DB_PASSWORD}
+      - DB_DUMP_FREQ=10080
+      - DB_DUMP_BEGIN=0000
+      - DB_CLEANUP_TIME=43200
+      - COMPRESSION=gz
+      - SPLIT_DB=FALSE
+      - CHECKSUM=SHA1
+    volumes:
+      - kayak_backups:/backup
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:alpine
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
+    volumes:
+      - kayak_app:/var/www/html
+      - /home/user/docker/nginx:/etc/nginx/conf.d
+      - kayak_storage:/var/www/html/storage
+    depends_on:
+      - app
+    networks:
+      - internal
+      - traefik-public
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.main.rule=Host(`wartkinurt.pl`)"
+      - "traefik.http.routers.main.tls=true"
+      - "traefik.http.routers.main.tls.certresolver=myresolver"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+
+      # API
+      - "traefik.http.routers.api.rule=Host(`api.wartkinurt.pl`)"
+      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+
+      # Dashboard
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.wartkinurt.pl`)"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=myresolver"
+
+volumes:
+  kayak_app:
+    name: kayak_app
+  kayak_storage:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/services/kayak-prod/storage
+      o: bind
+  db_data:
+    name: kayak_db_data
+  redis_data:
+    name: kayak_redis_data
+  kayak_backups:
+    name: kayak_backups
+
+networks:
+  traefik-public:
+    external: true
+  internal:
+    name: kayak_internal
+    driver: bridge
