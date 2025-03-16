@@ -7,7 +7,7 @@ on:
       branch:
         description: 'Branch do zbudowania (np. main, develop)'
         required: true
-        default: 'main'
+        default: 'master'
       image_tag:
         description: 'Tag obrazu Docker (np. latest, v1.0.0)'
         required: true
@@ -33,8 +33,8 @@ jobs:
       - name: Login to Private Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.DOCKER_REGISTRY_URL }}
-          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          registry: ${{ vars.DOCKER_REGISTRY_URL }}
+          username: ${{ vars.DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
       - name: Prepare tags
