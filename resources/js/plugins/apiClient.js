@@ -1,13 +1,11 @@
 import axios from 'axios';
 
 // Ustawienie wartości domyślnej dla VITE_API_URL
-const apiUrl = import.meta.env.VITE_API_URL || 'https://wartkinurt.pl';
+const apiUrl = 'https://wartkinurt.pl/api/v1';
 
-// Budowanie pełnego URL do API
-const baseURL = `${apiUrl}/api/v1`;
-
+console.log(import.meta.env.VITE_API_URL);
 const apiClient = axios.create({
-    baseURL: baseURL,
+    baseURL: apiUrl,
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
