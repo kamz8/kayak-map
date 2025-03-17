@@ -103,7 +103,7 @@ export default {
   },
   computed: {
     limitedTrails() {
-      return this.trails.slice(0, 4);
+      return (this.trails) ? this.trails.slice(0, 4) : [];
     }
   },
   methods: {
