@@ -53,12 +53,15 @@
                             <!-- Mapa -->
                             <v-col cols="12">
                                 <v-card height="275" color="green" class="position-relative" rounded="lg">
-                                    <v-img :src="mapImageUrl"
-                                           height="275"
-                                           cover
-                                           lazy-src=""
-                                           alt="Statyczna mapa szlaku"
-                                           :loading="loadingMap">
+                                    <v-img
+                                        :src="mapImageUrl"
+                                        height="275"
+                                        cover
+                                        lazy-src=""
+                                        alt="Statyczna mapa szlaku"
+                                        :loading="loadingMap"
+                                    >
+                                        <!-- Przycisk powiększenia -->
                                         <v-btn
                                             icon="mdi-arrow-expand"
                                             class="position-absolute float-end"
@@ -66,6 +69,32 @@
                                             elevation="1"
                                             :to="{name: 'trail-overview', params:{slug: currentTrail.slug}}"
                                         />
+
+                                        <!-- Skeleton loader -->
+                                        <template v-slot:placeholder>
+                                            <div class="d-flex flex-column align-center justify-center h-100 bg-grey-lighten-2">
+                                                <v-icon
+                                                    color="grey-lighten-1"
+                                                    size="64"
+                                                    class="mb-4"
+                                                >
+                                                    mdi-map
+                                                </v-icon>
+                                                <v-skeleton-loader
+                                                    type="image"
+                                                    width="100%"
+                                                    class="position-absolute h-100 bg-teal-darken-4"
+                                                ></v-skeleton-loader>
+                                            </div>
+                                        </template>
+
+                                        <!-- Fallback gdy obrazek się nie załaduje -->
+                                        <template v-slot:error>
+                                            <div class="d-flex flex-column align-center justify-center h-100 bg-grey-lighten-3">
+                                                <v-icon color="error" size="64">mdi-image-off</v-icon>
+                                                <p class="text-subtitle-1 mt-2">Nie udało się załadować mapy</p>
+                                            </div>
+                                        </template>
                                     </v-img>
                                 </v-card>
                                 <div class="d-flex justify-end mt-4 mb-2">
@@ -120,7 +149,7 @@ export default {
     data() {
         return {
             activeTab: null,
-            mapImageUrl: null,
+            mapImageBlobUrl: '',
             loadingMap: true,
             loadingTopTrails: false,
             topTrails: [],
@@ -162,14 +191,16 @@ export default {
         getRegions() {
             return this.currentTrail?.regions
         },
-
+        mapImageUrl() {
+            // Zwracamy albo blob URL albo pusty string podczas ładowania
+            return this.mapImageBlobUrl || `${import.meta.env.VITE_APP_URL}/storage/assets/map-placeholder.jpg`;
+        },
     },
 
     async created() {
         if (this.currentTrail) {
-
-            this.mapImageUrl = `./api/v1/trails/${this.currentTrail.slug}/static-map`
-            await this.fetchTopTrails()
+            await this.loadMapImage();
+            await this.fetchTopTrails();
         }
     },
     methods: {
@@ -188,7 +219,34 @@ export default {
 
                 });
         },
+        async loadMapImage() {
+            try {
+                this.loadingMap = true;
+                const response = await apiClient.get(
+                    `/trails/${this.currentTrail.slug}/static-map`,
+                    {
+                        responseType: 'blob',
+                        headers: {
+                            'X-Client-Type': 'web' // required client type
+                        }
+                    }
+                );
+                this.mapImageBlobUrl = URL.createObjectURL(response.data);
+            } catch (error) {
+                console.error('Błąd ładowania mapy:', error);
+                this.mapImageBlobUrl = this.appConfig.placeholderImage;
+            } finally {
+                this.loadingMap = false;
+            }
+        },
     },
+
+
+    beforeUnmount() {
+        if (this.mapImageBlobUrl) {
+            URL.revokeObjectURL(this.mapImageBlobUrl);
+        }
+    }
 }
 </script>
 
