@@ -10,52 +10,73 @@
           </v-col>
         </v-row>
 
-        <v-row>
-          <!-- Szkielet ładowania -->
-          <v-col
-              v-if="isLoading"
-              v-for="n in 4"
-              :key="n"
-              cols="12"
-              sm="6"
-              md="4"
-              lg="3"
-          >
-            <v-card height="400">
-              <!-- Szkielet obrazu -->
-              <v-skeleton-loader boilerplate type="image" class="skeleton-image" />
+          <v-row>
+              <!-- Szkielet ładowania -->
+              <v-col
+                  v-if="isLoading"
+                  v-for="n in 4"
+                  :key="n"
+                  cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
+              >
+                  <v-card height="400">
+                      <v-skeleton-loader boilerplate type="image" class="skeleton-image" />
+                      <v-card-text>
+                          <v-skeleton-loader boilerplate type="text" class="skeleton-title mb-2" />
+                          <v-skeleton-loader boilerplate type="text" class="skeleton-subtitle mb-2" />
+                          <div class="d-flex mb-2">
+                              <v-skeleton-loader boilerplate type="text" width="120px" />
+                          </div>
+                          <v-skeleton-loader boilerplate type="text" width="80px" />
+                      </v-card-text>
+                  </v-card>
+              </v-col>
 
-              <!-- Szkielet zawartości karty -->
-              <v-card-text>
-                <!-- Szkielet tytułu -->
-                <v-skeleton-loader boilerplate type="text" class="skeleton-title mb-2" />
+              <!-- Gdy nie ma szlaków -->
+              <v-col
+                  v-else-if="limitedTrails.length === 0"
+                  cols="12"
+                  class="text-center py-12"
+              >
+                  <v-card flat>
+                      <v-icon size="64" color="grey-lighten-1" class="mb-4">
+                          mdi-map-search
+                      </v-icon>
+                      <v-card-title class="text-h5 justify-center">
+                          Brak dostępnych szlaków
+                      </v-card-title>
+                      <v-card-subtitle class="text-body-1">
+                          W tej lokalizacji nie znaleziono żadnych szlaków
+                      </v-card-subtitle>
+                      <v-card-actions class="justify-center mt-4">
+                          <v-btn
+                              color="primary"
+                              variant="tonal"
+                              prepend-icon="mdi-compass"
+                              to="/explore"
+                          >
+                              Znajdź szlaki w Polsce
+                          </v-btn>
+                      </v-card-actions>
+                  </v-card>
+              </v-col>
 
-                <!-- Szkielet opisu -->
-                <v-skeleton-loader boilerplate type="text" class="skeleton-subtitle mb-2" />
-
-                <!-- Szkielet gwiazdek (przykład za pomocą ikon) -->
-                <div class="d-flex mb-2">
-                  <v-skeleton-loader boilerplate type="text" width="120px" />
-                </div>
-
-                <!-- Szkielet dodatkowych informacji -->
-                <v-skeleton-loader boilerplate type="text" width="80px" />
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col
-              v-else
-              v-for="trail in limitedTrails"
-              :key="trail.id"
-              cols="12"
-              sm="6"
-              md="4"
-              lg="3"
-              class="trail-col"
-          >
-            <nearby-trail-card :trail="trail" :appConfig="appConfig" />
-          </v-col>
-        </v-row>
+              <!-- Normalna lista szlaków -->
+              <v-col
+                  v-else
+                  v-for="trail in limitedTrails"
+                  :key="trail.id"
+                  cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
+                  class="trail-col"
+              >
+                  <nearby-trail-card :trail="trail" :appConfig="appConfig" />
+              </v-col>
+          </v-row>
 
       </v-container>
     </v-row>
@@ -179,7 +200,6 @@ export default {
               // Zapisz wyniki w cache z TTL 24 godziny (86400 sekund)
               this.trails = await this.$cache.remember(`trailsNearby_${locationName}`, 86400,
                   async () => {
-                  console.log(apiClient)
                       const response = await apiClient.get(`/trails/nearby`, {
                           params: { lat, long, location_name: locationName },
                       });
@@ -251,5 +271,12 @@ export default {
 .skeleton-subtitle {
   height: 18px;
   width: 50%;
+}
+
+.trail-col {
+    transition: transform 0.3s ease;
+}
+.trail-col:hover {
+    transform: translateY(-5px);
 }
 </style>
