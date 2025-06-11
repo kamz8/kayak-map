@@ -1,5 +1,6 @@
 <p align="center">
-[  <img src="https://raw.githubusercontent.com/kamz8/kayak-map/feature/api-trails/public/favicon-apple.png" width="100" alt="Kayak Map Logo">](https://raw.githubusercontent.com/kamz8/kayak-map/83063955dca762ba4395eca31f79e47b433119ed/storage/app/public/assets/logo.svg?token=ADYFBHEYWEUZ4ZFDDHTEEI3IJFBES)
+<img src="https://raw.githubusercontent.com/kamz8/kayak-map/83063955dca762ba4395eca31f79e47b433119ed/storage/app/public/assets/logo.svg?token=ADYFBHEYWEUZ4ZFDDHTEEI3IJFBES
+    " width="100" alt="Kayak Map Logo">]
 </p>
 
 # Kayak Map
