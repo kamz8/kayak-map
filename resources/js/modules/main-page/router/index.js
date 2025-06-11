@@ -1,4 +1,5 @@
 import NotFound from "@/modules/main-page/pages/NotFound.vue";
+import AboutProjectPage from "@/modules/main-page/pages/AboutProjectPage.vue";
 
 const ExamplePage = () => import("@/modules/main-page/pages/ExamplePage.vue");
 
@@ -35,7 +36,7 @@ export default [
     {
         path: '/about',
         name: 'about',
-        component: ExamplePage,
+        component: AboutProjectPage,
         meta: {
             layout: 'MainLayout',
             title: 'O aplikacji WARTKI NURT - Twój przewodnik po szlakach kajakowych',
