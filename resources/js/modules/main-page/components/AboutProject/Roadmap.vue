@@ -216,12 +216,12 @@ export default {
         milestonePositions() {
             // JEDNA lista pozycji używana wszędzie
             return [
-                {x: 100, y: 150, cardTop: false},   // Koniec 2023
+                {x: 50, y: 150, cardTop: false},   // Koniec 2023
                 {x: 250, y: 350, cardTop: true},    // Czerwiec 2024
-                {x: 490, y: 130, cardTop: false},   // Wakacje 2024
-                {x: 760, y: 150, cardTop: false},   // Grudzień 2024
-                {x: 850, y: 420, cardTop: true},    // 2025
-                {x: 150, y: 550, cardTop: false},   // Q2 2025
+                {x: 500, y: 120, cardTop: false},   // Wakacje 2024
+                {x: 760, y: 180, cardTop: true},   // Grudzień 2024
+                {x: 890, y: 420, cardTop: true},    // 2025
+                {x: 50, y: 580, cardTop: false},   // Q2 2025
                 {x: 400, y: 650, cardTop: true},    // Q3 2025
                 {x: 650, y: 570, cardTop: false},   // Q4 2025
                 {x: 900, y: 650, cardTop: true}     // 2026
