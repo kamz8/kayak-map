@@ -60,7 +60,7 @@
                 <v-spacer class="pb-2"/>
 
                 <!-- DescriptionTab z dodatkową zakładką Punkty -->
-                <description-tab :description="currentTrail.description">
+                <description-tab ref="descriptionTab" :description="currentTrail.description">
                     <template #additional-tabs>
                         <v-tab value="points" v-if="hasPoints">
                             Punkty <span v-if="pointsCount">({{ pointsCount }})</span>
@@ -91,13 +91,14 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import {mapGetters} from 'vuex';
 import UnitMixin from '@/mixins/UnitMixin';
 import DescriptionTab from "@/modules/trails/components/Details/DescriptionTab.vue";
 import TrailHeader from "@/modules/trails/components/Details/TrailHeader.vue";
 import AuthorTab from "@/modules/trails/components/Details/AuthorTab.vue";
 import WeatherTab from "@/modules/trails/components/Details/WeatherTab.vue";
 import PointsTabContent from "@/modules/trails/components/TrailDetails/PointsTabContent.vue";
+import MapMixin from "@/mixins/MapMixin.js";
 
 export default {
     name: 'SidebarTrailsOverview',
@@ -108,14 +109,14 @@ export default {
         TrailHeader,
         DescriptionTab
     },
-    mixins: [UnitMixin],
+    mixins: [UnitMixin,MapMixin],
     data() {
         return {
             activeTab: null,
         }
     },
     computed: {
-        ...mapGetters('trails', ['currentTrail']),
+        ...mapGetters('trails', ['currentTrail', 'selectedPointId']),
         trailImageSrc() {
             return this.currentTrail.main_image?.path || this.appConfig.placeholderImage;
         },
@@ -127,18 +128,6 @@ export default {
         },
     },
     methods: {
-        goBack() {
-            this.$router.push({name: 'explore'})
-        },
-        getDifficultyColor(difficulty) {
-            switch (difficulty) {
-                case 'łatwy': return 'green';
-                case 'umiarkowany': return 'orange';
-                case 'trudny': return 'red';
-                default: return 'grey';
-            }
-        },
-
         handlePointClick(point) {
             // Check if point has valid coordinates
             if (this.isValidLocation(point)) {
@@ -152,12 +141,38 @@ export default {
                 });
             }
         },
-        isValidLocation(point) {
-            return point.lat !== "-1.0000000" &&
-                point.lng !== "-1.0000000" &&
-                point.lat !== null &&
-                point.lng !== null;
+        goBack() {
+            this.$router.push({name: 'explore'})
         },
+        getDifficultyColor(difficulty) {
+            switch (difficulty) {
+                case 'łatwy':
+                    return 'green';
+                case 'umiarkowany':
+                    return 'orange';
+                case 'trudny':
+                    return 'red';
+                default:
+                    return 'grey';
+            }
+        },
+    },
+    watch: {
+        selectedPointId: {
+            handler(newPointId) {
+                if (newPointId && this.hasPoints) {
+                    // Switch to points tab
+                    this.$refs.descriptionTab.activeTab = 'points';
+
+                    // Scroll to point
+                    this.$nextTick(() => {
+                        if (this.$refs.pointsTabComponent) {
+                            this.$refs.pointsTabComponent.scrollToPoint(newPointId);
+                        }
+                    });
+                }
+            }
+        }
     }
 }
 </script>
@@ -177,7 +192,7 @@ export default {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
 }
 
 .v-toolbar {

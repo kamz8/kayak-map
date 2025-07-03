@@ -17,7 +17,7 @@
                 :opacity="0.8"
             />
             <!--  Start stop marker-->
-            <l-marker :lat-lng="startPoint">
+            <l-marker :lat-lng="startPoint" >
                 <l-icon class="start-icon">
                     <v-icon size="34" class="icon-with-stroke" color="green darken-5">mdi-map-marker-circle</v-icon>
                 </l-icon>
@@ -49,7 +49,13 @@
             </l-marker>
 
             <!-- Trail Points -->
-            <l-marker v-for="point in trailPoints" :key="point.id" :lat-lng="[point.lat, point.lng]">
+            <l-marker
+                v-for="point in validTrailPoints"
+                :key="point.id"
+                :lat-lng="[parseFloat(point.lat), parseFloat(point.lng)]"
+                :class="{ 'highlighted-marker': selectedPointId === point.id }"
+                @click="onPointMarkerClick(point)"
+            >
                 <l-icon class-name="point-icon">
                     <v-icon size="32" class="icon-with-stroke" :color="getPointColor(point.point_type_key)">
                         {{ getPointIcon(point.point_type_key) }}
@@ -126,7 +132,7 @@
 <script>
 import {LMap, LTileLayer, LPolyline, LMarker, LIcon, LPopup} from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
-import {mapState} from 'vuex'
+import {mapGetters, mapState, mapActions} from 'vuex'
 import MiniPopup from "@/modules/trails/components/Map/MiniPopup.vue";
 import MapMixin from "@/mixins/MapMixin.js";
 
@@ -169,6 +175,7 @@ export default {
     },
     computed: {
         ...mapState('trails', ['currentTrail']),
+        ...mapGetters('trails', ['selectedPointId']),
         startPoint() {
             return this.isValidLatLng(this.currentTrail?.start_lat, this.currentTrail?.start_lng)
                 ? [this.currentTrail.start_lat, this.currentTrail.start_lng]
@@ -199,9 +206,15 @@ export default {
         },
         trailPoints() {
             return this.currentTrail?.points || []
+        },
+        validTrailPoints() {
+            return this.trailPoints.filter(point =>
+                this.isValidLatLng(parseFloat(point.lat), parseFloat(point.lng))
+            );
         }
     },
     methods: {
+        ...mapActions('trails', ['selectPoint', 'clearSelectedPoint']),
         onMapReady(mapInstance) {
             this.mapInstance = mapInstance
             this.fitMapToTrail()
@@ -228,7 +241,7 @@ export default {
             if (this.trailPath.length < 2) return null
             return this.trailPath.reduce(
                 (bounds, point) => bounds.extend(point),
-                L.latLngBounds(this.trailPath[0], this.trailPath[0])
+                window.L.latLngBounds(this.trailPath[0], this.trailPath[1])
             )
         },
 
@@ -290,6 +303,25 @@ export default {
                     return 'teal'
             }
         },
+        moveToPoint(pointData) {
+            if (!this.mapInstance || !pointData) return;
+
+            const { lat, lng, zoom = 16 } = pointData;
+
+            if (this.isValidLatLng(lat, lng)) {
+                this.mapCenter = [lat, lng]; // Update center first
+                this.zoom = zoom;
+                this.mapInstance.setView([lat, lng], zoom);
+            }
+        },
+        onPointMarkerClick(point) {
+            // Update Vuex state for bidirectional sync
+            this.selectPoint(point);
+        },
+        getPointMarkerClass(point) {
+            // Add visual classes based on point type
+            return `point-${point.point_type_key}`;
+        },
         zoomIn() {
             if (this.$refs.map) {
                 this.$refs.map.leafletObject.zoomIn()
@@ -346,8 +378,9 @@ export default {
         isValidLatLng(lat, lng) {
             return typeof lat === 'number' && typeof lng === 'number' &&
                 !isNaN(lat) && !isNaN(lng) &&
-                lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-        },
+                lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 &&
+                lat !== -1.0 && lng !== -1.0;
+        }
     },
     watch: {
         currentTrail: {
@@ -356,6 +389,23 @@ export default {
             },
             immediate: true,
             deep: true
+        },
+        // Watch for selectedPointId changes from sidebar clicks
+        selectedPointId: {
+            handler(newPointId) {
+                if (newPointId) {
+                    const point = this.trailPoints.find(p => p.id === newPointId);
+                    if (point && this.isValidLatLng(parseFloat(point.lat), parseFloat(point.lng))) {
+                        this.moveToPoint({
+                            lat: parseFloat(point.lat),
+                            lng: parseFloat(point.lng),
+                            zoom: 16,
+                            point: point
+                        });
+                    }
+                }
+            },
+            immediate: false
         }
     },
 }
@@ -499,5 +549,13 @@ export default {
 :deep(.mini-popup .leaflet-popup-tip-container) {
     display: none;
 }
+/* Point marker styling - minimal changes */
+:deep(.point-marker.selected-marker) {
+    transform: scale(1.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
 
+.icon-with-stroke {
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
 </style>

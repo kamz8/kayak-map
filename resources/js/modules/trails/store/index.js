@@ -20,7 +20,10 @@ const state = {
     activeTrail: null,
     highlightedTrail: null,
     currentTrail: null,
-    currentTrailLoading: false
+    currentTrailLoading: false,
+    selectedPoint: null, // Currently selected point for bidirectional sync
+    selectedPointId: null // ID of selected point for easier tracking
+
 }
 
 const mutations = {
@@ -50,6 +53,14 @@ const mutations = {
     },
     SET_CURRENT_TRAIL_LOADING(state, loading) {
         state.currentTrailLoading = loading
+    },
+    SET_SELECTED_POINT(state, point) {
+        state.selectedPoint = point
+        state.selectedPointId = point?.id || null
+    },
+    CLEAR_SELECTED_POINT(state) {
+        state.selectedPoint = null
+        state.selectedPointId = null
     }
 }
 
@@ -146,6 +157,13 @@ const actions = {
 
     clearCurrentTrail({ commit }) {
         commit('SET_CURRENT_TRAIL', null)
+    },
+
+    selectPoint({ commit }, point) {
+        commit('SET_SELECTED_POINT', point)
+    },
+    clearSelectedPoint({ commit }) {
+        commit('CLEAR_SELECTED_POINT')
     }
 }
 
@@ -158,7 +176,10 @@ const getters = {
     highlightedTrail: state => state.highlightedTrail,
     boundingBox: state => state.boundingBox,
     currentTrail: state => state.currentTrail,
-    currentTrailLoading: state => state.currentTrailLoading
+    currentTrailLoading: state => state.currentTrailLoading,
+
+    selectedPoint: state => state.selectedPoint,
+    selectedPointId: state => state.selectedPointId
 }
 
 function getDefaultFilterValue(filterName) {
