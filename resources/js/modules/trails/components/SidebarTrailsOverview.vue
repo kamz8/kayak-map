@@ -71,6 +71,7 @@
                         <v-tabs-window-item value="points" v-if="hasPoints">
                             <div class="sidebar-points-content">
                                 <points-tab-content
+                                    ref="pointsTabComponent"
                                     @point-clicked="handlePointClick"
                                 />
                             </div>
@@ -161,15 +162,15 @@ export default {
         selectedPointId: {
             handler(newPointId) {
                 if (newPointId && this.hasPoints) {
-                    // Switch to points tab
+                    // Switch to points tab first
                     this.$refs.descriptionTab.activeTab = 'points';
 
-                    // Scroll to point
-                    this.$nextTick(() => {
+                    // Wait for tab switch and then scroll
+                    setTimeout(() => {
                         if (this.$refs.pointsTabComponent) {
                             this.$refs.pointsTabComponent.scrollToPoint(newPointId);
                         }
-                    });
+                    }, 300);
                 }
             }
         }

@@ -27,6 +27,7 @@
                         }"
                         @click="handlePointClick(point)"
                         :style="isValidLocation(point) ? 'cursor: pointer;' : ''"
+                        :id="`point-card-${point.id}`"
                     >
                         <v-row class="ma-1">
                             <v-col cols="12" class="pa-2">
@@ -153,20 +154,13 @@ export default {
                 point.lng !== null;
         },*/
         scrollToPoint(pointId) {
-            this.$nextTick(() => {
-                const pointRef = this.pointRefs[pointId];
-                if (pointRef && pointRef.$el) {
-                    // Scroll to the point in the list
-                    pointRef.$el.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            });
+            setTimeout(() => {
+                document.getElementById(`point-card-${pointId}`)?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300);
         }
-    },
-    mounted() {
-        console.log('isValidLocation available:', typeof this.isValidLocation);
     }
 }
 </script>
