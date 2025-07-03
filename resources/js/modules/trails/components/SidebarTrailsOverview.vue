@@ -56,8 +56,28 @@
                         </div>
                     </v-col>
                 </v-row>
+
                 <v-spacer class="pb-2"/>
-                <description-tab :description="currentTrail.description"/>
+
+                <!-- DescriptionTab z dodatkową zakładką Punkty -->
+                <description-tab :description="currentTrail.description">
+                    <template #additional-tabs>
+                        <v-tab value="points" v-if="hasPoints">
+                            Punkty <span v-if="pointsCount">({{ pointsCount }})</span>
+                        </v-tab>
+                    </template>
+
+                    <template #additional-content>
+                        <v-tabs-window-item value="points" v-if="hasPoints">
+                            <div class="sidebar-points-content">
+                                <points-tab-content
+                                    @point-clicked="handlePointClick"
+                                />
+                            </div>
+                        </v-tabs-window-item>
+                    </template>
+                </description-tab>
+
                 <weather-tab
                     v-if="currentTrail"
                     :latitude="currentTrail.start_lat"
@@ -77,10 +97,17 @@ import DescriptionTab from "@/modules/trails/components/Details/DescriptionTab.v
 import TrailHeader from "@/modules/trails/components/Details/TrailHeader.vue";
 import AuthorTab from "@/modules/trails/components/Details/AuthorTab.vue";
 import WeatherTab from "@/modules/trails/components/Details/WeatherTab.vue";
+import PointsTabContent from "@/modules/trails/components/TrailDetails/PointsTabContent.vue";
 
 export default {
     name: 'SidebarTrailsOverview',
-    components: {WeatherTab, AuthorTab, TrailHeader, DescriptionTab},
+    components: {
+        PointsTabContent,
+        WeatherTab,
+        AuthorTab,
+        TrailHeader,
+        DescriptionTab
+    },
     mixins: [UnitMixin],
     data() {
         return {
@@ -91,6 +118,12 @@ export default {
         ...mapGetters('trails', ['currentTrail']),
         trailImageSrc() {
             return this.currentTrail.main_image?.path || this.appConfig.placeholderImage;
+        },
+        hasPoints() {
+            return this.currentTrail?.points?.length > 0;
+        },
+        pointsCount() {
+            return this.currentTrail?.points?.length || 0;
         },
     },
     methods: {
@@ -104,6 +137,26 @@ export default {
                 case 'trudny': return 'red';
                 default: return 'grey';
             }
+        },
+
+        handlePointClick(point) {
+            // Check if point has valid coordinates
+            if (this.isValidLocation(point)) {
+                // Emit event to parent component (probably Explore.vue)
+                // to move map to point coordinates
+                this.$emit('move-map-to-point', {
+                    lat: parseFloat(point.lat),
+                    lng: parseFloat(point.lng),
+                    zoom: 16, // Zoom level for point focus
+                    point: point
+                });
+            }
+        },
+        isValidLocation(point) {
+            return point.lat !== "-1.0000000" &&
+                point.lng !== "-1.0000000" &&
+                point.lat !== null &&
+                point.lng !== null;
         },
     }
 }
@@ -129,5 +182,20 @@ export default {
 
 .v-toolbar {
     min-height: 48px !important;
+}
+
+/* Stylowanie dla zakładek w kompaktowym trybie */
+@media (max-width: 600px) {
+    :deep(.v-tab) {
+        min-width: 0;
+        font-size: 0.875rem;
+    }
+}
+
+/* Responsive adjustments for points tab */
+@media (max-width: 768px) {
+    .sidebar-points-content {
+        max-height: 400px;
+    }
 }
 </style>
