@@ -215,8 +215,8 @@ export default {
           this.isLoading = true;
 
           const fetchFunction = async () => {
-              const response = await axios.get(`/trails/nearby?location_name=Polska`);
-              return response.data.data;
+              const response = await apiClient().get(`/trails/nearby?location_name=Polska`);
+              return response.data?.data;
           };
 
           try {
