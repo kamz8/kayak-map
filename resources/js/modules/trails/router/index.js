@@ -17,7 +17,7 @@ export default [
         name: 'explore',
         meta: {
             layout: 'ExploreLayout',
-            title: 'KAYAK - Odkrywaj',
+            title: 'Wartki Nurt - Odkrywaj',
             metaTags: [
                 {
                     name: 'description',
