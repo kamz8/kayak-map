@@ -1,6 +1,7 @@
 <template>
     <v-tabs v-model="activeTab">
         <v-tab key="description">Opis</v-tab>
+        <slot name="additional-tabs"></slot>
     </v-tabs>
     <v-divider></v-divider>
     <v-tabs-window v-model="activeTab">
@@ -13,12 +14,13 @@
                 </v-card-text>
             </v-card>
         </v-tabs-window-item>
-
+        <slot name="additional-content"></slot>
     </v-tabs-window>
 </template>
 
 <script>
 import ModifyLinks from '../../../../directives/v-modify-links.ts'
+
 export default {
     name: "DescriptionTab",
     directives: {ModifyLinks},
@@ -28,15 +30,12 @@ export default {
         }
     },
     data() {
-      return{
-          activeTab: null
-      }
+        return {
+            activeTab: null
+        }
     }
 }
 </script>
 
-
-
 <style scoped>
-
 </style>

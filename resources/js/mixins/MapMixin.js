@@ -1,7 +1,7 @@
 // src/mixins/MapMixin.js
 export default {
     methods: {
-        // Konwertuje współrzędne [longitude, latitude] na [latitude, longitude]
+        // convert coordinates from [longitude, latitude] to [latitude, longitude]
         convertCoordinates(coordinates) {
             return coordinates.map(([lng, lat]) => [lat, lng])
         },
@@ -58,5 +58,16 @@ export default {
                     return 'teal'
             }
         },
+
+        isValidLocation(point) {
+            return point &&
+                typeof point === 'object' &&
+                point.lat !== undefined &&
+                point.lng !== undefined &&
+                point.lat !== "-1.0000000" &&
+                point.lng !== "-1.0000000" &&
+                point.lat !== null &&
+                point.lng !== null;
+        }
     }
 }
