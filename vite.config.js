@@ -45,7 +45,7 @@ export default defineConfig({
         }
     },
     server: {
-        host: '0.0.0.0',
+        host: host,
         port: 5173,
         https: {
             key: fs.readFileSync(`./docker/ssl/cert.key`),
@@ -55,11 +55,11 @@ export default defineConfig({
             'Access-Control-Allow-Origin': '*',
         },
         hmr: {
-            host: 'localhost',
+            host: 'kayak-map.test',
             proxy: host
         },
         watch: {
-            usePolling: true,
+            usePolling: false,
         },
         proxy: {
             '/api': {
