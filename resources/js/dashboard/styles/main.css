@@ -1,0 +1,66 @@
+/* Dashboard Module Styles */
+html, body {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.v-application {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dashboard specific styles */
+.dashboard-sidebar {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-main {
+  background-color: #f5f5f5;
+}
+
+/* Stats cards */
+.stats-card {
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Data table enhancements */
+.v-data-table .v-data-table-header th {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Action buttons */
+.action-buttons .v-btn {
+  margin: 0 2px;
+}
+
+/* Form enhancements */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section .v-card-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
