@@ -8,11 +8,13 @@
     <!-- Stats Grid -->
     <div v-else class="stats-grid">
       <!-- Stats Cards -->
-      <UiCard
+      <PatternCard
         v-for="config in statsConfig"
         :key="config.key"
-        variant="elevated"
-        :class="`stats-card stats-card--${config.variant}`"
+        :variant="config.variant"
+        contentPosition="top"
+        rounded="xl"
+        :class="`stats-card`"
       >
         <div class="stats-card-content">
           <div class="card-header">
@@ -22,7 +24,7 @@
           <div class="card-number">{{ getStatValue(config.key) }}</div>
           <div class="card-subtitle">{{ config.subtitle }}</div>
         </div>
-      </UiCard>
+      </PatternCard>
 
       <!-- Quick Actions Card -->
       <UiCard title="Szybkie akcje" class="action-card">
@@ -45,7 +47,7 @@
       <!-- Management Card -->
       <UiCard title="Zarządzanie" class="management-card">
         <div class="management-links">
-          <div 
+          <div
             v-for="item in managementItems"
             :key="item.key"
             class="management-item"
@@ -66,6 +68,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import { UiCard, UiButton, UiBadge } from '@/dashboard/components/ui'
+import PatternCard from "@ui/PatternCard.vue";
 
 const STATS_CONFIG = [
   {
@@ -77,7 +80,7 @@ const STATS_CONFIG = [
   },
   {
     key: 'users',
-    title: 'Użytkownicy', 
+    title: 'Użytkownicy',
     icon: 'mdi-account-group',
     variant: 'success',
     subtitle: 'Zarejestrowani użytkownicy'
@@ -86,7 +89,7 @@ const STATS_CONFIG = [
     key: 'regions',
     title: 'Regiony',
     icon: 'mdi-map',
-    variant: 'secondary', 
+    variant: 'secondary',
     subtitle: 'Obszary geograficzne'
   },
   {
@@ -107,7 +110,7 @@ const MANAGEMENT_ITEMS = [
     enabled: true
   },
   {
-    key: 'regions', 
+    key: 'regions',
     title: 'Regiony',
     icon: 'mdi-map',
     route: '/dashboard/regions',
@@ -116,7 +119,7 @@ const MANAGEMENT_ITEMS = [
   {
     key: 'users',
     title: 'Użytkownicy',
-    icon: 'mdi-account-group', 
+    icon: 'mdi-account-group',
     route: '/dashboard/users',
     enabled: false
   }
@@ -143,7 +146,7 @@ const QUICK_ACTIONS = [
     key: 'settings',
     title: 'Ustawienia',
     icon: 'mdi-cog',
-    color: 'info', 
+    color: 'info',
     route: '/dashboard/settings',
     enabled: false
   }
@@ -152,6 +155,7 @@ const QUICK_ACTIONS = [
 export default {
   name: 'DashboardOverview',
   components: {
+      PatternCard,
     UiCard,
     UiButton,
     UiBadge
@@ -169,23 +173,23 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['user']),
-    
+
     statsConfig() {
       return STATS_CONFIG
     },
-    
+
     managementItems() {
       return MANAGEMENT_ITEMS
     },
-    
+
     quickActions() {
       return QUICK_ACTIONS
     },
-    
+
     enabledManagementItems() {
       return this.managementItems.filter(item => item.enabled)
     },
-    
+
     enabledQuickActions() {
       return this.quickActions.filter(action => action.enabled)
     }
@@ -207,31 +211,31 @@ export default {
         this.loading = false
       }
     },
-    
+
     navigateToRoute(route) {
       if (!route) return
       this.$router.push(route)
     },
-    
+
     goToMainApp() {
       window.location.href = '/'
     },
-    
+
     handleQuickAction(action) {
       if (!action.enabled) return
-      
+
       if (action.route) {
         this.navigateToRoute(action.route)
       } else {
         console.log(`Quick action: ${action.key}`)
       }
     },
-    
+
     handleManagementClick(item) {
       if (!item.enabled) return
       this.navigateToRoute(item.route)
     },
-    
+
     getStatValue(key) {
       return this.stats[key] || 0
     }
@@ -250,6 +254,7 @@ export default {
   gap: 24px;
   width: 100%;
 }
+
 
 /* Stats Cards Styling */
 .stats-card {
@@ -386,13 +391,13 @@ export default {
 
 @media (max-width: 768px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .card-pattern {
     padding: 20px;
   }
-  
+
   .card-number {
     font-size: 28px;
   }
