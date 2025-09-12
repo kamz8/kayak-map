@@ -22,6 +22,8 @@
             v-if="searchable"
             v-model="search"
             :placeholder="searchLabel"
+            variant="outlined"
+            size="small"
             class="ui-search-input"
           >
             <template #prepend-inner>
@@ -29,7 +31,7 @@
             </template>
           </UiInput>
         </div>
-        
+
         <div v-if="$slots.filters" class="ui-data-table-filters">
           <slot name="filters" />
         </div>
@@ -144,7 +146,7 @@ export default {
   },
   emits: {
     view: (item) => item && typeof item === 'object',
-    edit: (item) => item && typeof item === 'object', 
+    edit: (item) => item && typeof item === 'object',
     delete: (item) => item && typeof item === 'object'
   },
   props: {
@@ -158,7 +160,7 @@ export default {
       type: Array,
       required: true,
       validator(headers) {
-        return Array.isArray(headers) && headers.every(header => 
+        return Array.isArray(headers) && headers.every(header =>
           header && typeof header === 'object' && header.key && header.title
         )
       }
@@ -224,6 +226,7 @@ export default {
       return cn(
         'ui-data-table',
         `ui-data-table--${this.variant}`,
+        'px-0',
         this.class
       )
     },
@@ -236,13 +239,13 @@ export default {
     },
 
     hasActions() {
-      return Object.values(this.actions).some(action => action === true) || 
+      return Object.values(this.actions).some(action => action === true) ||
              (this.$slots.actions && this.$slots.actions().length > 0)
     },
 
     headersWithActions() {
       if (!this.hasActions) return this.headers
-      
+
       const actionsHeader = {
         title: 'Akcje',
         key: 'actions',
@@ -250,16 +253,16 @@ export default {
         width: '120px',
         align: 'end'
       }
-      
+
       return [...this.headers, actionsHeader]
     },
 
     filteredItems() {
       if (!this.search || !this.searchable) return this.items
-      
+
       const searchTerm = this.search.toLowerCase().trim()
       if (!searchTerm) return this.items
-      
+
       return this.items.filter(item => {
         return this.headers.some(header => {
           const value = this.getNestedValue(item, header.key)
@@ -409,11 +412,11 @@ export default {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .ui-data-table-search {
     min-width: unset;
   }
-  
+
   .ui-search-input {
     max-width: none;
   }
