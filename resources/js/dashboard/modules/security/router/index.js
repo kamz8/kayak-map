@@ -2,7 +2,7 @@
 export default [
   {
     path: '/dashboard/security/change-password',
-    name: 'DashboardSecurityChangePassword', 
+    name: 'DashboardSecurityChangePassword',
     component: () => import('../Pages/ChangePasswordView.vue'),
     meta: {
       requiresAuth: true,
@@ -13,12 +13,12 @@ export default [
         { text: 'Zmiana hasła' }
       ],
       // Navigation metadata for sidebar
-      navigation: {
+      /*navigation: {
         section: 'System',
         icon: 'mdi-shield-lock',
         title: 'Bezpieczeństwo',
         order: 2
-      }
+      }*/
     }
   }
 ]

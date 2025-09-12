@@ -40,7 +40,7 @@
                     class="profile-avatar mb-4"
                     @upload="handleAvatarUpload"
                   />
-                  
+
                   <div v-if="isEditing">
                     <UiButton variant="outline" size="sm" class="mb-2">
                       <v-icon start size="small">mdi-camera</v-icon>
@@ -175,28 +175,28 @@
                 {{ user.is_active ? 'Aktywne' : 'Nieaktywne' }}
               </UiBadge>
             </div>
-            
+
             <div class="status-item d-flex justify-space-between align-center mb-3">
               <span class="text-body-2">Email zweryfikowany:</span>
               <UiBadge :variant="user.email_verified_at ? 'success' : 'warning'">
                 {{ user.email_verified_at ? 'Tak' : 'Nie' }}
               </UiBadge>
             </div>
-            
+
             <div class="status-item d-flex justify-space-between align-center mb-3">
               <span class="text-body-2">Telefon zweryfikowany:</span>
               <UiBadge :variant="user.phone_verified ? 'success' : 'warning'">
                 {{ user.phone_verified ? 'Tak' : 'Nie' }}
               </UiBadge>
             </div>
-            
+
             <div class="status-item d-flex justify-space-between align-center mb-3">
               <span class="text-body-2">Rola:</span>
               <UiBadge :variant="user.is_admin ? 'secondary' : 'outline'">
                 {{ user.is_admin ? 'Administrator' : 'Użytkownik' }}
               </UiBadge>
             </div>
-            
+
             <div class="status-item d-flex justify-space-between align-center">
               <span class="text-body-2">Ostatnie logowanie:</span>
               <span class="text-body-2 text-medium-emphasis">
@@ -213,35 +213,35 @@
               <v-icon size="16" class="me-2 text-medium-emphasis">mdi-map-marker</v-icon>
               <span class="text-body-2">{{ user.location }}</span>
             </div>
-            
+
             <div v-if="user.birth_date" class="info-item d-flex align-center mb-2">
               <v-icon size="16" class="me-2 text-medium-emphasis">mdi-calendar</v-icon>
               <span class="text-body-2">{{ formatDate(user.birth_date) }} ({{ getUserAge() }} lat)</span>
             </div>
-            
+
             <div v-if="user.gender" class="info-item d-flex align-center mb-2">
               <v-icon size="16" class="me-2 text-medium-emphasis">mdi-human</v-icon>
               <span class="text-body-2">{{ getGenderLabel(user.gender) }}</span>
             </div>
-            
+
             <div v-if="user.phone" class="info-item d-flex align-center mb-2">
               <v-icon size="16" class="me-2 text-medium-emphasis">mdi-phone</v-icon>
               <span class="text-body-2">{{ user.phone }}</span>
-              <UiBadge 
-                v-if="user.phone_verified" 
-                variant="success" 
+              <UiBadge
+                v-if="user.phone_verified"
+                variant="success"
                 size="sm"
                 class="ms-2"
               >
                 Zweryfikowany
               </UiBadge>
             </div>
-            
+
             <div v-if="user.bio" class="info-item mt-3">
               <v-icon size="16" class="me-2 text-medium-emphasis">mdi-information</v-icon>
               <p class="text-body-2 mb-0 ms-4">{{ user.bio }}</p>
             </div>
-            
+
             <div v-if="!hasPersonalInfo" class="text-center py-4">
               <v-icon size="48" class="text-disabled mb-2">mdi-account-edit</v-icon>
               <p class="text-body-2 text-disabled mb-0">
@@ -309,7 +309,7 @@
         <p class="text-body-2 text-error mb-4">
           Wszystkie Twoje dane zostaną trwale usunięte z systemu.
         </p>
-        
+
         <v-text-field
           v-model="deleteConfirmation"
           label="Wpisz 'USUŃ' aby potwierdzić"
@@ -318,13 +318,13 @@
           density="compact"
           class="mb-4"
         />
-        
+
         <template #actions>
           <UiButton variant="outline" @click="showDeleteAccountDialog = false">
             Anuluj
           </UiButton>
-          <UiButton 
-            variant="destructive" 
+          <UiButton
+            variant="destructive"
             :disabled="deleteConfirmation !== 'USUŃ'"
             @click="handleDeleteAccount"
           >
@@ -354,7 +354,7 @@ export default {
       loading: false,
       showDeleteAccountDialog: false,
       deleteConfirmation: '',
-      
+
       profileForm: {
         first_name: '',
         last_name: '',
@@ -365,15 +365,15 @@ export default {
         birth_date: '',
         gender: null
       },
-      
+
       genderOptions: [
         { title: 'Mężczyzna', value: 'male' },
         { title: 'Kobieta', value: 'female' },
         { title: 'Inne', value: 'other' },
         { title: 'Wolę nie podawać', value: 'prefer_not_to_say' }
       ],
-      
-      
+
+
       rules: {
         required: value => !!value || 'To pole jest wymagane',
         email: value => {
@@ -392,18 +392,18 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['user']),
-    
+
     userFullName() {
       if (!this.user) return 'Admin User'
       const firstName = this.user.first_name || this.user.name || ''
       const lastName = this.user.last_name || ''
       return `${firstName} ${lastName}`.trim() || 'Admin User'
     },
-    
+
     hasPersonalInfo() {
       return this.user.location || this.user.birth_date || this.user.gender || this.user.phone || this.user.bio
     },
-    
+
     breadcrumbs() {
       return [
         { text: 'Dashboard', to: '/dashboard' },
@@ -418,12 +418,12 @@ export default {
   methods: {
     ...mapActions('auth', ['updateProfile', 'deleteAccount']),
     ...mapActions('ui', ['showSuccess', 'showError', 'showInfo']),
-    
+
     handleAvatarUpload() {
       // TODO: Implement avatar upload functionality
       this.showInfo('Funkcja uploadu zdjęcia zostanie wkrótce dodana')
     },
-    
+
     initializeForm() {
       this.profileForm = {
         first_name: this.user.first_name || '',
@@ -436,19 +436,19 @@ export default {
         gender: this.user.gender || null
       }
     },
-    
+
     toggleEdit() {
       if (this.isEditing) {
         this.initializeForm()
       }
       this.isEditing = !this.isEditing
     },
-    
+
     async handleSave() {
       if (!this.$refs.profileForm.validate()) {
         return
       }
-      
+
       this.loading = true
       try {
         await this.updateProfile(this.profileForm)
@@ -461,8 +461,8 @@ export default {
         this.loading = false
       }
     },
-    
-    
+
+
     async sendVerificationEmail() {
       try {
         // TODO: Implement email verification
@@ -471,7 +471,7 @@ export default {
         this.showError('Nie udało się wysłać linku weryfikacyjnego')
       }
     },
-    
+
     async downloadUserData() {
       try {
         // TODO: Implement data download
@@ -480,7 +480,7 @@ export default {
         this.showError('Nie udało się pobrać danych')
       }
     },
-    
+
     async handleDeleteAccount() {
       try {
         await this.deleteAccount()
@@ -491,12 +491,12 @@ export default {
         console.error('Account deletion error:', error)
       }
     },
-    
+
     removeAvatar() {
       // TODO: Implement avatar removal
       this.showInfo('Usuwanie zdjęcia będzie wkrótce dostępne')
     },
-    
+
     formatDate(date) {
       if (!date) return 'Nigdy'
       return new Date(date).toLocaleDateString('pl-PL', {
@@ -507,25 +507,25 @@ export default {
         minute: '2-digit'
       })
     },
-    
+
     getUserAge() {
       if (!this.user.birth_date) return 0
       const birthDate = new Date(this.user.birth_date)
       const today = new Date()
       let age = today.getFullYear() - birthDate.getFullYear()
       const monthDiff = today.getMonth() - birthDate.getMonth()
-      
+
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--
       }
-      
+
       return age
     },
-    
+
     getGenderLabel(gender) {
       const genderMap = {
         'male': 'Mężczyzna',
-        'female': 'Kobieta', 
+        'female': 'Kobieta',
         'other': 'Inne',
         'prefer_not_to_say': 'Wolę nie podawać'
       }
@@ -563,7 +563,9 @@ export default {
 .account-status {
   padding: 8px 0;
 }
-
+.info-item {
+    display: inline-flex;
+}
 .status-item {
   padding: 4px 0;
 }
@@ -581,7 +583,7 @@ export default {
   .profile-header h1 {
     font-size: 1.5rem;
   }
-  
+
   .profile-avatar {
     width: 100px !important;
     height: 100px !important;
