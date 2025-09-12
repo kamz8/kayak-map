@@ -3,9 +3,9 @@
 
     <v-row>
       <!-- Profile Settings Card -->
-      <v-col cols="12" md="6" lg="4">
-        <UiCard 
-          variant="elevated" 
+      <v-col cols="12" sm="6" md="6" lg="4" >
+        <UiCard
+          variant="elevated"
           class="settings-card h-100"
           @click="$router.push('/dashboard/settings/profile')"
         >
@@ -26,7 +26,7 @@
       </v-col>
 
       <!-- Security Settings Card -->
-      <v-col cols="12" md="6" lg="4">
+      <v-col cols="12" md="6" lg="4" sm="6">
         <UiCard variant="elevated" class="settings-card h-100 settings-card--disabled">
           <div class="settings-card-content">
             <div class="settings-icon mb-4">
@@ -45,7 +45,7 @@
       </v-col>
 
       <!-- Notifications Settings Card -->
-      <v-col cols="12" md="6" lg="4">
+      <v-col ccols="12" sm="6" md="6" lg="4">
         <UiCard variant="elevated" class="settings-card h-100 settings-card--disabled">
           <div class="settings-card-content">
             <div class="settings-icon mb-4">
@@ -64,7 +64,7 @@
       </v-col>
 
       <!-- Privacy Settings Card -->
-      <v-col cols="12" md="6" lg="4">
+      <v-col cols="12" sm="6" md="6" lg="4">
         <UiCard variant="elevated" class="settings-card h-100 settings-card--disabled">
           <div class="settings-card-content">
             <div class="settings-icon mb-4">
@@ -83,7 +83,7 @@
       </v-col>
 
       <!-- App Settings Card -->
-      <v-col cols="12" md="6" lg="4">
+      <v-col cols="12" sm="6" md="6" lg="4">
         <UiCard variant="elevated" class="settings-card h-100 settings-card--disabled">
           <div class="settings-card-content">
             <div class="settings-icon mb-4">
@@ -102,7 +102,7 @@
       </v-col>
 
       <!-- Data Management Card -->
-      <v-col cols="12" md="6" lg="4">
+      <v-col cols="12" sm="6" md="6" lg="4">
         <UiCard variant="elevated" class="settings-card h-100 settings-card--disabled">
           <div class="settings-card-content">
             <div class="settings-icon mb-4">
@@ -124,12 +124,12 @@
     <!-- Quick Actions Section -->
     <div class="quick-actions mt-8">
       <h2 class="text-h5 font-weight-bold mb-4">Szybkie akcje</h2>
-      
+
       <v-row>
         <v-col cols="12" md="4">
-          <UiButton 
-            variant="outline" 
-            size="default" 
+          <UiButton
+            variant="outline"
+            size="default"
             class="w-100 mb-3"
             @click="$router.push('/dashboard/settings/profile')"
           >
@@ -137,11 +137,11 @@
             Edytuj profil
           </UiButton>
         </v-col>
-        
+
         <v-col cols="12" md="4">
-          <UiButton 
-            variant="outline" 
-            size="default" 
+          <UiButton
+            variant="outline"
+            size="default"
             class="w-100 mb-3"
             disabled
           >
@@ -149,11 +149,11 @@
             Zmień hasło
           </UiButton>
         </v-col>
-        
+
         <v-col cols="12" md="4">
-          <UiButton 
-            variant="outline" 
-            size="default" 
+          <UiButton
+            variant="outline"
+            size="default"
             class="w-100 mb-3"
             disabled
           >
@@ -252,15 +252,15 @@ export default {
   .settings-header h1 {
     font-size: 1.5rem;
   }
-  
+
   .settings-card {
     min-height: auto;
   }
-  
+
   .settings-card-content {
     padding: 20px;
   }
-  
+
   .settings-icon .v-icon {
     font-size: 40px !important;
   }

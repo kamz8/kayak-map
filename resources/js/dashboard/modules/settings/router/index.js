@@ -12,12 +12,12 @@ export default [
         { text: 'Ustawienia' }
       ],
       // Navigation metadata for dropdown
-      navigation: {
+      /*navigation: {
         section: 'System',
         icon: 'mdi-cog',
         title: 'Ustawienia',
         order: 1
-      }
+      }*/
     }
   },
   {
