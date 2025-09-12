@@ -20,6 +20,7 @@
             density="compact"
             clearable
             hide-details
+            single-line
           />
         </v-col>
         <v-col cols="12" :md="searchable ? 6 : 12">
@@ -33,11 +34,10 @@
       v-model:page="page"
       v-model:items-per-page="itemsPerPage"
       v-model:sort-by="sortBy"
-      :headers="headers"
+      :headers="headersWithActions"
       :items="filteredItems"
       :loading="loading"
       :items-per-page-options="itemsPerPageOptions"
-      :search="search"
       class="elevation-0"
     >
       <!-- Custom header slots -->
@@ -62,7 +62,7 @@
               <v-btn
                 v-bind="props"
                 icon="mdi-eye"
-                size="small"
+                size="x-small"
                 variant="text"
                 @click="$emit('view', item)"
               />
@@ -74,7 +74,7 @@
               <v-btn
                 v-bind="props"
                 icon="mdi-pencil"
-                size="small"
+                size="x-small"
                 variant="text"
                 color="primary"
                 @click="$emit('edit', item)"
@@ -87,7 +87,7 @@
               <v-btn
                 v-bind="props"
                 icon="mdi-delete"
-                size="small"
+                size="x-small"
                 variant="text"
                 color="error"
                 @click="$emit('delete', item)"
@@ -114,16 +114,31 @@
 <script>
 export default {
   name: 'DataTable',
-  emits: ['view', 'edit', 'delete'],
+  emits: {
+    view: (item) => item && typeof item === 'object',
+    edit: (item) => item && typeof item === 'object', 
+    delete: (item) => item && typeof item === 'object'
+  },
   props: {
-    title: String,
+    title: {
+      type: String,
+      default: ''
+    },
     headers: {
       type: Array,
-      required: true
+      required: true,
+      validator(headers) {
+        return Array.isArray(headers) && headers.every(header => 
+          header && typeof header === 'object' && header.key && header.title
+        )
+      }
     },
     items: {
       type: Array,
-      default: () => []
+      default: () => [],
+      validator(items) {
+        return Array.isArray(items)
+      }
     },
     loading: {
       type: Boolean,
@@ -143,11 +158,22 @@ export default {
         view: false,
         edit: true,
         delete: true
-      })
+      }),
+      validator(actions) {
+        const allowedKeys = ['view', 'edit', 'delete']
+        return Object.keys(actions).every(key => 
+          allowedKeys.includes(key) && typeof actions[key] === 'boolean'
+        )
+      }
     },
     itemsPerPageOptions: {
       type: Array,
-      default: () => [10, 25, 50, 100]
+      default: () => [10, 25, 50, 100],
+      validator(options) {
+        return Array.isArray(options) && options.every(option => 
+          typeof option === 'number' && option > 0
+        )
+      }
     },
     noDataIcon: {
       type: String,
@@ -172,34 +198,94 @@ export default {
   },
   computed: {
     hasActions() {
-      return Object.values(this.actions).some(action => action) || this.$slots.actions
-    },
-    filteredItems() {
-      return this.items
+      return Object.values(this.actions).some(action => action === true) || 
+             (this.$slots.actions && this.$slots.actions().length > 0)
     },
     headersWithActions() {
       if (!this.hasActions) return this.headers
       
-      return [
-        ...this.headers,
-        {
-          title: 'Akcje',
-          key: 'actions',
-          sortable: false,
-          width: '120px'
-        }
-      ]
+      const actionsHeader = {
+        title: 'Akcje',
+        key: 'actions',
+        sortable: false,
+        width: '100px',
+        align: 'end'
+      }
+      
+      return [...this.headers, actionsHeader]
+    },
+    filteredItems() {
+      if (!this.search || !this.searchable) return this.items
+      
+      const searchTerm = this.search.toLowerCase().trim()
+      if (!searchTerm) return this.items
+      
+      return this.items.filter(item => {
+        return this.headers.some(header => {
+          const value = this.getNestedValue(item, header.key)
+          return value && String(value).toLowerCase().includes(searchTerm)
+        })
+      })
     }
   },
   watch: {
-    hasActions: {
-      immediate: true,
-      handler(hasActions) {
-        if (hasActions && !this.headers.find(h => h.key === 'actions')) {
-          // Update headers to include actions
-        }
-      }
+    items: {
+      handler() {
+        this.resetPagination()
+      },
+      deep: true
+    },
+    search() {
+      this.resetPagination()
+    }
+  },
+  methods: {
+    getNestedValue(obj, path) {
+      return path.split('.').reduce((current, key) => current && current[key], obj)
+    },
+    resetPagination() {
+      this.page = 1
+    },
+    handleView(item) {
+      this.$emit('view', item)
+    },
+    handleEdit(item) {
+      this.$emit('edit', item)
+    },
+    handleDelete(item) {
+      this.$emit('delete', item)
     }
   }
 }
 </script>
+
+<style scoped>
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.action-buttons .v-btn {
+  transition: all 0.2s ease;
+}
+
+.action-buttons .v-btn:hover {
+  transform: scale(1.1);
+}
+
+:deep(.v-data-table-header th) {
+  background-color: rgba(var(--v-theme-surface-variant), 0.12) !important;
+  font-weight: 600 !important;
+}
+
+:deep(.v-data-table__td) {
+  padding: 0 16px !important;
+  height: 48px !important;
+}
+
+:deep(.v-data-table-rows-no-data) {
+  height: 200px !important;
+}
+</style>

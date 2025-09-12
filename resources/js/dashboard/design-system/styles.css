@@ -1,0 +1,243 @@
+/**
+ * Global UI Kit Styles
+ * Kayak Map Dashboard - shadcn/ui inspired styling for Vuetify
+ */
+
+/* CSS Custom Properties for consistent theming */
+:root {
+  /* Design tokens as CSS variables */
+  --ui-radius: 6px;
+  --ui-radius-sm: 4px;
+  --ui-radius-md: 8px;
+  --ui-radius-lg: 12px;
+
+  /* Animation easing */
+  --ui-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ui-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ui-ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Timing */
+  --ui-duration-fast: 0.15s;
+  --ui-duration-normal: 0.2s;
+  --ui-duration-slow: 0.3s;
+
+  /* Shadows */
+  --ui-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --ui-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --ui-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --ui-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --ui-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Global UI Kit Utilities */
+.ui-transition {
+  transition: all var(--ui-duration-normal) var(--ui-ease);
+}
+
+.ui-focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px hsl(var(--v-theme-primary) / 0.2);
+}
+
+.ui-focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--v-theme-primary) / 0.2);
+}
+
+.ui-disabled {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Typography enhancements */
+.ui-heading {
+  font-weight: 600;
+  color: hsl(var(--v-theme-on-surface));
+  line-height: 1.25;
+}
+
+.ui-text {
+  color: hsl(var(--v-theme-on-surface));
+  line-height: 1.5;
+}
+
+.ui-text-muted {
+  color: hsl(var(--v-theme-on-surface-variant));
+  line-height: 1.5;
+}
+
+/* Button enhancements for all Vuetify buttons */
+.v-btn {
+  text-transform: none !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  transition: all var(--ui-duration-normal) var(--ui-ease) !important;
+}
+
+/* Card enhancements */
+.v-card {
+  box-shadow: var(--ui-shadow-sm) !important;
+  border: 1px solid hsl(var(--v-theme-surface-variant)) !important;
+  transition: all var(--ui-duration-normal) var(--ui-ease) !important;
+}
+
+.v-card:hover {
+  box-shadow: var(--ui-shadow) !important;
+}
+
+/* Input field enhancements */
+.v-text-field .v-field {
+  transition: all var(--ui-duration-normal) var(--ui-ease) !important;
+}
+
+.v-text-field .v-field:hover {
+  box-shadow: var(--ui-shadow-sm) !important;
+}
+
+.v-text-field .v-field--focused {
+  box-shadow: 0 0 0 2px hsl(var(--v-theme-primary) / 0.2) !important;
+}
+
+/* Data table enhancements */
+.v-data-table {
+  border-radius: var(--ui-radius) !important;
+  overflow: hidden !important;
+}
+
+.v-data-table .v-data-table-header th {
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+  letter-spacing: 0.5px !important;
+}
+
+.v-data-table-rows-loading,
+.v-data-table-rows-no-data {
+  background: hsl(var(--v-theme-surface)) !important;
+}
+
+/* Chip/Badge enhancements */
+.v-chip {
+  font-weight: 500 !important;
+  transition: all var(--ui-duration-fast) var(--ui-ease) !important;
+}
+
+.v-chip:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: var(--ui-shadow-sm) !important;
+}
+
+/* Animation classes for smooth interactions */
+.ui-fade-enter-active,
+.ui-fade-leave-active {
+  transition: opacity var(--ui-duration-normal) var(--ui-ease);
+}
+
+.ui-fade-enter-from,
+.ui-fade-leave-to {
+  opacity: 0;
+}
+
+.ui-slide-up-enter-active,
+.ui-slide-up-leave-active {
+  transition: all var(--ui-duration-normal) var(--ui-ease);
+}
+
+.ui-slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.ui-slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-16px);
+}
+
+.ui-scale-enter-active,
+.ui-scale-leave-active {
+  transition: all var(--ui-duration-fast) var(--ui-ease);
+}
+
+.ui-scale-enter-from,
+.ui-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Hover and focus states for interactive elements */
+.ui-interactive {
+  cursor: pointer;
+  transition: all var(--ui-duration-fast) var(--ui-ease);
+}
+
+.ui-interactive:hover {
+  transform: translateY(-1px);
+}
+
+.ui-interactive:active {
+  transform: translateY(0);
+}
+
+/* Loading states */
+.ui-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.ui-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: hsl(var(--v-theme-surface) / 0.8);
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .ui-heading {
+    font-size: 1.1em;
+  }
+  
+  .ui-text {
+    font-size: 0.9em;
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] {
+  --ui-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --ui-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+  --ui-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .v-card {
+    border-width: 2px !important;
+  }
+  
+  .v-btn {
+    border-width: 2px !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .ui-interactive:hover {
+    transform: none;
+  }
+}

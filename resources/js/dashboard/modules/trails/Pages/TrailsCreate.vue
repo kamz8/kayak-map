@@ -1,12 +1,5 @@
 <template>
   <div class="trails-create">
-    <!-- Page Header -->
-    <div class="mb-6">
-      <h1 class="text-h4 font-weight-bold mb-2">Dodaj nowy szlak</h1>
-      <p class="text-body-1 text-medium-emphasis">
-        Utwórz nowy szlak kajakowy w systemie
-      </p>
-    </div>
 
     <v-form ref="trailForm" @submit.prevent="handleSubmit">
       <v-row>

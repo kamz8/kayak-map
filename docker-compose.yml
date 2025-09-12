@@ -20,7 +20,6 @@ services:
             REDIS_PASSWORD: null
             REDIS_PORT: 6379
             NODE_ENV: development
-
             PHP_MEMORY_LIMIT: 512M
             PHP_UPLOAD_MAX_FILESIZE: 100M
             PHP_POST_MAX_SIZE: 100M
@@ -42,6 +41,33 @@ services:
                     memory: 3G
                 reservations:
                     memory: 512M
+
+    # Vite Development Server with HMR
+    vite:
+        build:
+            context: .
+            dockerfile: docker/vite/Dockerfile.dev
+        image: kayak-vite-dev
+        container_name: kayak-vite-dev
+        restart: unless-stopped
+        working_dir: /app
+        environment:
+            - NODE_ENV=development
+            - DOCKER_ENV=true
+            - VITE_APP_URL=${APP_URL:-https://kayak-map.test}
+            - CHOKIDAR_USEPOLLING=true
+        volumes:
+            - .:/app:cached
+            - /app/node_modules
+        # Porty tylko wewnętrzne - dostęp przez nginx proxy
+        expose:
+            - "5173"   # Vite dev server  
+            - "24678"  # HMR WebSocket port
+        command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+        networks:
+            - laravel
+        depends_on:
+            - app
 
     nginx:
         image: nginx:latest
@@ -80,12 +106,17 @@ services:
             - db_data:/var/lib/mysql
         networks:
             - laravel
-    mailhog:
-        image: mailhog/mailhog
-        container_name: mailhog
+
+    redis:
+        image: redis:latest
+        container_name: redis
+        restart: unless-stopped
         ports:
-            - "8025:8025" # Panel Web MailHog
-            - "1025:1025" # SMTP MailHog
+            - '6379:6379'
+        networks:
+            - laravel
+
+    # Testing database
     wartkinurt_mysql_testing:
         image: mariadb:11.2
         container_name: wartkinurt_mariadb_testing
@@ -100,44 +131,10 @@ services:
         volumes:
             - mysql_testing_data:/var/lib/mysql
             - ./docker/mariadb/init:/docker-entrypoint-initdb.d
-
-    redis:
-        image: redis:latest
-        container_name: redis
-        restart: unless-stopped
-        ports:
-            - '6379:6379'
         networks:
             - laravel
 
-    vite:
-        build:
-            context: .
-            dockerfile: Dockerfile.vite
-        container_name: vite
-        user: root
-        volumes:
-            - .:/var/www/html:delegated
-            - ./docker/ssl:/etc/ssl:ro
-            - node_modules:/var/www/html/node_modules
-        ports:
-            - "5173:5173"
-            - "3001:3000"
-        environment:
-            - NODE_ENV=development
-            - HOST=0.0.0.0
-            - VITE_PORT=5173  # Explicitly set Vite port
-            - CHOKIDAR_USEPOLLING=true
-            - CHOKIDAR_INTERVAL=1000
-            - WATCHPACK_POLLING=true
-        networks:
-            - laravel
-        deploy:
-            resources:
-                limits:
-                    cpus: '3'
-                    memory: 4G
-
+    # Development tools
     phpmyadmin:
         image: phpmyadmin:latest
         container_name: phpmyadmin
@@ -152,6 +149,16 @@ services:
             - UPLOAD_LIMIT=512M
         networks:
             - laravel
+
+    mailhog:
+        image: mailhog/mailhog
+        container_name: mailhog
+        ports:
+            - "8025:8025" # Panel Web MailHog
+            - "1025:1025" # SMTP MailHog
+        networks:
+            - laravel
+
     mysqldump:
         image: mysql:8.0
         container_name: mysqldump-tool

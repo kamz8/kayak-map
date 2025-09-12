@@ -96,7 +96,7 @@ COPY --from=builder /var/www/html /var/www/html
 WORKDIR /var/www/html
 
 # Konfiguracja uprawnień
-RUN mkdir -p storage/framework/{cache,views,sessions} storage/logs \
+RUN mkdir -p storage/framework/{cache,Pages,sessions} storage/logs \
     && chown -R www-data:www-data . \
     && chmod -R 775 storage bootstrap/cache
 

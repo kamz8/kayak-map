@@ -49,6 +49,20 @@ down: ## Zatrzymaj kontenery Docker
 logs: ## Pokaż logi kontenerów
 	@docker-compose logs -f
 
+docker-dev: ## Uruchom Vite dev server w Docker z HMR przez nginx
+	@echo "🚀 Uruchamianie full stack w Docker z HMR..."
+	@docker-compose up nginx vite -d
+	@echo "🌐 Aplikacja dostępna na: https://kayak-map.test"
+	@echo "🔥 HMR działa przez nginx proxy"
+	@echo "📱 Dodaj do /etc/hosts: 127.0.0.1 kayak-map.test"
+	@docker-compose logs -f vite
+
+docker-build: ## Zbuduj kontener Vite
+	@docker-compose build vite
+
+docker-logs: ## Pokaż logi Vite dev server
+	@docker-compose logs -f vite
+
 ## Development
 dev: ## Uruchom development serwer
 	@npm run dev

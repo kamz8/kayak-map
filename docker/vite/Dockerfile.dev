@@ -1,0 +1,24 @@
+FROM node:18-alpine
+
+# Zainstaluj podstawowe narzędzia
+RUN apk add --no-cache git
+
+# Ustaw katalog roboczy
+WORKDIR /app
+
+# Skopiuj pliki package.json i package-lock.json
+COPY package*.json ./
+
+# Zainstaluj dependencje
+RUN npm ci
+
+# Expose porty dla Vite dev server i HMR
+EXPOSE 5173 24678
+
+# Ustaw zmienne środowiskowe
+ENV NODE_ENV=development
+ENV DOCKER_ENV=true
+ENV CHOKIDAR_USEPOLLING=true
+
+# Komenda domyślna z hostowaniem na 0.0.0.0
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

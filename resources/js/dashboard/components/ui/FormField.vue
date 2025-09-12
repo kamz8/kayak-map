@@ -131,7 +131,7 @@ export default {
     },
     density: {
       type: String,
-      default: 'default'
+      default: 'compact'
     },
     helpText: String
   },

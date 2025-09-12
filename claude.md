@@ -65,31 +65,116 @@
 
 **River (Rzeki)**
 ```php
-- id, name, path (geometria rzeki)
+- id, name, path (geometria rzeki - GEOGRAPHY LINESTRING)
 ```
 
 **RiverTrack (Ścieżki rzeczne)**
 ```php
-- track_points (JSON) - punkty GPS tworzące trasę
+- id, trail_id, track_points (JSON)
+- Punkty GPS tworzące trasę w formacie [{"lat": 50.0, "lng": 19.0}]
+```
+
+**Section (Sekcje szlaków)**
+```php
+- id, trail_id, name, description
+- polygon_coordinates (JSON), scenery
+- Sekcje dzielą szlak na mniejsze odcinki
+```
+
+#### System Użytkowników
+
+**Users (Użytkownicy)**
+```php
+- id, first_name, last_name, name, email (unique)
+- password (nullable - dla OAuth), email_verified_at
+- phone (unique, nullable), phone_verified
+- bio, location, birth_date, gender
+- preferences (JSON), notification_settings (JSON)  
+- is_active, is_admin, last_login_at, last_login_ip
+- remember_token, deleted_at (soft delete)
+```
+
+**Social Accounts (OAuth)**
+```php
+- id, user_id, provider, provider_id
+- provider_token, provider_refresh_token, token_expires_at
+- provider_nickname
+- Unique index: [provider, provider_id]
+```
+
+**Verification Codes**
+```php
+- id, user_id, code, type, used, expires_at
+- Typy: email (32 znaki, 24h), phone (6 cyfr, 10min)
+- 2fa (6 cyfr, 5min), action (6 cyfr, 10min)
+```
+
+**User Devices**
+```php
+- id, user_id, device_id (unique), device_type
+- device_name, push_token, last_used_at
+- Typy: ios/android/web
+```
+
+#### Media i Powiązania
+
+**Images**
+```php
+- id, path, created_at, updated_at
+```
+
+**Imageables (Polimorficzne relacje)**
+```php
+- id, image_id, imageable_id, imageable_type
+- is_main, order
+- Powiązania: Trail → Images, Section → Images
+```
+
+**Links**
+```php  
+- id, section_id, url, meta_data (JSON)
+- Linki zewnętrzne dla sekcji
 ```
 
 #### Relacje
-- Trail ↔ Region (many-to-many)
+- Trail ↔ Region (many-to-many przez trail_region)
 - Trail → RiverTrack (one-to-one)
 - Trail → Section (one-to-many)
 - Trail → Point (one-to-many)
 - Region → Region (self-referencing hierarchy)
+- User → SocialAccount (one-to-many)
+- User → VerificationCode (one-to-many)
+- User → UserDevice (one-to-many)
+- Trail/Section → Images (polymorphic many-to-many)
 
 ### Architektura Frontend
 
-#### Struktura Modułowa
+#### Struktura Modułowa - Main App
 ```
 resources/js/modules/
-├── auth/                    # Uwierzytelnianie
+├── auth/                    # Uwierzytelnianie JWT
 ├── main-page/              # Strona główna
 ├── regions/                # Regiony i nawigacja
 ├── system-messages/        # Powiadomienia systemowe
 └── trails/                 # Szlaki i mapa
+```
+
+#### Dashboard SPA - Oddzielna Aplikacja
+```
+resources/js/modules/dashboard/
+├── main.js                 # Vite entry point
+├── App.vue                 # Root component  
+├── components/
+│   ├── layout/            # DashboardLayout, Sidebar, TopBar
+│   └── ui/                # DataTable, FormField, StatsCard, ConfirmDialog
+├── views/
+│   ├── auth/              # LoginView.vue
+│   ├── dashboard/         # Overview.vue
+│   └── trails/            # TrailsList.vue, TrailsCreate.vue
+├── store/                 # Separate Vuex store (auth + ui modules)
+├── router/                # Vue Router config
+├── plugins/               # Vuetify + Axios configuration
+└── styles/                # Dashboard-specific styles
 ```
 
 #### Kluczowe Komponenty
@@ -237,6 +322,34 @@ GET /api/v1/search              # Wyszukiwanie
 - **Batch imports** - Masowy import danych
 - **Region association** - Automatyczne przypisywanie
 
+#### Cache System (Vue Plugin)
+- **TTL Cache** - Cache z czasem wygaśnięcia
+- **Tag-based Cache** - Grupowanie cache po tagach
+- **Laravel-style API** - `remember()`, `setCacheWithTTL()`, `getCacheWithTTL()`
+- **Auto-cleanup** - Automatyczne usuwanie przeterminowanych danych
+- **LocalStorage backend** - Persistentne przechowywanie w przeglądarce
+
+```javascript
+// Przykład użycia cache plugin
+this.$cache.remember('trails-data', 3600, async () => {
+  const response = await axios.get('/api/v1/trails');
+  return response.data;
+}, ['trails', 'api']);
+```
+
+#### System Wiadomości
+- **Global helpers** - `$alertInfo()`, `$alertWarning()`, `$alertError()`
+- **Auto-timeout** - Automatyczne ukrywanie po 3 sekundach
+- **Vuex integration** - Centralne zarządzanie komunikatami
+- **Multiple types** - Info, Warning, Error messages
+
+#### Multi-Entry Vite Build
+- **Main App** - `resources/js/app.js` 
+- **Dashboard SPA** - `resources/js/modules/dashboard/main.js`
+- **Separate bundles** - Niezależne aplikacje z własnym cache
+- **Hot Module Replacement** - HMR dla obu aplikacji
+- **Shared dependencies** - Wspólne biblioteki (Vue, Vuetify)
+
 ### Konfiguracja Środowiska
 
 #### Wymagania Systemowe
@@ -271,6 +384,18 @@ npm run setup  # lub make setup
 "kamz8/laravel-overpass": "0.1.0-alpha", 
 "sibyx/phpgpx": "1.3.0",
 "spatie/browsershot": "^4.3"
+```
+
+#### Kluczowe Zależności NPM
+```json
+"vue": "^3.4.0",
+"vuetify": "^3.6.13", 
+"vuex": "^4.1.0",
+"vue-router": "^4.3.0",
+"leaflet": "^1.9.0",
+"@vue-leaflet/vue-leaflet": "^0.10.0",
+"axios": "^1.6.0",
+"vite": "^5.0.0"
 ```
 
 ### SEO i Performance
@@ -354,12 +479,72 @@ make status         # Status projektu i kontenerów
 make help           # Wszystkie dostępne komendy
 ```
 
+## Dashboard Administration Panel
+
+### ✅ **Status: GOTOWY DO UŻYTKU**
+
+Dashboard to w pełni funkcjonalna aplikacja SPA zintegrowana z głównym projektem:
+
+#### **Funkcje Dashboard**
+- **Admin Authentication** - Separate login system z JWT
+- **Trails Management** - CRUD operations dla szlaków
+- **Users Management** - Zarządzanie użytkownikami (planowane)
+- **Analytics Overview** - Statystyki i metryki
+- **System Settings** - Konfiguracja aplikacji
+
+#### **Dostęp do Dashboard**
+- **URL**: `https://kayak-map.test/dashboard`
+- **Login Page**: `https://kayak-map.test/dashboard/login`
+- **Development**: `npm run dev` → Dashboard dostępny natychmiast
+- **Production**: `npm run build` → Separate bundle dla dashboard
+
+#### **Vite Configuration**
+```javascript
+// vite.config.js - Multi-entry setup
+input: [
+  'resources/css/app.css',
+  'resources/js/app.js',                          // Main app
+  'resources/js/modules/dashboard/main.js'        // Dashboard SPA
+]
+```
+
+#### **Laravel Routes**
+```php
+// routes/web.php
+Route::get('/dashboard/{any?}', function () {
+    return view('dashboard');
+})->where('any', '.*');
+```
+
+#### **UI Components (shadcn-vue style)**
+- **DataTable** - Advanced CRUD tables z paginacją/sortowaniem
+- **FormField** - Universal form fields z validation
+- **StatsCard** - Dashboard metrics cards
+- **ConfirmDialog** - Action confirmations
+
+### **Admin User Setup**
+```bash
+# Automatyczne utworzenie admin user
+php artisan db:seed AdminUserSeeder
+
+# Sprawdzenie admin users
+php artisan check:admin-user
+```
+
 ## Użytkowanie
 
 ### Dla Deweloperów
 1. **Setup lokalny**: `npm run setup` (automatyczny setup z danymi produkcyjnymi)
-2. **Development**: `npm run dev` + `php artisan serve`
+2. **Development**: `npm run dev` (uruchamia oba: main app + dashboard)
 3. **Świeży start**: `npm run fresh` (w razie problemów)
+4. **Dashboard dev**: Navigate to `http://localhost/dashboard`
+
+### Dla Administratorów
+1. **Dashboard Login**: `/dashboard/login`
+2. **Trails Management**: CRUD operations na szlakach
+3. **User Management**: Zarządzanie użytkownikami
+4. **Analytics**: Overview statystyk i metryk
+5. **System Settings**: Konfiguracja aplikacji
 
 ### Dla Użytkowników
 1. **Eksploracja map** - Przeglądanie interaktywnej mapy szlaków
@@ -367,7 +552,30 @@ make help           # Wszystkie dostępne komendy
 3. **Szczegóły szlaków** - Punkty ostrzeżenia i informacje
 4. **Planowanie tras** - Wybór optymalnych szlaków
 
+## Status Projektu
+
+### ✅ **Główne Komponenty - UKOŃCZONE**
+- **Backend API** - Laravel 11 z spatial extensions
+- **Frontend SPA** - Vue 3 + Vuetify z Leaflet maps
+- **Database** - MySQL z pełną strukturą spatial
+- **Authentication** - JWT + OAuth (Google/Facebook)
+- **Dashboard Panel** - Separate SPA dla administracji
+- **Docker Setup** - Multi-container development environment
+
+### 🚧 **W Trakcie Rozwoju**
+- **Mobile Apps** - React Native/Flutter (planowane)
+- **Advanced Analytics** - Dashboard charts i raporty
+- **Real-time Features** - WebSocket notifications
+- **Offline Maps** - Progressive Web App features
+
+### 🔮 **Przyszłe Funkcje**
+- **Device Integration** - GPS trackers, water level monitoring
+- **Multi-country Support** - Expansion beyond Poland
+- **Advanced ML** - Trail recommendations, difficulty prediction
+- **Community Features** - User reviews, trail sharing
+
 ---
 
-*Dokumentacja aktualizowana: 29.08.2025*
-*Wersja projektu: Laravel 11 + Vue 3*
+*Dokumentacja aktualizowana: 12.09.2025*  
+*Wersja projektu: Laravel 11 + Vue 3*  
+*Dashboard Status: **PRODUCTION READY** ✅*

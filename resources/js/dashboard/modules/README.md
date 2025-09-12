@@ -81,7 +81,7 @@ import { DataTable, FormField } from '@ui'
 
 ### 1. Utwórz strukturę modułu:
 ```bash
-mkdir -p resources/js/dashboard/modules/nazwa-modulu/{views,store,components}
+mkdir -p resources/js/dashboard/modules/nazwa-modulu/{Pages,store,components}
 ```
 
 ### 2. Stwórz index.js z exportami:
@@ -91,7 +91,7 @@ export const nazwaModuluRoutes = [
   // routes definition
 ]
 
-export const NazwaModuluComponent = () => import('./views/Component.vue')
+export const NazwaModuluComponent = () => import('./Pages/Component.vue')
 ```
 
 ### 3. Zintegruj z routerem:

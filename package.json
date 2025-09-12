@@ -6,7 +6,7 @@
         "build": "vite build && npm run move-manifest",
         "render": "vite build --config=vite.config.render.js",
         "herd": "vite --config=vite.config.herd.js",
-        "docker:dev": "docker-compose -f docker-compose.dev.yml up --build -d",
+        "docker:dev": "docker-compose up nginx vite -d && echo 'App: https://kayak-map.test (add to /etc/hosts: 127.0.0.1 kayak-map.test)' && docker-compose logs -f vite",
         "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
         "move-manifest": "node move-manifest.js",
         "swagger": "php artisan l5-swagger:generate",
@@ -17,11 +17,16 @@
         "db:restore": "bash devops/database/db-restore.sh",
         "db:test": "bash devops/database/db-test-restore.sh",
         "db:cleanup": "bash devops/database/cleanup-test.sh",
-        "macos:check": "bash devops/setup/macos-compatibility.sh"
+        "macos:check": "bash devops/setup/macos-compatibility.sh",
+        "docker:up": "docker-compose up -d",
+        "docker:down": "docker-compose down",
+        "docker:build": "docker-compose build vite",
+        "docker:logs": "docker-compose logs -f vite"
     },
     "devDependencies": {
         "@vitejs/plugin-basic-ssl": "^1.1.0",
-        "vite-plugin-browser-sync": "^3.0.4"
+        "vite-plugin-browser-sync": "^3.0.4",
+        "vite-plugin-vuetify": "^2.1.2"
     },
     "dependencies": {
         "@mdi/font": "^7.4.47",

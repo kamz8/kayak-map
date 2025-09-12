@@ -9,6 +9,7 @@ import axios from './plugins/axios.js'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import './styles/main.css'
+import './design-system/styles.css'
 
 const app = createApp(App)
 
@@ -16,6 +17,10 @@ app.use(router)
 app.use(store)
 app.use(vuetify)
 
+window.axios = axios;
+
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.headers.common['X-Client-Type'] = 'web';
 // Global properties
 app.config.globalProperties.$http = axios
 
