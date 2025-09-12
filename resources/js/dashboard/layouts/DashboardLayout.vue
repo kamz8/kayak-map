@@ -57,15 +57,15 @@
                 title="Regiony"
                 disabled
               />
-              <v-list-item
-                class="nav-item disabled"
-                prepend-icon="mdi-account-group"
-                title="Użytkownicy"
-                disabled
-              />
             </template>
 
             <template v-if="section.name === 'System'">
+                <v-list-item
+                    class="nav-item disabled"
+                    prepend-icon="mdi-account-group"
+                    title="Użytkownicy"
+                    disabled
+                />
               <v-list-item
                 class="nav-item disabled"
                 prepend-icon="mdi-chart-line"

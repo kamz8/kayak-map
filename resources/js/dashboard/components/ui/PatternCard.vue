@@ -16,32 +16,32 @@
     @click="handleClick"
   >
     <!-- Pattern SVG Overlay -->
-    <svg 
-      class="pattern-svg" 
+    <svg
+      class="pattern-svg"
       fill="none"
       :class="`pattern-svg--${theme}`"
     >
       <defs>
-        <pattern 
-          :id="`pattern-${patternId}`" 
-          x="0" 
-          y="0" 
-          width="8" 
-          height="8" 
+        <pattern
+          :id="`pattern-${patternId}`"
+          x="0"
+          y="0"
+          width="8"
+          height="8"
           patternUnits="userSpaceOnUse"
         >
-          <path 
-            d="M-1 5L5 -1M3 9L8.5 3.5" 
+          <path
+            d="M-1 5L5 -1M3 9L8.5 3.5"
             :stroke-width="patternStrokeWidth"
             :stroke="patternStroke"
           />
         </pattern>
       </defs>
-      <rect 
-        stroke="none" 
-        :fill="`url(#pattern-${patternId})`" 
-        width="100%" 
-        height="100%" 
+      <rect
+        stroke="none"
+        :fill="`url(#pattern-${patternId})`"
+        width="100%"
+        height="100%"
       />
     </svg>
 
@@ -74,7 +74,7 @@ export default {
       type: [String, Number],
       default: 0
     },
-    
+
     // Custom props
     variant: {
       type: String,
@@ -109,7 +109,7 @@ export default {
     },
     backgroundColor() {
       if (this.color) return this.color
-      
+
       const variants = {
         default: this.theme === 'dark' ? '#1a1a1a' : '#ffffff',
         primary: this.theme === 'dark' ? '#1e293b' : '#e3f2fd',
@@ -118,7 +118,7 @@ export default {
         warning: this.theme === 'dark' ? '#92400e' : '#fff8e1',
         error: this.theme === 'dark' ? '#7f1d1d' : '#ffebee'
       }
-      
+
       return variants[this.variant]
     },
     patternStroke() {
@@ -140,7 +140,7 @@ export default {
           error: 'rgba(220, 38, 38, 0.15)'
         }
       }
-      
+
       return strokes[this.theme]?.[this.variant] || strokes[this.theme].default
     }
   },
@@ -275,5 +275,16 @@ export default {
 
 .v-theme--light .pattern-card--error {
   border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+
+}
+
+@media (max-width: 768px) {
+    .pattern-card__content {
+        padding: 1rem;
+    }
 }
 </style>
