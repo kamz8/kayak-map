@@ -1,2 +1,5 @@
+# Ignoruj user uploads, ale zachowaj static assets
 *
 !.gitignore
+!assets/
+!assets/**

@@ -1,0 +1,47 @@
+<!--
+Przykładowa konfiguracja launch dla PhpStorm
+Skopiuj do .idea/runConfigurations/ jeśli nie zostanie automatycznie utworzona
+-->
+
+<component name="ProjectRunConfigurationManager">
+  <!-- Debug Web Application -->
+  <configuration name="Debug Web Application" type="PhpWebAppRunConfigurationType" factoryName="PHP Web Application" server_name="kayak-map-devcontainer">
+    <method v="2" />
+  </configuration>
+
+  <!-- Artisan Commands -->
+  <configuration name="Artisan Tinker" type="PhpLocalRunConfigurationType" factoryName="PHP Console" path="$PROJECT_DIR$/artisan" scriptParameters="tinker">
+    <method v="2" />
+  </configuration>
+
+  <configuration name="Artisan Migrate" type="PhpLocalRunConfigurationType" factoryName="PHP Console" path="$PROJECT_DIR$/artisan" scriptParameters="migrate">
+    <method v="2" />
+  </configuration>
+
+  <configuration name="Artisan Serve" type="PhpLocalRunConfigurationType" factoryName="PHP Console" path="$PROJECT_DIR$/artisan" scriptParameters="serve --host=0.0.0.0 --port=8000">
+    <method v="2" />
+  </configuration>
+
+  <!-- NPM Scripts -->
+  <configuration name="npm run dev" type="js.build_tools.npm" nameIsGenerated="true">
+    <package-json value="$PROJECT_DIR$/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="dev" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+
+  <configuration name="npm run build" type="js.build_tools.npm" nameIsGenerated="true">
+    <package-json value="$PROJECT_DIR$/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="build" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

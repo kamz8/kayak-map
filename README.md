@@ -85,16 +85,20 @@ Setup automatycznie:
 - ✅ **Tworzy wszystkie tabele** (migrate:fresh)
 - ✅ **Importuje dane produkcyjne** z backup (164 szlaki, 232 regiony, 5206 punktów)
 - ✅ **Konfiguruje PhpMyAdmin** do zarządzania bazą
+- ✅ **Tworzy storage symlink** (`public/storage` → `storage/app/public`)
 
 **Dane po instalacji:**
 ```bash
 # Sprawdź status projektu i bazy
-./dev-helper.sh status
+make status
 
 # Sprawdź dane w bazie
 docker exec mariadb mariadb -u root -padmin123 kayak_map -e "
 SELECT COUNT(*) as trails FROM trails;
 SELECT COUNT(*) as regions FROM regions;"
+
+# Sprawdź czy storage symlink działa
+ls -la public/storage  # Powinien wskazywać na ../storage/app/public
 ```
 
 ### 🛠️ Dla developerów bez PHP/Composer
@@ -156,6 +160,34 @@ kayak-map/
 
 ---
 
+## 💻 DevContainer dla PhpStorm/JetBrains
+
+### **Idealne dla zespołów używających PhpStorm!**
+
+1. **Zainstaluj plugin Dev Containers w PhpStorm**
+2. **Otwórz projekt → kliknij "Reopen in Container"**
+3. **Poczekaj 2 minuty na automatyczny setup**
+4. **Gotowe!** - pełne środowisko z debuggerem
+
+### ✅ **Co dostajecie automatycznie:**
+- 🐛 **Xdebug** skonfigurowany dla PhpStorm (breakpoints działają!)
+- 🗄️ **Database connection** w PhpStorm Database tool
+- 🔧 **PHP Interpreter** skonfigurowany (Docker PHP 8.3)
+- 🚀 **Hot reload** dla frontend (Vite) i backend
+- 📦 **Wszystkie dependencje** zainstalowane automatycznie
+- 🌐 **Port forwarding** - wszystkie serwisy dostępne lokalnie
+- ⚡ **Launch configurations** - gotowe konfiguracje debug/artisan/npm w `.devcontainer/phpstorm-launch.xml`
+
+### 🎯 **Perfect for your team:**
+- **Developer PHP** → pełne debugging + database tools
+- **Developer Kotlin** → nie musi znać PHP, wszystko gotowe w PhpStorm
+- **Identyczne środowisko** na każdej maszynie
+- **Zero "works on my machine"** problems
+
+**Szczegóły**: Zobacz `.devcontainer/README.md`
+
+---
+
 ## Instalacja Legacy (bez Docker)
 
 <details>
@@ -168,6 +200,13 @@ kayak-map/
 - **PHP** >= 8.x
 - **MySQL** with spatial extensions enabled
 
+### Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/kayak-map.git
+cd kayak-map
+```
+
 ### Backend Setup
 
 1. Install backend dependencies:
@@ -177,7 +216,7 @@ kayak-map/
 
 2. Set up environment variables:
    ```bash
-   cp .env.example .env
+   cp .env.local.example .env.local
    ```
 
 3. Generate application key:
@@ -187,7 +226,7 @@ kayak-map/
 
 4. Run database migrations:
    ```bash
-   php artisan migrate:fresh
+   php artisan migrate
    ```
 
 5. Seed the database:
@@ -211,8 +250,6 @@ kayak-map/
    ```bash
    npm run dev
    ```
-
-</details>
 
 ## API Endpoints
 

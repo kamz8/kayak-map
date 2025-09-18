@@ -197,6 +197,15 @@ else
     fi
 fi
 
+# Tworzenie storage symlink
+echo -e "${YELLOW}🔗 Tworzenie storage symlink...${NC}"
+if [ ! -L "public/storage" ]; then
+    php artisan storage:link
+    echo -e "${GREEN}✅ Storage symlink utworzony${NC}"
+else
+    echo -e "${YELLOW}Storage symlink już istnieje${NC}"
+fi
+
 # Cache konfiguracji (opcjonalnie)
 echo -e "${YELLOW}💾 Optymalizacja konfiguracji...${NC}"
 if command -v php >/dev/null 2>&1; then
