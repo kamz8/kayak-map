@@ -53,7 +53,113 @@ The main objectives and key aspects of this application are:
 - **Database**: MySQL with support for geographic data types (`GEOMETRY`, `GEOGRAPHY`).
 - **Job Queue**: Asynchronous task handling for processing large datasets like trail imports and region mapping.
 
-## Installation
+## 🚀 Quick Setup dla Developerów
+
+### Wymagania minimalne
+- **Docker Desktop** - [pobierz tutaj](https://www.docker.com/products/docker-desktop/)
+- **Node.js** (v16+) - [pobierz tutaj](https://nodejs.org/)
+- **Git** - [pobierz tutaj](https://git-scm.com/)
+
+### ⚡ Instalacja w 3 krokach
+
+```bash
+# 1. Klonuj projekt
+git clone https://github.com/yourusername/kayak-map.git
+cd kayak-map
+
+# 2. Automatyczny setup (wszystko się skonfiguruje)
+npm run setup
+
+# 3. Gotowe! 🎉
+```
+
+**Po setup aplikacja dostępna pod:**
+- **Frontend**: http://localhost:5173 (development)
+- **Backend**: http://localhost:8000
+- **PhpMyAdmin**: http://localhost:8081 (baza danych)
+
+### 🗄️ Baza danych - automatycznie skonfigurowana!
+
+Setup automatycznie:
+- ✅ **Uruchamia MariaDB** w kontenerze Docker
+- ✅ **Tworzy wszystkie tabele** (migrate:fresh)
+- ✅ **Importuje dane produkcyjne** z backup (164 szlaki, 232 regiony, 5206 punktów)
+- ✅ **Konfiguruje PhpMyAdmin** do zarządzania bazą
+
+**Dane po instalacji:**
+```bash
+# Sprawdź status projektu i bazy
+./dev-helper.sh status
+
+# Sprawdź dane w bazie
+docker exec mariadb mariadb -u root -padmin123 kayak_map -e "
+SELECT COUNT(*) as trails FROM trails;
+SELECT COUNT(*) as regions FROM regions;"
+```
+
+### 🛠️ Dla developerów bez PHP/Composer
+
+**Nie martw się!** Wszystko działa przez Docker - nie musisz instalować PHP ani Composer lokalnie:
+
+```bash
+# Wszystkie komendy przez helper script:
+./dev-helper.sh composer install          # Composer w kontenerze
+./dev-helper.sh artisan make:model Post   # Laravel commands
+./dev-helper.sh migrate                   # Migracje
+./dev-helper.sh tinker                    # Laravel Tinker
+./dev-helper.sh help                      # Zobacz wszystkie dostępne komendy
+```
+
+### 📋 Przydatne komendy
+
+```bash
+# Development
+npm run dev              # Frontend hot-reload
+./dev-helper.sh artisan serve  # Backend server (w kontenerze)
+
+# Zarządzanie bazą danych
+npm run db:backup        # Backup bazy danych
+npm run db:restore       # Przywróć z backup
+./dev-helper.sh db-fresh # Świeże migracje + dane testowe
+
+# Docker
+docker-compose up -d     # Uruchom kontenery
+docker-compose down      # Zatrzymaj kontenery
+docker-compose logs -f   # Zobacz logi
+
+# Problemy? Reset wszystkiego:
+npm run fresh            # Świeża instalacja (czyści kontenery + volumny)
+npm run fresh:deep       # + usuwa node_modules i vendor
+```
+
+### 🆘 Rozwiązywanie problemów
+
+| Problem | Rozwiązanie |
+|---------|-------------|
+| **Docker nie odpowiada?** | `docker-compose down -v && npm run fresh` |
+| **Błędy z bazą danych?** | `npm run db:restore` (przywróć dane z backup) |
+| **Problemy z cache?** | `./dev-helper.sh artisan cache:clear` |
+| **Chcesz zacząć od zera?** | `npm run fresh:deep` (usuwa wszystko) |
+| **Brakuje Composer/PHP?** | Używaj `./dev-helper.sh` - wszystko działa w kontenerze |
+
+### 🎯 Struktura projektu po setup
+
+```
+kayak-map/
+├── 🗄️  Baza danych       → MariaDB (port 3306) z danymi produkcyjnymi
+├── 🐳  Docker           → Wszystkie serwisy (nginx, php, redis, mariadb)
+├── 🎨  Frontend         → Vue.js + Vuetify (port 5173)
+├── ⚙️   Backend          → Laravel 11 (port 8000)
+├── 📊  PhpMyAdmin       → Zarządzanie bazą (port 8081)
+└── 🛠️  Dev Tools        → dev-helper.sh dla wygody
+```
+
+---
+
+## Instalacja Legacy (bez Docker)
+
+<details>
+<summary>Kliknij tutaj jeśli chcesz tradycyjną instalację z lokalnym PHP</summary>
 
 ### Prerequisites
 
@@ -61,13 +167,6 @@ The main objectives and key aspects of this application are:
 - **Composer** >= 2.x
 - **PHP** >= 8.x
 - **MySQL** with spatial extensions enabled
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/yourusername/kayak-map.git
-cd kayak-map
-```
 
 ### Backend Setup
 
@@ -78,7 +177,7 @@ cd kayak-map
 
 2. Set up environment variables:
    ```bash
-   cp .env.local.example .env.local
+   cp .env.example .env
    ```
 
 3. Generate application key:
@@ -88,7 +187,7 @@ cd kayak-map
 
 4. Run database migrations:
    ```bash
-   php artisan migrate
+   php artisan migrate:fresh
    ```
 
 5. Seed the database:
@@ -112,6 +211,8 @@ cd kayak-map
    ```bash
    npm run dev
    ```
+
+</details>
 
 ## API Endpoints
 

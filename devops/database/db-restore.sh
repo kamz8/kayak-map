@@ -1,15 +1,35 @@
 #!/bin/bash
 set -e
 
-# Konfiguracja - automatycznie z .env lub domyślne wartości
-DB_CONTAINER="mariadb"
-DB_NAME=${DB_DATABASE:-"kayak_map"}
-DB_USER=${DB_USERNAME:-"admin"}
-DB_PASS=${DB_PASSWORD:-"Poké!moon95"}
+# Funkcja do odczytu wartości z pliku .env
+get_env_value() {
+    local key=$1
+    local default=$2
+    if [ -f ".env" ]; then
+        local value=$(grep "^${key}=" ".env" 2>/dev/null | cut -d '=' -f2- | sed 's/^["'\'']\|["'\'']$//g')
+        echo "${value:-$default}"
+    else
+        echo "$default"
+    fi
+}
+
+# Konfiguracja z .env lub domyślne wartości
+DB_CONTAINER=$(get_env_value "DB_CONTAINER" "kayak-mysql")
+DB_NAME=$(get_env_value "DB_DATABASE" "kayak_map")
+DB_USER=$(get_env_value "DB_USERNAME" "root")
+DB_PASS=$(get_env_value "DB_PASSWORD" "root_password")
+DB_HOST=$(get_env_value "DB_HOST" "localhost")
+DB_PORT=$(get_env_value "DB_PORT" "3306")
 BACKUP_DIR="database/backups"
 ENCRYPTED_FILE="$BACKUP_DIR/production_data.sql.enc"
 TEMP_FILE="$BACKUP_DIR/temp_restore_$(date +%Y%m%d_%H%M%S).sql"
-BACKUP_PASSWORD=${BACKUP_PASSWORD:-"kayak2024!backup#secure"}
+BACKUP_PASSWORD=$(get_env_value "BACKUP_PASSWORD" "kayak2024!backup#secure")
+
+echo "📖 Konfiguracja odczytana z .env:"
+echo "   DB Container: $DB_CONTAINER"
+echo "   DB Name: $DB_NAME"
+echo "   DB Host: $DB_HOST:$DB_PORT"
+echo "   DB User: $DB_USER"
 
 echo "🔄 Przywracanie bazy danych z zaszyfrowanego backup..."
 
@@ -48,14 +68,14 @@ docker exec -i $DB_CONTAINER mariadb -u $DB_USER -p$DB_PASS $DB_NAME < $TEMP_FIL
 
 if [ $? -eq 0 ]; then
     echo "✅ Import zakończony pomyślnie!"
-    
+
     # Usuń tymczasowy plik
     rm $TEMP_FILE
-    
+
     # Pokaż statystyki
     echo "📊 Statystyki bazy danych:"
     docker exec $DB_CONTAINER mariadb -u $DB_USER -p$DB_PASS $DB_NAME -e "
-        SELECT 
+        SELECT
             (SELECT COUNT(*) FROM trails) as trails_count,
             (SELECT COUNT(*) FROM regions) as regions_count,
             (SELECT COUNT(*) FROM points) as points_count,

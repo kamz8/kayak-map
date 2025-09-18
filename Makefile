@@ -1,7 +1,16 @@
 .PHONY: setup fresh fresh-deep db-backup db-restore help clean
 
-# Zmienne
-DB_CONTAINER = kayak-mysql
+# Funkcja do odczytu .env
+define get_env_value
+$(shell if [ -f .env ]; then grep "^$(1)=" .env 2>/dev/null | cut -d '=' -f2- | sed 's/^["'\'']\|["'\'']$$//g'; else echo "$(2)"; fi)
+endef
+
+# Zmienne z .env lub domyślne
+DB_CONTAINER = $(call get_env_value,DB_CONTAINER,kayak-mysql)
+DB_HOST = $(call get_env_value,DB_HOST,localhost)
+DB_PORT = $(call get_env_value,DB_PORT,3306)
+DB_DATABASE = $(call get_env_value,DB_DATABASE,kayak_map)
+APP_URL = $(call get_env_value,APP_URL,http://localhost:8000)
 BACKUP_DIR = database/backups
 ENCRYPTED_BACKUP = $(BACKUP_DIR)/production_data.sql.enc
 

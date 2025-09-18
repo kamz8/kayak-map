@@ -8,11 +8,25 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Konfiguracja - automatycznie z .env lub domyślne wartości
-DB_CONTAINER="mariadb"
-DB_NAME=${DB_DATABASE:-"kayak_map"}
-DB_USER=${DB_USERNAME:-"admin"}
-DB_PASS=${DB_PASSWORD:-"Poké!moon95"}
+# Funkcja do odczytu wartości z pliku .env
+get_env_value() {
+    local key=$1
+    local default=$2
+    if [ -f ".env" ]; then
+        local value=$(grep "^${key}=" ".env" 2>/dev/null | cut -d '=' -f2- | sed 's/^["'\'']\|["'\'']$//g')
+        echo "${value:-$default}"
+    else
+        echo "$default"
+    fi
+}
+
+# Konfiguracja z .env lub domyślne wartości
+DB_CONTAINER=$(get_env_value "DB_CONTAINER" "kayak-mysql")
+DB_NAME=$(get_env_value "DB_DATABASE" "kayak_map")
+DB_USER=$(get_env_value "DB_USERNAME" "admin")
+DB_PASS=$(get_env_value "DB_PASSWORD" "admin123")
+DB_HOST=$(get_env_value "DB_HOST" "localhost")
+DB_PORT=$(get_env_value "DB_PORT" "3306")
 BACKUP_DIR="database/backups"
 # Kompatybilność z macOS (BSD date) i Linux (GNU date)
 if date -j >/dev/null 2>&1; then
@@ -24,13 +38,15 @@ else
 fi
 BACKUP_FILE="$BACKUP_DIR/backup_$TIMESTAMP.sql"
 ENCRYPTED_FILE="$BACKUP_DIR/production_data.sql.enc"
-BACKUP_PASSWORD=${BACKUP_PASSWORD:-"kayak2024!backup#secure"}
+BACKUP_PASSWORD=$(get_env_value "BACKUP_PASSWORD" "kayak2024!backup#secure")
 
 echo -e "${BLUE}🔄 Bezpieczny backup bazy danych z widokami${NC}"
 echo "================================================="
+echo -e "📖 Konfiguracja odczytana z .env:"
 echo -e "📊 Baza danych: ${YELLOW}$DB_NAME${NC}"
 echo -e "🐳 Kontener: ${YELLOW}$DB_CONTAINER${NC}"
 echo -e "👤 Użytkownik: ${YELLOW}$DB_USER${NC}"
+echo -e "🏠 Host: ${YELLOW}$DB_HOST:$DB_PORT${NC}"
 
 # Sprawdź czy kontener działa
 if ! docker ps | grep -q $DB_CONTAINER 2>/dev/null; then

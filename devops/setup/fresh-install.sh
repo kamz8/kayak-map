@@ -11,9 +11,17 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🔄 Kayak Map - Świeża Instalacja${NC}"
 echo "===================================="
 
-# Zatrzymanie i usunięcie kontenerów
+# Zatrzymanie i usunięcie kontenerów z volumami
 echo -e "${YELLOW}🛑 Zatrzymywanie i usuwanie kontenerów...${NC}"
 docker-compose down -v --remove-orphans 2>/dev/null || true
+
+# Usuwanie wszystkich volumów projektu
+echo -e "${YELLOW}🗑️  Usuwanie volumów Docker...${NC}"
+docker volume ls -q | grep kayak-map | xargs docker volume rm 2>/dev/null || true
+
+# Dodatkowe czyszczenie obrazów orphaned
+echo -e "${YELLOW}🧹 Czyszczenie orphaned obrazów...${NC}"
+docker image prune -f 2>/dev/null || true
 
 # Czyszczenie cache'ów Laravel
 echo -e "${YELLOW}🧹 Czyszczenie cache'ów...${NC}"

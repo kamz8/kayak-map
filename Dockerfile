@@ -79,6 +79,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Instalacja Composer w etapie produkcyjnym
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
 # Konfiguracja Browsershot
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
