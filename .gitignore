@@ -23,3 +23,11 @@ yarn-error.log
 /.vscode
 /supervisord.log
 /supervisord.pid
+
+# Database backups - keep encrypted, ignore unencrypted
+/database/backups/*.sql
+/database/backups/backup_*.sql
+/database/backups/temp_*.sql
+# Keep encrypted production backup in repo
+!/database/backups/production_data.sql.enc
+!/database/backups/.gitkeep

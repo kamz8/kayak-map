@@ -1,0 +1,121 @@
+{
+	"name": "Kayak Map - Laravel + Vue.js",
+	"dockerComposeFile": [
+		"../docker-compose.yml",
+		"docker-compose.devcontainer.yml"
+	],
+	"service": "app",
+	"workspaceFolder": "/var/www/html",
+	"shutdownAction": "stopCompose",
+
+	// Features for additional tools
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"installOhMyZsh": true,
+			"upgradePackages": true,
+			"username": "vscode",
+			"uid": "1000",
+			"gid": "1000"
+		}
+	},
+
+	// PhpStorm specific settings
+	"customizations": {
+		"jetbrains": {
+			"backend": "IntelliJ",
+			"plugins": [
+				"com.jetbrains.php",
+				"com.jetbrains.php.tools.quality.phpstan",
+				"com.jetbrains.php.blade",
+				"org.jetbrains.plugins.vue",
+				"com.intellij.database",
+				"Docker",
+				"com.intellij.modules.lang.typescript"
+			],
+			"settings": {
+				"php.interpreters": {
+					"Docker PHP": {
+						"path": "/usr/local/bin/php"
+					}
+				},
+				"database": {
+					"connections": {
+						"kayak_map_dev": {
+							"host": "mariadb",
+							"port": 3306,
+							"database": "kayak_map",
+							"user": "root",
+							"password": "admin123"
+						}
+					}
+				}
+			}
+		}
+	},
+
+	// Ports to forward
+	"forwardPorts": [
+		3306,  // MariaDB
+		5173,  // Vite dev server
+		8000,  // Laravel serve
+		8081,  // PhpMyAdmin
+		6379,  // Redis
+		80,    // Nginx
+		443    // Nginx SSL
+	],
+
+	"portsAttributes": {
+		"3306": {
+			"label": "MariaDB",
+			"onAutoForward": "silent"
+		},
+		"5173": {
+			"label": "Vite Dev Server",
+			"onAutoForward": "notify"
+		},
+		"8000": {
+			"label": "Laravel Serve",
+			"onAutoForward": "notify"
+		},
+		"8081": {
+			"label": "PhpMyAdmin",
+			"onAutoForward": "silent"
+		},
+		"6379": {
+			"label": "Redis",
+			"onAutoForward": "silent"
+		},
+		"80": {
+			"label": "Nginx HTTP",
+			"onAutoForward": "notify"
+		},
+		"443": {
+			"label": "Nginx HTTPS",
+			"onAutoForward": "silent"
+		}
+	},
+
+	// Development tools and extensions
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"postStartCommand": "bash .devcontainer/post-start.sh",
+
+	// Mount points for better performance
+	"mounts": [
+		"source=kayak-map-vendor,target=/var/www/html/vendor,type=volume",
+		"source=kayak-map-node_modules,target=/var/www/html/node_modules,type=volume"
+	],
+
+	// Environment variables
+	"remoteEnv": {
+		"XDEBUG_MODE": "develop,debug",
+		"XDEBUG_CONFIG": "client_host=host.docker.internal",
+		"PHP_IDE_CONFIG": "serverName=kayak-map-devcontainer"
+	},
+
+	// User settings
+	"remoteUser": "www-data",
+	"updateRemoteUserUID": true
+}

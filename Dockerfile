@@ -71,13 +71,16 @@ RUN apt-get update && apt-get install -y \
         gd \
         bcmath \
         opcache \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
+    && pecl install redis xdebug \
+    && docker-php-ext-enable redis xdebug \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install --global puppeteer \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Instalacja Composer w etapie produkcyjnym
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Konfiguracja Browsershot
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \

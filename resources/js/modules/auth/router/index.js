@@ -8,7 +8,7 @@ export default [
         meta: {
             requiresGuest: true,
             layout: 'AuthLayout',
-            title: 'KAYAK - Zaloguj się'
+            title: 'Wartki Nurt -Zaloguj się'
         },
     },
     {
@@ -46,7 +46,7 @@ export default [
         meta: {
             requiresGuest: true,
             layout: 'AuthLayout',
-            title: 'KAYAK - Resetowanie hasła'
+            title: 'Wartki Nurt -Resetowanie hasła'
         }
     },
     {
@@ -56,7 +56,7 @@ export default [
         meta: {
             requiresGuest: true,
             layout: 'AuthLayout',
-            title: 'KAYAK - Przypomnij hasło'
+            title: 'Wartki Nurt -Przypomnij hasło'
         }
     },
 ];

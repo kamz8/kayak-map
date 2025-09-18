@@ -123,9 +123,9 @@ export default {
     this.initializeLocation(); // Próbujemy pobrać lokalizację użytkownika, jeśli jest dostępna
   },
   computed: {
-    limitedTrails() {
-      return (this.trails) ? this.trails.slice(0, 4) : [];
-    }
+      limitedTrails() {
+          return this.trails?.slice(0, 4) || [];
+      }
   },
   methods: {
       async initializeLocation() {
@@ -215,12 +215,11 @@ export default {
           this.isLoading = true;
 
           const fetchFunction = async () => {
-              const response = await axios.get(`/trails/nearby?location_name=Polska`);
-              return response.data.data;
+              const response = await apiClient().get(`/trails/nearby?location_name=Polska`);
+              return response.data?.data;
           };
 
           try {
-              // Używamy cache dla szlaków domyślnych z TTL 24 godziny (86400 sekund)
               this.trails = await this.$cache.remember('defaultTrails_Poland', 86400, fetchFunction, ['trails']);
           } catch (error) {
               this.$alertError('Nie udało się pobrać tras dla Polski.');

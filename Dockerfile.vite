@@ -3,34 +3,48 @@ FROM node:20-alpine
 # Ustawienie zmiennych środowiskowych
 ENV NODE_ENV=development
 ENV APP_HOME=/var/www/html
+ENV CHOKIDAR_USEPOLLING=true
+ENV CHOKIDAR_INTERVAL=1000
+ENV WATCHPACK_POLLING=true
 
 # Ustawienie katalogu roboczego
 WORKDIR $APP_HOME
 
 # Instalacja niezbędnych narzędzi
-RUN apk add --no-cache sudo bash
+RUN apk add --no-cache sudo bash git
 
-# Kopiowanie plików konfiguracyjnych
+# Kopiowanie plików konfiguracyjnych (tylko package.json i lock file)
 COPY package*.json ./
-COPY vite.config.js ./
 
-# Instalacja zależności jako root
-CMD chmod -R 777 public
+# Instalacja zależności npm
 RUN npm install
 
 # Kopiowanie reszty kodu źródłowego
 COPY . .
 
-# Ustawienie uprawnień
+# Kopiowanie konfiguracji Vite (na wypadek gdyby została nadpisana)
+COPY vite.config.js ./
+
+# Tworzenie niezbędnych katalogów
 RUN mkdir -p public/build && \
-    chmod -R 777 public && \
-    chmod -R 777 node_modules && \
-    chown -R root:root .
+    mkdir -p resources/js && \
+    mkdir -p resources/css
 
-# Pozostań jako root
-USER root
+# Ustawienie uprawnień
+RUN chmod -R 755 public && \
+    chmod -R 755 resources && \
+    chmod -R 755 node_modules && \
+    chown -R node:node .
 
+# Przełączenie na użytkownika node (bezpieczniej niż root)
+USER node
+
+# Eksponowanie portów
 EXPOSE 5173 3000
 
+# Healthcheck - sprawdzanie czy Vite odpowiada
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5173 || exit 1
+
 # Uruchomienie Vite w trybie developerskim
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

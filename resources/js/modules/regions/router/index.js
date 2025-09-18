@@ -5,7 +5,7 @@ export default [
         component: () => import('@/modules/regions/pages/RegionGuide.vue'),
         meta: {
             layout: 'MainLayout',
-            title: 'KAYAK - Regiony kajakowe',
+            title: 'Wartki Nurt -Regiony kajakowe',
             metaTags: [
                 {
                     name: 'description',
@@ -25,7 +25,7 @@ export default [
         props: true,
         meta: {
             layout: 'MainLayout',
-            title: 'KAYAK - Region kajakowy',
+            title: 'Wartki Nurt -Region kajakowy',
             metaTags: [
                 {
                     name: 'description',
