@@ -129,6 +129,15 @@ else
     php artisan db:seed --force
 fi
 
+# Tworzenie storage symlink
+echo -e "${YELLOW}🔗 Tworzenie storage symlink...${NC}"
+if [ ! -L "public/storage" ]; then
+    php artisan storage:link
+    echo -e "${GREEN}✅ Storage symlink utworzony${NC}"
+else
+    echo -e "${YELLOW}Storage symlink już istnieje${NC}"
+fi
+
 # Cache konfiguracji (opcjonalnie)
 echo -e "${YELLOW}💾 Optymalizacja konfiguracji...${NC}"
 php artisan config:cache

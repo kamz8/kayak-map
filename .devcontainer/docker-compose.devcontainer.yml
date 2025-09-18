@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    # Override dla DevContainer
+    volumes:
+      - ..:/var/www/html:cached
+      - kayak-map-vendor:/var/www/html/vendor
+      - kayak-map-node_modules:/var/www/html/node_modules
+
+    # DevContainer specific environment
+    environment:
+      - PHP_IDE_CONFIG=serverName=kayak-map-devcontainer
+      - XDEBUG_MODE=develop,debug
+      - XDEBUG_CONFIG=client_host=host.docker.internal client_port=9003
+      - XDEBUG_SESSION=PHPSTORM
+
+    # Keep container running for DevContainer
+    command: ["tail", "-f", "/dev/null"]
+
+    # Add development tools
+    user: root
+
+volumes:
+  kayak-map-vendor:
+    external: false
+  kayak-map-node_modules:
+    external: false

@@ -103,6 +103,13 @@ status: ## Pokaż status projektu
 	@echo ""
 	@echo "Laravel:"
 	@php artisan --version || echo "PHP/Laravel nie dostępne"
+	@echo ""
+	@echo "Storage:"
+	@if [ -L "public/storage" ]; then \
+		echo "✅ Storage symlink istnieje"; \
+	else \
+		echo "❌ Brak storage symlink (uruchom: php artisan storage:link)"; \
+	fi
 
 help: ## Pokaż tę pomoc
 	@echo "Kayak Map - Dostępne komendy:"
