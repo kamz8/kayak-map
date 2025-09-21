@@ -59,12 +59,21 @@ const actions = {
       message,
       color: 'info'
     })
+  },
+  hideSnackbar({ commit }) {
+    commit('HIDE_SNACKBAR')
   }
+}
+
+const getters = {
+  loading: (state) => state.loading,
+  snackbar: (state) => state.snackbar
 }
 
 export default {
   namespaced: true,
   state,
   mutations,
-  actions
+  actions,
+  getters
 }

@@ -70,7 +70,7 @@ Route::middleware('api')->group(function () {
             'throttle:registration',
             CheckRegistrationEnabled::class,
         ])->group(function () {
-            Route::post('register', RegisterController::class);
+            Route::post('register', [RegisterController::class, '__invoke']);
         });
 
         // Protected routes
@@ -86,6 +86,7 @@ Route::middleware('api')->group(function () {
                 ->where('provider', 'google|facebook');
         });
     });
+
 
 });
 

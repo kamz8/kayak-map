@@ -1,5 +1,6 @@
 import axios from 'axios'
 import store from '../store/index.js'
+import { tokenManager } from '../utils/tokenManager.js'
 
 // Create axios instance
 const apiClient = axios.create({
@@ -12,30 +13,31 @@ const apiClient = axios.create({
   }
 })
 
-// Request interceptor - add auth token
+// Request interceptor - add auth token with automatic refresh
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = store.getters['auth/token']
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  async (config) => {
+    try {
+      // Let token manager handle token refresh if needed
+      return await tokenManager.handleRequest(config)
+    } catch (error) {
+      // If token handling fails, proceed without token for public endpoints
+      console.warn('Token handling failed, proceeding without auth:', error.message)
+      return config
     }
-    return config
   },
   (error) => {
     return Promise.reject(error)
   }
 )
 
-// Response interceptor - handle auth errors
+// Response interceptor - handle auth errors with automatic retry
 apiClient.interceptors.response.use(
   (response) => {
     return response
   },
-  (error) => {
-    if (error.response?.status === 401) {
-      store.dispatch('auth/logout')
-    }
-    return Promise.reject(error)
+  async (error) => {
+    // Let token manager handle 401 errors with automatic refresh and retry
+    return await tokenManager.handleResponse(error)
   }
 )
 

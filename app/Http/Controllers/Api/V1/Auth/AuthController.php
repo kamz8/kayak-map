@@ -55,7 +55,10 @@ class AuthController extends Controller
         $result = $this->authService->login($request->validated());
 
         return new ApiResource([
-            'token' => $result['token'],
+            'access_token' => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+            'token_type' => $result['token_type'],
+            'expires_in' => $result['expires_in'],
             'user' => new UserResource($result['user'])
         ]);
     }
@@ -65,28 +68,50 @@ class AuthController extends Controller
      *     path="/auth/refresh",
      *     summary="Odświeżenie tokena JWT",
      *     tags={"Auth"},
-     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"refresh_token"},
+     *             @OA\Property(property="refresh_token", type="string", description="Refresh token")
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Token odświeżony",
      *         @OA\JsonContent(ref="#/components/schemas/LoginResponse")
      *     ),
-     *     @OA\Response(response=401, description="Nieprawidłowy token")
+     *     @OA\Response(response=401, description="Nieprawidłowy refresh token")
      * )
      */
-    public function refresh(): ApiResource
+    public function refresh(\Illuminate\Http\Request $request): ApiResource
     {
         try {
-            $token = $this->authService->refresh();
+            $refreshToken = $request->input('refresh_token');
+
+            if (!$refreshToken) {
+                throw new HttpResponseException(
+                    response()->json([
+                        'error' => [
+                            'message' => 'Refresh token is required'
+                        ]
+                    ], 400)
+                );
+            }
+
+            $result = $this->authService->refresh($refreshToken);
+
             return new ApiResource([
-                'token' => $token,
-                'user' => UserResource::make(auth()->user())
+                'access_token' => $result['access_token'],
+                'refresh_token' => $result['refresh_token'],
+                'token_type' => $result['token_type'],
+                'expires_in' => $result['expires_in'],
+                'user' => new UserResource($result['user'])
             ]);
         } catch (\Exception $e) {
             throw new HttpResponseException(
                 response()->json([
                     'error' => [
-                        'message' => 'Invalid token'
+                        'message' => 'Refresh token is invalid or expired'
                     ]
                 ], 401)
             );

@@ -1,64 +1,57 @@
 <template>
-  <v-dialog
+  <UiDialog
     v-model="dialog"
+    :title="title"
+    :icon="icon || 'mdi-help-circle'"
+    :icon-color="iconColor"
     :max-width="maxWidth"
     :persistent="persistent"
+    :closable="false"
   >
-    <v-card>
-      <!-- Header -->
-      <v-card-title class="d-flex align-center">
-        <v-icon
-          v-if="icon"
-          :icon="icon"
-          :color="iconColor"
-          class="me-3"
-          size="28"
-        />
-        <span>{{ title }}</span>
-      </v-card-title>
+    <!-- Content -->
+    <div class="text-body-1">
+      {{ message }}
+    </div>
 
-      <!-- Content -->
-      <v-card-text class="pb-4">
-        <div class="text-body-1">
-          {{ message }}
-        </div>
-        
-        <div v-if="details" class="text-body-2 text-medium-emphasis mt-3">
-          {{ details }}
-        </div>
+    <div v-if="details" class="text-body-2 text-medium-emphasis mt-3">
+      {{ details }}
+    </div>
 
-        <!-- Custom content -->
-        <slot />
-      </v-card-text>
+    <!-- Custom content -->
+    <slot />
 
-      <!-- Actions -->
-      <v-card-actions class="px-6 pb-4">
-        <v-spacer />
-        
-        <v-btn
-          :color="cancelColor"
-          :variant="cancelVariant"
-          @click="handleCancel"
-        >
-          {{ cancelText }}
-        </v-btn>
-        
-        <v-btn
-          :color="confirmColor"
-          :variant="confirmVariant"
-          :loading="loading"
-          @click="handleConfirm"
-        >
-          {{ confirmText }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <!-- Actions -->
+    <template #actions>
+      <UiButton
+        :color="cancelColor"
+        :variant="cancelVariant"
+        @click="handleCancel"
+      >
+        {{ cancelText }}
+      </UiButton>
+
+      <UiButton
+        :color="confirmColor"
+        :variant="confirmVariant"
+        :loading="loading"
+        @click="handleConfirm"
+      >
+        {{ confirmText }}
+      </UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script>
+import UiDialog from './UiDialog.vue'
+import UiButton from './UiButton.vue'
+
 export default {
   name: 'ConfirmDialog',
+  components: {
+    UiDialog,
+    UiButton
+  },
   emits: ['confirm', 'cancel', 'update:modelValue'],
   props: {
     modelValue: {
@@ -77,7 +70,7 @@ export default {
     icon: String,
     iconColor: {
       type: String,
-      default: 'warning'
+      default: 'error'
     },
     confirmText: {
       type: String,
@@ -137,3 +130,4 @@ export default {
   }
 }
 </script>
+

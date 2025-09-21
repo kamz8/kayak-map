@@ -16,7 +16,7 @@ export default [
         section: 'Zarządzanie',
         icon: 'mdi-map-marker-path',
         title: 'Szlaki',
-        order: 1
+        order: 10
       }
     }
   },

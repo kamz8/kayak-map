@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.shadcn-vue.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm run build:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist)",
+      "Bash(docker-compose:*)",
+      "Bash(mv:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker inspect:*)",
+      "Read(//d/Laravel/android-wizard/resources/js/components/ui/**)",
+      "Read(//d/Laravel/android-wizard/resources/js/lib/**)",
+      "Read(//d/Laravel/android-wizard/**)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(docker exec:*)",
+      "Bash(curl:*)",
+      "Bash(docker logs:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

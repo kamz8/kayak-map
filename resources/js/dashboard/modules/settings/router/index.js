@@ -1,31 +1,33 @@
-// Settings module routes
-export default [
+// Settings Module Routes
+const SettingsIndex = () => import('../Pages/SettingsView.vue')
+const SettingsProfile = () => import('../Pages/ProfileView.vue')
+
+const settingsRoutes = [
   {
     path: '/dashboard/settings',
-    name: 'DashboardSettings',
-    component: () => import('../Pages/SettingsView.vue'),
+    name: 'SettingsIndex',
+    component: SettingsIndex,
     meta: {
-      requiresAuth: true,
-      title: 'Ustawienia - Dashboard',
+      title: 'Ustawienia systemu - Kayak Map Dashboard',
       breadcrumbs: [
         { text: 'Dashboard', to: '/dashboard' },
-        { text: 'Ustawienia' }
+        { text: 'Ustawienia', to: '/dashboard/settings' }
       ],
-      // Navigation metadata for dropdown
-      /*navigation: {
-        section: 'System',
-        icon: 'mdi-cog',
+      navigation: {
+        section: 'Administracja',
         title: 'Ustawienia',
-        order: 1
-      }*/
+        icon: 'mdi-cog',
+        order: 140,
+        disabled: false
+      },
+      permissions: ['settings.view']
     }
   },
   {
     path: '/dashboard/settings/profile',
-    name: 'DashboardSettingsProfile',
-    component: () => import('../Pages/ProfileView.vue'),
+    name: 'SettingsProfile',
+    component: SettingsProfile,
     meta: {
-      requiresAuth: true,
       title: 'Profil - Ustawienia - Dashboard',
       breadcrumbs: [
         { text: 'Dashboard', to: '/dashboard' },
@@ -33,5 +35,7 @@ export default [
         { text: 'Profil' }
       ]
     }
-  }
+  },
 ]
+
+export default settingsRoutes

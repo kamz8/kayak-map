@@ -40,6 +40,7 @@
                   type="email"
                   variant="outlined"
                   :rules="emailRules"
+                  :disabled="isFormDisabled"
                   class="mb-4"
                   color="primary"
                   bg-color="grey-lighten-5"
@@ -52,6 +53,7 @@
                   :type="showPassword ? 'text' : 'password'"
                   variant="outlined"
                   :rules="passwordRules"
+                  :disabled="isFormDisabled"
                   :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                   @click:append-inner="showPassword = !showPassword"
                   color="primary"
@@ -75,11 +77,14 @@
                   color="#2B381F"
                   size="large"
                   type="submit"
-                  :loading="loading"
+                  :loading="loading || redirecting"
+                  :disabled="isFormDisabled"
                   class="mt-6 mb-4"
                   flat
                 >
-                  Zaloguj do Dashboard
+                  <span v-if="!loading && !redirecting">Zaloguj do Dashboard</span>
+                  <span v-else-if="loading">Logowanie...</span>
+                  <span v-else>Przekierowywanie...</span>
                 </v-btn>
               </v-form>
 
@@ -94,6 +99,7 @@
                 variant="outlined"
                 color="black"
                 class="mb-4"
+                :disabled="isFormDisabled"
                 @click="goToMainApp"
                 prepend-icon="mdi-arrow-left"
                 flat
@@ -129,6 +135,7 @@ export default {
         password: 'password'
       },
       showPassword: false,
+      redirecting: false,
       backgroundImages: [1, 2, 3],
       emailRules: [
         v => !!v || 'Email jest wymagany',
@@ -140,7 +147,18 @@ export default {
     }
   },
   computed: {
-    ...mapState('auth', ['loading', 'error'])
+    ...mapState('auth', ['loading', 'error']),
+
+    isFormDisabled() {
+      return this.loading || this.redirecting
+    },
+
+    loadingText() {
+      if (this.redirecting) {
+        return 'Przekierowywanie...'
+      }
+      return 'Logowanie...'
+    }
   },
   methods: {
     ...mapActions('auth', ['login']),
@@ -152,10 +170,18 @@ export default {
 
       try {
         await this.login(this.form)
+
+        // Set redirecting state
+        this.redirecting = true
         this.showSuccess('Zalogowano pomyślnie!')
+
+        // Small delay to show success message, then redirect
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         this.$router.push('/dashboard')
       } catch (error) {
         // Error is already handled in the store
+        this.redirecting = false
       }
     },
 

@@ -35,6 +35,8 @@
         "@vueuse/core": "^10.11.1",
         "@vueuse/head": "^2.0.0",
         "axios": "^1.7.2",
+        "jsonwebtoken": "^9.0.2",
+        "jwt-decode": "^4.0.0",
         "laravel-vite-plugin": "^1.0.5",
         "leaflet": "^1.9.4",
         "leaflet-easyprint": "^2.1.9",

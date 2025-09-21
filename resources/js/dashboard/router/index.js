@@ -13,7 +13,8 @@ const moduleRoutes = []
 const modules = import.meta.glob('../modules/**/router/*.js', { eager: true })
 
 for (const path in modules) {
-  const routes = modules[path].default
+  const module = modules[path]
+  const routes = module.default || module
   if (Array.isArray(routes)) {
     moduleRoutes.push(...routes)
   }
@@ -22,7 +23,7 @@ for (const path in modules) {
 const routes = [
   // Auth module routes (no layout)
   ...authRoutes,
-  
+
   // Dashboard with layout
   {
     path: '/dashboard',
@@ -34,7 +35,7 @@ const routes = [
         name: 'DashboardHome',
         component: DashboardOverview,
         meta: {
-          title: 'Dashboard - Kayak Map',
+          title: 'WartiNurt Dashboard',
           breadcrumbs: []
         }
       },
@@ -67,36 +68,33 @@ router.beforeEach(async (to, from, next) => {
     return next(false)
   }
 
-  // Temporary: Skip auth for dashboard development
-  next()
+  try {
+    // Initialize auth state once
+    await store.dispatch('auth/initialize')
+    const isAuthenticated = store.getters['auth/isAuthenticated']
 
-  // try {
-  //   // Initialize auth state once
-  //   await store.dispatch('auth/initialize')
-  //   const isAuthenticated = store.getters['auth/isAuthenticated']
+    // Handle auth routes
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      return next('/dashboard/login')
+    }
 
-  //   // Handle auth routes
-  //   if (to.meta.requiresAuth && !isAuthenticated) {
-  //     return next('/dashboard/login')
-  //   }
+    // Handle guest routes (redirect authenticated users)
+    if (to.meta.requiresGuest && isAuthenticated) {
+      return next('/dashboard')
+    }
 
-  //   // Handle guest routes (redirect authenticated users)
-  //   if (to.meta.requiresGuest && isAuthenticated) {
-  //     return next('/dashboard')
-  //   }
+    // Allow route
+    next()
 
-  //   // Allow route
-  //   next()
-
-  // } catch (error) {
-  //   console.error('Router auth error:', error)
-  //   // On auth error, redirect to login only if not already there
-  //   if (to.path !== '/dashboard/login') {
-  //     next('/dashboard/login')
-  //   } else {
-  //     next()
-  //   }
-  // }
+  } catch (error) {
+    console.error('Router auth error:', error)
+    // On auth error, redirect to login only if not already there
+    if (to.path !== '/dashboard/login') {
+      next('/dashboard/login')
+    } else {
+      next()
+    }
+  }
 })
 
 export default router

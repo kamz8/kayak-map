@@ -110,17 +110,17 @@ const MANAGEMENT_ITEMS = [
     enabled: true
   },
   {
-    key: 'regions',
-    title: 'Regiony',
-    icon: 'mdi-map',
-    route: '/dashboard/regions',
-    enabled: false
-  },
-  {
     key: 'users',
     title: 'Użytkownicy',
     icon: 'mdi-account-group',
     route: '/dashboard/users',
+    enabled: true
+  },
+  {
+    key: 'regions',
+    title: 'Regiony',
+    icon: 'mdi-map',
+    route: '/dashboard/regions',
     enabled: false
   }
 ]

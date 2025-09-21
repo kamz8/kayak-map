@@ -50,22 +50,8 @@
             />
 
             <!-- Static disabled items for sections -->
-            <template v-if="section.name === 'Zarządzanie'">
-              <v-list-item
-                class="nav-item disabled"
-                prepend-icon="mdi-map"
-                title="Regiony"
-                disabled
-              />
-            </template>
 
             <template v-if="section.name === 'System'">
-                <v-list-item
-                    class="nav-item disabled"
-                    prepend-icon="mdi-account-group"
-                    title="Użytkownicy"
-                    disabled
-                />
               <v-list-item
                 class="nav-item disabled"
                 prepend-icon="mdi-chart-line"
@@ -196,6 +182,30 @@
         <router-view />
       </div>
     </v-main>
+
+    <!-- Global Snackbar for notifications -->
+    <v-snackbar
+      :model-value="snackbar.show"
+      :color="snackbar.color"
+      :timeout="snackbar.timeout"
+      location="top right"
+      variant="tonal"
+      style="z-index: 999"
+      @update:model-value="handleSnackbarUpdate"
+    >
+      {{ snackbar.message }}
+
+      <template #actions>
+        <v-btn
+          variant="text"
+          icon
+          size="small"
+          @click="hideSnackbar"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -219,6 +229,7 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['user']),
+    ...mapGetters('ui', ['snackbar']),
 
     showBreadcrumbs() {
       return this.currentBreadcrumbs && this.currentBreadcrumbs.length > 1
@@ -284,11 +295,17 @@ export default {
         })
       })
 
-      return Object.values(sections)
+      // Sort sections by the lowest order of routes in each section
+      return Object.values(sections).sort((a, b) => {
+        const minOrderA = Math.min(...a.routes.map(route => route.meta.navigation.order || 999))
+        const minOrderB = Math.min(...b.routes.map(route => route.meta.navigation.order || 999))
+        return minOrderA - minOrderB
+      })
     }
   },
   methods: {
     ...mapActions('auth', ['logout']),
+    ...mapActions('ui', ['hideSnackbar']),
 
     goToMainApp() {
       window.location.href = '/'
@@ -308,10 +325,29 @@ export default {
         '/dashboard': 'Dashboard',
         '/dashboard/trails': 'Szlaki kajakowe',
         '/dashboard/trails/create': 'Dodaj nowy szlak',
-        '/dashboard/settings': 'Ustawienia',
+        '/dashboard/users': 'Zarządzanie użytkownikami',
+        '/dashboard/users/create': 'Dodaj użytkownika',
+        '/dashboard/roles': 'Zarządzanie rolami',
+        '/dashboard/roles/create': 'Dodaj rolę',
+        '/dashboard/permissions': 'Zarządzanie uprawnieniami',
+        '/dashboard/permissions/create': 'Dodaj uprawnienie',
+        '/dashboard/settings': 'Ustawienia systemu',
         '/dashboard/settings/profile': 'Profil użytkownika',
-        '/dashboard/security/change-password': 'Zmiana hasła'
+        '/dashboard/settings/general': 'Ustawienia ogólne',
+        '/dashboard/settings/security': 'Ustawienia bezpieczeństwa'
       }
+
+      // Handle dynamic routes
+      if (this.$route.path.includes('/dashboard/users/') && this.$route.path.includes('/edit')) {
+        return 'Edytuj użytkownika'
+      }
+      if (this.$route.path.includes('/dashboard/roles/') && this.$route.path.includes('/edit')) {
+        return 'Edytuj rolę'
+      }
+      if (this.$route.path.includes('/dashboard/permissions/') && this.$route.path.includes('/edit')) {
+        return 'Edytuj uprawnienie'
+      }
+
       return routeMap[this.$route.path] || 'Dashboard'
     },
 
@@ -344,6 +380,12 @@ export default {
         this.$router.push('/dashboard/login')
       } catch (error) {
         console.error('Logout error:', error)
+      }
+    },
+
+    handleSnackbarUpdate(value) {
+      if (!value) {
+        this.hideSnackbar()
       }
     }
   },

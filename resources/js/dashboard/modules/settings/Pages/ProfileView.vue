@@ -4,7 +4,7 @@
     <v-row>
       <!-- Profile Information Card -->
       <v-col cols="12" lg="8">
-        <UiCard title="Informacje osobiste" class="mb-6">
+        <UiCard title="" class="mb-6">
           <template #actions>
             <UiButton
               variant="outline"

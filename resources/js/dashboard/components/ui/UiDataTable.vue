@@ -39,8 +39,8 @@
 
       <!-- Enhanced data table -->
       <v-data-table
-        v-model:page="page"
-        v-model:items-per-page="itemsPerPage"
+        v-model:page="internalPage"
+        v-model:items-per-page="internalItemsPerPage"
         v-model:sort-by="sortBy"
         :headers="headersWithActions"
         :items="filteredItems"
@@ -49,6 +49,13 @@
         :class="dataTableClasses"
         :hover="hover"
         :density="density"
+        :items-per-page-text="'Elementów na stronie:'"
+        :page-text="'{0}-{1} z {2}'"
+        :no-data-text="'Brak danych do wyświetlenia'"
+        :loading-text="'Ładowanie... Proszę czekać'"
+        @update:page="handlePageChange"
+        @update:items-per-page="handleItemsPerPageChange"
+        @update:sort-by="handleSortChange"
       >
         <!-- Custom header slots -->
         <template v-for="header in headers" :key="header.key" #[`header.${header.key}`]="{ column }">
@@ -147,7 +154,10 @@ export default {
   emits: {
     view: (item) => item && typeof item === 'object',
     edit: (item) => item && typeof item === 'object',
-    delete: (item) => item && typeof item === 'object'
+    delete: (item) => item && typeof item === 'object',
+    'update:page': (page) => typeof page === 'number',
+    'update:items-per-page': (itemsPerPage) => typeof itemsPerPage === 'number',
+    'update:sort-by': (sortBy) => Array.isArray(sortBy)
   },
   props: {
     title: String,
@@ -211,15 +221,31 @@ export default {
       type: String,
       default: 'Nie znaleziono żadnych rekordów.'
     },
-    class: String
+    class: String,
+    page: {
+      type: Number,
+      default: 1
+    },
+    totalItems: {
+      type: Number,
+      default: 0
+    },
+    currentItemsPerPage: {
+      type: Number,
+      default: 10
+    }
   },
   data() {
     return {
       search: '',
-      page: 1,
-      itemsPerPage: 10,
+      internalPage: 1,
+      internalItemsPerPage: 10,
       sortBy: []
     }
+  },
+  mounted() {
+    this.internalPage = this.page || 1
+    this.internalItemsPerPage = this.currentItemsPerPage || 10
   },
   computed: {
     tableClasses() {
@@ -280,6 +306,16 @@ export default {
     },
     search() {
       this.resetPagination()
+    },
+    page(newVal) {
+      if (newVal && this.internalPage !== newVal) {
+        this.internalPage = newVal
+      }
+    },
+    currentItemsPerPage(newVal) {
+      if (newVal && this.internalItemsPerPage !== newVal) {
+        this.internalItemsPerPage = newVal
+      }
     }
   },
   methods: {
@@ -287,7 +323,22 @@ export default {
       return path.split('.').reduce((current, key) => current && current[key], obj)
     },
     resetPagination() {
-      this.page = 1
+      this.internalPage = 1
+    },
+    handlePageChange(page) {
+      if (page && this.internalPage !== page) {
+        this.internalPage = page
+        this.$emit('update:page', page)
+      }
+    },
+    handleItemsPerPageChange(itemsPerPage) {
+      if (itemsPerPage && this.internalItemsPerPage !== itemsPerPage) {
+        this.internalItemsPerPage = itemsPerPage
+        this.$emit('update:items-per-page', itemsPerPage)
+      }
+    },
+    handleSortChange(sortBy) {
+      this.$emit('update:sort-by', sortBy)
     }
   }
 }
@@ -404,6 +455,22 @@ export default {
   color: hsl(var(--v-theme-on-surface-variant));
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Items per page dropdown styling */
+:deep(.v-data-table-footer .v-select) {
+  max-width: 80px !important;
+  transform: scale(0.85) !important;
+  transform-origin: left center !important;
+}
+
+:deep(.v-data-table-footer .v-select .v-field) {
+  font-size: 12px !important;
+}
+
+:deep(.v-data-table-footer .v-select .v-field__input) {
+  padding: 4px 8px !important;
+  min-height: 28px !important;
 }
 
 /* Responsive adjustments */

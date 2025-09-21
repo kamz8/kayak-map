@@ -10,7 +10,7 @@ export const authRoutes = [
     component: () => import('./views/LoginView.vue'),
     meta: {
       requiresGuest: true,
-      title: 'Dashboard - Logowanie'
+      title: 'WartiNurt Dashboard - Logowanie'
     }
   }
 ]

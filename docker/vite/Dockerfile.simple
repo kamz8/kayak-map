@@ -1,0 +1,25 @@
+# Simple Vite container using host node_modules
+FROM node:18-alpine
+
+# Install essential tools
+RUN apk add --no-cache git ca-certificates
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for reference only
+COPY package*.json ./
+
+# Create cache directory
+RUN mkdir -p node_modules/.vite
+
+# Expose ports
+EXPOSE 5173 24678
+
+# Environment variables
+ENV NODE_ENV=development \
+    DOCKER_ENV=true \
+    CHOKIDAR_USEPOLLING=true
+
+# Default command - assumes node_modules mounted from host
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--config", "vite.config.optimized.js"]

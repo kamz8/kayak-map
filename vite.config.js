@@ -7,6 +7,8 @@ import browsersync from "vite-plugin-browser-sync";
 import vuetify from 'vite-plugin-vuetify';
 
 const host = 'kayak-map.test';
+const isDocker = process.env.DOCKER_ENV === 'true';
+
 export default defineConfig({
     plugins: [
         vue(),
@@ -53,25 +55,45 @@ export default defineConfig({
         }
     },
     server: {
-        host: host,
+        // Docker container binds to all interfaces but uses correct host for URLs
+        host: isDocker ? '0.0.0.0' : host,
         port: 5173,
+
+        // Override server origin for Docker to generate correct URLs
+        ...(isDocker ? {
+            origin: 'https://kayak-map.test:443'
+        } : {}),
+
         https: {
             key: fs.readFileSync(`./docker/ssl/cert.key`),
             cert: fs.readFileSync(`./docker/ssl/cert.crt`),
         },
         headers: {
             'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
         },
         hmr: {
-            host: 'kayak-map.test',
-            proxy: host
+            // Docker HMR configuration
+            ...(isDocker ? {
+                port: 5173, // Use same port as main server
+                host: 'kayak-map.test', // Client host
+                clientPort: 443, // Client connects through nginx SSL
+            } : {
+                host: 'kayak-map.test',
+                port: 5173,
+            }),
         },
         watch: {
-            usePolling: false,
+            usePolling: isDocker,
+            ...(isDocker ? {
+                interval: 1000,
+                binaryInterval: 2000,
+            } : {}),
         },
         proxy: {
             '/api': {
-                target: 'https://nginx',
+                target: isDocker ? 'https://nginx' : 'https://kayak-map.test',
                 changeOrigin: true,
                 secure: false,
             },

@@ -558,9 +558,163 @@ php artisan check:admin-user
 - **Backend API** - Laravel 11 z spatial extensions
 - **Frontend SPA** - Vue 3 + Vuetify z Leaflet maps
 - **Database** - MySQL z pełną strukturą spatial
-- **Authentication** - JWT + OAuth (Google/Facebook)
+- **Authentication** - JWT + OAuth (Google/Facebook) + **RFC 6749 Refresh Token Flow**
 - **Dashboard Panel** - Separate SPA dla administracji
 - **Docker Setup** - Multi-container development environment
+
+## 🔐 **OAuth 2.0 Refresh Token System (RFC 6749)**
+
+### **Status: ✅ PRODUCTION READY**
+
+Zaimplementowany kompletny system refresh tokenów zgodny ze standardem RFC 6749 OAuth 2.0.
+
+#### **Backend Implementation**
+
+**AuthService** - RFC 6749 Compliant:
+```php
+// Dual token generation
+public function login(array $credentials): array
+{
+    $tokens = $this->generateTokens($user);
+    return [
+        'access_token' => $tokens['access_token'],    // Short TTL + full claims
+        'refresh_token' => $tokens['refresh_token'],  // Long TTL + minimal claims
+        'token_type' => 'Bearer',
+        'expires_in' => config('jwt.ttl') * 60
+    ];
+}
+
+// Fresh ACL on refresh
+public function refresh(string $refreshToken): array
+{
+    $user = User::with('roles.permissions')->findOrFail($userId);
+    $tokens = $this->generateTokens($user); // Fresh permissions
+    return $tokens;
+}
+```
+
+**Token Structure**:
+- **Access Token**: Full user claims (roles, permissions, profile)
+- **Refresh Token**: Minimal claims (user_id, token_type)
+- **Token Rotation**: New refresh token on each refresh
+- **Security**: Fresh ACL data, user status validation
+
+#### **Frontend Implementation**
+
+**TokenManager** - Automatic Token Management:
+```javascript
+class TokenManager {
+  // Proactive refresh (5 minutes before expiry)
+  startRefreshTimer() {
+    const timeToRefresh = timeToExpire - this.REFRESH_THRESHOLD
+    this.refreshTimer = setTimeout(() => this.refreshTokens(), timeToRefresh)
+  }
+
+  // Reactive refresh (on 401 errors with retry)
+  async handleResponse(error) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const result = await this.refreshTokens()
+      originalRequest.headers.Authorization = `Bearer ${result.access_token}`
+      return axios(originalRequest) // Retry with new token
+    }
+  }
+
+  // Request queueing during refresh
+  addToQueue(resolve, reject) {
+    this.failedQueue.push({ resolve, reject })
+  }
+}
+```
+
+**Axios Integration**:
+- **Request Interceptor**: Auto-refresh before expiry
+- **Response Interceptor**: Handle 401 with automatic retry
+- **Queue Management**: Multiple concurrent requests during refresh
+
+**Vuex Integration**:
+```javascript
+// Store dual tokens
+const state = () => ({
+  token: localStorage.getItem('token') || null,           // Access token
+  refreshToken: localStorage.getItem('refresh_token') || null, // Refresh token
+  user: null
+})
+
+// Automatic initialization with refresh fallback
+async initialize({ commit, dispatch, state }) {
+  if (!JwtUtils.isValid(accessToken) && refreshToken) {
+    await dispatch('refreshToken') // Auto-refresh on startup
+  }
+}
+```
+
+#### **Security Features**
+
+1. **Token Rotation** - New refresh token on each refresh (prevents replay attacks)
+2. **Fresh ACL** - Permissions/roles reloaded on refresh (handles permission changes)
+3. **Minimal Claims** - Refresh tokens contain only essential data
+4. **Automatic Cleanup** - Invalid tokens immediately cleared
+5. **Queue Protection** - Prevents multiple concurrent refresh attempts
+6. **User Status Check** - Validates user is still active on refresh
+
+#### **OAuth 2.0 Flow Implementation**
+
+```
+┌─────────────┐                                 ┌──────────────────┐
+│   Client    │                                 │ Authorization    │
+│ (Dashboard) │                                 │     Server       │
+│             │                                 │   (Laravel)      │
+└─────────────┘                                 └──────────────────┘
+      │                                                    │
+      │ (A) Authorization Grant (login credentials)        │
+      │───────────────────────────────────────────────────>│
+      │                                                    │
+      │ (B) Access Token + Refresh Token                   │
+      │<───────────────────────────────────────────────────│
+      │                                                    │
+      │ (C) API Request + Access Token                     │
+      │───────────────────────────────────────────────────>│
+      │                                                    │
+      │ (D) Protected Resource                             │
+      │<───────────────────────────────────────────────────│
+      │                                                    │
+      │ (E) API Request + Expired Access Token             │
+      │───────────────────────────────────────────────────>│
+      │                                                    │
+      │ (F) 401 Unauthorized                               │
+      │<───────────────────────────────────────────────────│
+      │                                                    │
+      │ (G) Refresh Token Request                          │
+      │───────────────────────────────────────────────────>│
+      │                                                    │
+      │ (H) New Access Token + New Refresh Token           │
+      │<───────────────────────────────────────────────────│
+```
+
+#### **Automatic Behaviors**
+
+- **5-Minute Rule**: Token refresh 5 minutes before expiry
+- **401 Retry**: Automatic refresh and retry on unauthorized errors
+- **Startup Refresh**: Auto-refresh expired tokens on app initialization
+- **Background Timer**: Proactive refresh runs in background
+- **Queue Management**: Failed requests queued during refresh process
+- **Graceful Fallback**: Redirect to login only after refresh fails
+
+#### **Configuration**
+
+```php
+// config/jwt.php
+'ttl' => 60,                    // Access token: 1 hour
+'refresh_ttl' => 20160,         // Refresh token: 2 weeks
+'refresh_token_rotation' => true // Rotate refresh tokens
+```
+
+```javascript
+// Frontend configuration
+const REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes before expiry
+```
+
+**System jest w pełni zgodny z RFC 6749 OAuth 2.0 i automatycznie zarządza tokenami bez ingerencji użytkownika.** 🚀
 
 ### 🚧 **W Trakcie Rozwoju**
 - **Mobile Apps** - React Native/Flutter (planowane)
@@ -576,6 +730,7 @@ php artisan check:admin-user
 
 ---
 
-*Dokumentacja aktualizowana: 12.09.2025*  
-*Wersja projektu: Laravel 11 + Vue 3*  
+*Dokumentacja aktualizowana: 15.09.2025*
+*Wersja projektu: Laravel 11 + Vue 3*
 *Dashboard Status: **PRODUCTION READY** ✅*
+*OAuth 2.0 Refresh Token: **RFC 6749 COMPLIANT** ✅*

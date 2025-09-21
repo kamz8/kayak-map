@@ -2,8 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 
+/*// Login route - redirect to dashboard login
+Route::get('/login', function () {
+    return redirect('/dashboard/login');
+})->name('login');*/
+
 // Dashboard routes - separate SPA
 Route::get('/dashboard/{any?}', function () {
+    // For web routes, we should check authentication differently
+    // Since this is SPA, authentication will be handled by Vue.js
     return view('dashboard');
 })->where('any', '.*');
 
