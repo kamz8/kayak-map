@@ -6,7 +6,11 @@
       :headers="headers"
       :items="users"
       :loading="loading"
-      :actions="{ view: false, edit: true, delete: true }"
+      :actions="{
+        view: false,
+        edit: $can('users.update'),
+        delete: $can('users.delete')
+      }"
       :page="safePagination.current_page"
       :current-items-per-page="safePagination.per_page"
       :total-items="safePagination.total"
@@ -21,6 +25,7 @@
       <template #default>
         <div class="d-flex gap-2">
           <UiButton
+            v-if="$can('users.create')"
             variant="default"
             size="sm"
             @click="$router.push('/dashboard/users/create')"
@@ -29,6 +34,7 @@
             Dodaj użytkownika
           </UiButton>
           <UiButton
+            v-if="$can('users.view')"
             variant="outline"
             size="sm"
             @click="exportUsers"
@@ -99,7 +105,7 @@
 
       <!-- Custom actions -->
       <template #actions="{ item }">
-        <v-tooltip text="Zarządzaj rolami">
+        <v-tooltip v-if="$can('users.assign_roles')" text="Zarządzaj rolami">
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
