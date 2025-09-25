@@ -87,8 +87,11 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function show(User $user): UserResource
+    public function show($userId): UserResource
     {
+        // Manual user finding instead of route model binding
+        $user = User::findOrFail($userId);
+
         $userWithDetails = $this->userService->getUserWithDetails($user);
         return new UserResource($userWithDetails);
     }
@@ -141,8 +144,9 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function update(UpdateUserRequest $request, User $user): UserResource
+    public function update(UpdateUserRequest $request, $userId): UserResource
     {
+        $user = User::findOrFail($userId);
         $updatedUser = $this->userService->updateUser($user, $request->validated(), $request->user());
         return new UserResource($updatedUser);
     }
@@ -165,8 +169,9 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function destroy(User $user): JsonResponse
+    public function destroy($userId): JsonResponse
     {
+        $user = User::findOrFail($userId);
         $this->userService->deleteUser($user, request()->user());
         return response()->json(['message' => 'Użytkownik usunięty pomyślnie']);
     }
