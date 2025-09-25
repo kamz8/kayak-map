@@ -22,8 +22,8 @@
             v-if="searchable"
             v-model="search"
             :placeholder="searchLabel"
-            variant="outlined"
-            size="small"
+            variant="default"
+            size="sm"
             class="ui-search-input"
           >
             <template #prepend-inner>

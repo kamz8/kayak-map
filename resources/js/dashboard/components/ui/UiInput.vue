@@ -66,7 +66,10 @@ export default {
       const variantProps = designTokens.variants.input[this.variant] || {}
       const sizeProps = designTokens.sizes[this.size] || {}
 
-      return { ...variantProps, ...sizeProps }
+      // Remove 'size' prop as v-text-field doesn't support it, only use density
+      const { size: _, ...filteredSizeProps } = sizeProps
+
+      return { ...variantProps, ...filteredSizeProps }
     },
 
     inputClasses() {
