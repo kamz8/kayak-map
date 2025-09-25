@@ -276,6 +276,12 @@ export default {
       const sections = {}
 
       navigationRoutes.forEach(route => {
+        // Check if user has permission to access this route
+        const permissions = route.meta.permissions || [route.meta.permission].filter(Boolean)
+        if (permissions.length > 0 && !this.$canAny(permissions)) {
+          return // Skip this route if user doesn't have permission
+        }
+
         const sectionName = route.meta.navigation.section
         if (!sections[sectionName]) {
           sections[sectionName] = {
