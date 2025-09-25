@@ -357,8 +357,40 @@ export default {
 
     async exportUsers() {
       try {
-        // TODO: Implement export functionality
-        this.showInfo('Funkcja eksportu będzie dostępna wkrótce')
+        // Simple CSV export of current users data
+        const csvData = this.users.map(user => ({
+          'ID': user.id,
+          'Imię': user.first_name || '',
+          'Nazwisko': user.last_name || '',
+          'Email': user.email,
+          'Role': user.roles ? user.roles.map(r => r.name).join(', ') : '',
+          'Status': user.status,
+          'Ostatnie logowanie': user.last_login_at || 'Nigdy',
+          'Data rejestracji': user.created_at
+        }))
+
+        if (csvData.length === 0) {
+          this.showInfo('Brak danych do eksportu')
+          return
+        }
+
+        // Generate CSV
+        const headers = Object.keys(csvData[0])
+        const csvContent = [
+          headers.join(','),
+          ...csvData.map(row =>
+            headers.map(header => `"${(row[header] || '').toString().replace(/"/g, '""')}"`).join(',')
+          )
+        ].join('\n')
+
+        // Download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `uzytkownicy_${new Date().toISOString().split('T')[0]}.csv`
+        link.click()
+
+        this.showSuccess(`Wyeksportowano ${csvData.length} użytkowników`)
       } catch (error) {
         this.showError('Nie udało się wyeksportować użytkowników')
       }
