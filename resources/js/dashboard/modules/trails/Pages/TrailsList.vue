@@ -106,41 +106,41 @@ export default {
     headers() {
       return TABLE_HEADERS
     },
-    
+
     difficultyOptions() {
       return Object.keys(DIFFICULTY_CONFIG).map(key => ({
         value: key,
         title: DIFFICULTY_CONFIG[key].label
       }))
     },
-    
+
     filteredTrails() {
       let filtered = [...this.trails]
-      
+
       // Apply difficulty filter
       if (this.filters.difficulty) {
         filtered = filtered.filter(trail => trail.difficulty === this.filters.difficulty)
       }
-      
+
       // Apply rating filter
       if (this.filters.minRating) {
         filtered = filtered.filter(trail => trail.rating >= this.filters.minRating)
       }
-      
+
       // Apply author filter
       if (this.filters.author) {
-        filtered = filtered.filter(trail => 
+        filtered = filtered.filter(trail =>
           trail.author.toLowerCase().includes(this.filters.author.toLowerCase())
         )
       }
-      
+
       return filtered
     },
-    
+
     hasTrails() {
       return this.trails.length > 0
     },
-    
+
     hasSelectedTrails() {
       return this.selectedTrails.length > 0
     }
@@ -154,11 +154,11 @@ export default {
     async fetchTrails() {
       this.loading = true
       this.error = null
-      
+
       try {
         // TODO: Replace with actual API call
         await new Promise(resolve => setTimeout(resolve, 800))
-        
+
         // Mock data - replace with actual API response
         this.trails = [
           {
@@ -195,7 +195,7 @@ export default {
             status: 'active'
           }
         ]
-        
+
         // const response = await this.$http.get('/api/v1/dashboard/trails')
         // this.trails = response.data
       } catch (error) {
@@ -223,17 +223,17 @@ export default {
         await this.deleteTrail(trail)
       }
     },
-    
+
     async deleteTrail(trail) {
       try {
         // TODO: Replace with actual API call
         await new Promise(resolve => setTimeout(resolve, 300))
-        
+
         // Remove from local state
         this.trails = this.trails.filter(t => t.id !== trail.id)
-        
+
         this.showSuccess(`Szlak "${trail.trail_name}" został usunięty`)
-        
+
         // const response = await this.$http.delete(`/api/v1/dashboard/trails/${trail.id}`)
       } catch (error) {
         console.error('Failed to delete trail:', error)
@@ -244,7 +244,7 @@ export default {
     getDifficultyConfig(difficulty) {
       return DIFFICULTY_CONFIG[difficulty] || { variant: 'secondary', label: difficulty }
     },
-    
+
     getDifficultyVariant(difficulty) {
       return this.getDifficultyConfig(difficulty).variant
     },
@@ -252,15 +252,15 @@ export default {
     getDifficultyLabel(difficulty) {
       return this.getDifficultyConfig(difficulty).label
     },
-    
+
     formatLength(length) {
       return `${length} km`
     },
-    
+
     formatRating(rating) {
       return Number(rating).toFixed(1)
     },
-    
+
     clearFilters() {
       this.filters = {
         difficulty: null,
@@ -268,12 +268,12 @@ export default {
         author: null
       }
     },
-    
+
     exportTrails() {
       // TODO: Implement export functionality
       this.showInfo('Funkcja eksportu będzie dostępna wkrótce')
     },
-    
+
     async refreshTrails() {
       await this.fetchTrails()
       this.showInfo('Lista szlaków została odświeżona')
