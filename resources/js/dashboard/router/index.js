@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import store from '../store/index.js'
+import { getPermissionService } from '../services/PermissionService.js'
 
 // Auth module
 import { authRoutes } from '../modules/auth'
@@ -81,6 +82,23 @@ router.beforeEach(async (to, from, next) => {
     // Handle guest routes (redirect authenticated users)
     if (to.meta.requiresGuest && isAuthenticated) {
       return next('/dashboard')
+    }
+
+    // Check permissions for protected routes
+    if (isAuthenticated && to.meta.permissions && to.meta.permissions.length > 0) {
+      try {
+        const permissionService = getPermissionService()
+        const hasPermission = permissionService.canAny(to.meta.permissions)
+
+        if (!hasPermission) {
+          // Redirect to 403 or dashboard with error
+          store.dispatch('ui/showError', 'Brak uprawnień do tej strony')
+          return next('/dashboard')
+        }
+      } catch (permissionError) {
+        console.error('Permission check error:', permissionError)
+        // Allow access if permission service fails to avoid breaking the app
+      }
     }
 
     // Allow route
