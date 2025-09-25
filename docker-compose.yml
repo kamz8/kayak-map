@@ -54,7 +54,7 @@ services:
             context: .
             dockerfile: docker/vite/Dockerfile.optimized
             target: development
-        image: kayak-vite-optimized
+        image: kayak-vite
         container_name: kayak-vite-optimized
         restart: unless-stopped
         working_dir: /app

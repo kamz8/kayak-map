@@ -474,8 +474,26 @@ export default {
 
     async downloadUserData() {
       try {
-        // TODO: Implement data download
-        this.showInfo('Pobieranie danych zostanie wkrótce zaimplementowane')
+        // Create JSON data export of user profile
+        const userData = {
+          id: this.user.id,
+          first_name: this.user.first_name,
+          last_name: this.user.last_name,
+          email: this.user.email,
+          phone: this.user.phone,
+          created_at: this.user.created_at,
+          updated_at: this.user.updated_at,
+          last_login_at: this.user.last_login_at
+        }
+
+        const jsonData = JSON.stringify(userData, null, 2)
+        const blob = new Blob([jsonData], { type: 'application/json' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `moje_dane_${new Date().toISOString().split('T')[0]}.json`
+        link.click()
+
+        this.showSuccess('Dane zostały pobrane pomyślnie')
       } catch (error) {
         this.showError('Nie udało się pobrać danych')
       }
