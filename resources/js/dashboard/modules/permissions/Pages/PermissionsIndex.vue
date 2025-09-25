@@ -108,7 +108,7 @@
       <div class="mt-4 text-center">
         <v-alert type="info" variant="tonal">
           <v-icon start>mdi-information</v-icon>
-          Strona w budowie - funkcjonalność będzie dostępna wkrótce
+          System uprawnień działa w trybie tylko do odczytu. Uprawnienia są zarządzane automatycznie przez system.
         </v-alert>
       </div>
     </UiCard>

@@ -173,7 +173,8 @@
           <!-- TODO: Implement permission selection component -->
           <v-alert type="info" variant="tonal">
             <v-icon start>mdi-information</v-icon>
-            Zarządzanie uprawnieniami będzie dostępne po implementacji komponentu PermissionSelector
+            Zarządzanie uprawnieniami dla roli <strong>{{ permissionDialog.role.name }}</strong> jest obecnie dostępne tylko przez API.
+            Super Admin ma domyślnie wszystkie uprawnienia.
           </v-alert>
         </v-card-text>
 
@@ -457,8 +458,38 @@ export default {
 
     async exportRoles() {
       try {
-        // TODO: Implement export functionality
-        this.showInfo('Funkcja eksportu będzie dostępna wkrótce')
+        // Simple CSV export of current roles data
+        const csvData = this.roles.map(role => ({
+          'ID': role.id,
+          'Nazwa roli': role.name,
+          'Guard': role.guard_name,
+          'Liczba uprawnień': role.permissions_count || 0,
+          'Liczba użytkowników': role.users_count || 0,
+          'Data utworzenia': role.created_at
+        }))
+
+        if (csvData.length === 0) {
+          this.showInfo('Brak danych do eksportu')
+          return
+        }
+
+        // Generate CSV
+        const headers = Object.keys(csvData[0])
+        const csvContent = [
+          headers.join(','),
+          ...csvData.map(row =>
+            headers.map(header => `"${(row[header] || '').toString().replace(/"/g, '""')}"`).join(',')
+          )
+        ].join('\n')
+
+        // Download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `role_systemowe_${new Date().toISOString().split('T')[0]}.csv`
+        link.click()
+
+        this.showSuccess(`Wyeksportowano ${csvData.length} ról`)
       } catch (error) {
         this.showError('Nie udało się wyeksportować ról')
       }
