@@ -64,3 +64,62 @@ html, body {
   font-size: 1.1rem;
   font-weight: 500;
 }
+
+/* Dashboard dialog enhancements */
+.dashboard-dialog .v-overlay__scrim {
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
+.dashboard-dialog-card {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
+  border-radius: 12px !important;
+}
+
+.dashboard-dialog-title {
+  background: #222222 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #333333 !important;
+  font-weight: 600 !important;
+  padding: 20px 24px 16px 24px !important;
+  font-size: 18px !important;
+}
+
+.dashboard-dialog-actions {
+  background: #1f1f1f !important;
+  border-top: 1px solid #333333 !important;
+  padding: 16px 24px !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+/* Fix v-card-text background inside dialog */
+.dashboard-dialog-card .v-card-text {
+  background: #1a1a1a !important;
+  color: #e0e0e0 !important;
+}
+
+/* Ensure form elements inside dialog are visible */
+.dashboard-dialog-card .v-select .v-field {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+}
+
+.dashboard-dialog-card .v-select .v-field--focused {
+  border-color: #bb86fc !important;
+}
+
+.dashboard-dialog-card .v-alert {
+  background: rgba(255, 152, 0, 0.1) !important;
+  border: 1px solid rgba(255, 152, 0, 0.3) !important;
+}
+
+.dashboard-dialog-card .v-chip {
+  background: #333333 !important;
+  border: 1px solid #404040 !important;
+}
+
+.dashboard-dialog-card .v-divider {
+  border-color: #333333 !important;
+}
