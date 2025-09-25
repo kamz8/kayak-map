@@ -20,11 +20,7 @@ class UserRoleController extends Controller
     public function __construct(
         private readonly UserRoleService $userRoleService
     ) {
-        $this->middleware('auth:api');
-        $this->middleware('permission:dashboard.view');
-        $this->middleware('permission:users.view')->only(['getUserRoles']);
-        $this->middleware('permission:users.assign_roles')->only(['assignRoles', 'syncRoles']);
-        $this->middleware('permission:users.revoke_roles')->only(['revokeRoles']);
+        // Middleware will be handled at route level later
     }
 
     /**

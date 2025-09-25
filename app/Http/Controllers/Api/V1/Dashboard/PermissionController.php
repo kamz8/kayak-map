@@ -22,12 +22,7 @@ class PermissionController extends Controller
     public function __construct(
         private readonly PermissionService $permissionService
     ) {
-        $this->middleware('auth:api');
-        $this->middleware('permission:dashboard.view');
-        $this->middleware('permission:permissions.view')->only(['index', 'show', 'modules']);
-        $this->middleware('permission:permissions.create')->only(['store']);
-        $this->middleware('permission:permissions.update')->only(['update']);
-        $this->middleware('permission:permissions.delete')->only(['destroy']);
+        // Middleware will be handled at route level later
     }
 
     /**

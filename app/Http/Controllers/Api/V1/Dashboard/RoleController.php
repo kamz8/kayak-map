@@ -23,14 +23,7 @@ class RoleController extends Controller
     public function __construct(
         private readonly RoleService $roleService
     ) {
-        $this->middleware('auth:api');
-        $this->middleware('permission:dashboard.view');
-        $this->middleware('permission:roles.view')->only(['index', 'show']);
-        $this->middleware('permission:roles.create')->only(['store']);
-        $this->middleware('permission:roles.update')->only(['update']);
-        $this->middleware('permission:roles.delete')->only(['destroy']);
-        $this->middleware('permission:roles.assign_permissions')->only(['assignPermissions']);
-        $this->middleware('permission:roles.revoke_permissions')->only(['revokePermissions']);
+        // Middleware will be handled at route level later
     }
 
     /**

@@ -19,9 +19,7 @@ class SystemSecurityController extends Controller
     public function __construct(
         private readonly UserRoleService $userRoleService
     ) {
-        $this->middleware('auth:api');
-        $this->middleware('permission:dashboard.view');
-        $this->middleware('permission:system.security.view')->only(['status', 'emergencyInfo']);
+        // Middleware will be handled at route level later
     }
 
     /**
