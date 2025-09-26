@@ -5,17 +5,6 @@
         Zarządzanie uprawnieniami i pozwoleniami w systemie
       </template>
 
-      <div class="d-flex gap-2 mb-4">
-        <UiButton variant="default" size="sm" disabled>
-          <v-icon start>mdi-plus</v-icon>
-          Dodaj uprawnienie
-        </UiButton>
-        <UiButton variant="outline" size="sm" disabled>
-          <v-icon start>mdi-download</v-icon>
-          Eksport
-        </UiButton>
-      </div>
-
       <div class="row">
         <div class="col-md-6 mb-4">
           <v-card>
