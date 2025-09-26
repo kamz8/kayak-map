@@ -63,8 +63,8 @@ class User extends Authenticatable implements JWTSubject
         'is_active' => 'boolean',
         'is_admin' => 'boolean',
         'last_login_at' => 'datetime',
-        'preferences' => 'array',
-        'notification_settings' => 'array',
+        'preferences' => \App\Casts\UserPreferences::class,
+        'notification_settings' => \App\Casts\UserPreferences::class,
         'birth_date' => 'date',
     ];
 

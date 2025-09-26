@@ -19,7 +19,8 @@
       "Bash(curl:*)",
       "Bash(docker logs:*)",
       "Bash(mkdir:*)",
-      "Bash(php artisan test:*)"
+      "Bash(php artisan test:*)",
+      "Bash(php artisan make:cast:*)"
     ],
     "deny": [],
     "ask": []

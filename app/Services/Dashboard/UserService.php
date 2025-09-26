@@ -206,7 +206,9 @@ class UserService
             $updateData['password'] = Hash::make($data['password']);
         }
 
-        $user->update($updateData);
+        // Use fill and save to avoid virtual column conflicts
+        $user->fill($updateData);
+        $user->save();
 
         return $user->fresh(['roles']);
     }
