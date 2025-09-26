@@ -21,7 +21,6 @@ class SuperAdminSeeder extends Seeder
                 'last_name' => 'Admin',
                 'email' => 'superadmin@kayakmap.pl',
                 'password' => Hash::make('SuperAdmin123!'),
-                'is_admin' => true,
             ]
         );
 

@@ -21,7 +21,6 @@ class BackupSuperAdminSeeder extends Seeder
                 'last_name' => 'Super Admin',
                 'email' => 'backup.superadmin@kayakmap.pl',
                 'password' => Hash::make('BackupSuperAdmin2024!'),
-                'is_admin' => true,
             ]
         );
 
@@ -40,7 +39,7 @@ class BackupSuperAdminSeeder extends Seeder
                 'last_name' => 'Admin',
                 'email' => 'backup.admin@kayakmap.pl',
                 'password' => Hash::make('BackupAdmin2024!'),
-                'is_admin' => true,
+
             ]
         );
 

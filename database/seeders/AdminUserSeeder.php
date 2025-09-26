@@ -21,7 +21,6 @@ class AdminUserSeeder extends Seeder
                 'last_name' => 'Kayak Map',
                 'email' => 'admin@kayak-map.test',
                 'password' => Hash::make('password'),
-                'is_admin' => true,
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
