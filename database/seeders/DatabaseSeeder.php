@@ -14,12 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PointTypesSeeder::class,
-//            ImageSeeder::class,
-//            TrailSeeder::class,
 
-//            ImageableSeeder::class,
-            RiverTrailSeeder::class,
         ]);
     }
 
