@@ -189,7 +189,7 @@
       :color="snackbar.color"
       :timeout="snackbar.timeout"
       location="top right"
-      variant="tonal"
+      variant="flat"
       style="z-index: 999"
       @update:model-value="handleSnackbarUpdate"
     >
