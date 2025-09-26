@@ -37,6 +37,19 @@ class User extends Authenticatable implements JWTSubject
         'preferences',
         'notification_settings',
         'is_admin',
+        'is_active',
+    ];
+
+    protected $guarded = [
+        'id',
+        'email_notifications_enabled',
+        'notifications_enabled',
+        'preferred_language',
+        'email_verified_at',
+        'remember_token',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     protected $hidden = [

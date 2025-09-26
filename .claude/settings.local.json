@@ -17,7 +17,9 @@
       "Bash(timeout 10 npm run dev)",
       "Bash(docker exec:*)",
       "Bash(curl:*)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(mkdir:*)",
+      "Bash(php artisan test:*)"
     ],
     "deny": [],
     "ask": []
