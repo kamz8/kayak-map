@@ -12,6 +12,7 @@ export { default as UiBreadcrumb } from './UiBreadcrumb.vue'
 export { default as UiDataTable } from './UiDataTable.vue'
 export { default as UiAvatar } from './UiAvatar.vue'
 export { default as UiDialog } from './UiDialog.vue'
+export { default as PermissionSelector } from './PermissionSelector.vue'
 
 // Legacy Dashboard Components (maintain compatibility)
 export { default as ConfirmDialog } from './ConfirmDialog.vue'
@@ -29,6 +30,7 @@ import UiBreadcrumb from './UiBreadcrumb.vue'
 import UiDataTable from './UiDataTable.vue'
 import UiAvatar from './UiAvatar.vue'
 import UiDialog from './UiDialog.vue'
+import PermissionSelector from './PermissionSelector.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DataTable from './DataTable.vue'
 import FormField from './FormField.vue'
@@ -46,7 +48,8 @@ export function registerUiComponents(app) {
   app.component('UiDataTable', UiDataTable)
   app.component('UiAvatar', UiAvatar)
   app.component('UiDialog', UiDialog)
-  
+  app.component('PermissionSelector', PermissionSelector)
+
   // Legacy components (keep for compatibility)
   app.component('ConfirmDialog', ConfirmDialog)
   app.component('DataTable', DataTable)
