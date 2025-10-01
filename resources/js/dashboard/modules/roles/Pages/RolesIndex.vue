@@ -170,20 +170,18 @@
             Wybierz uprawnienia dla roli <strong>{{ permissionDialog.role.name }}</strong>
           </div>
 
-          <!-- TODO: Implement permission selection component -->
-          <v-alert type="info" variant="tonal">
-            <v-icon start>mdi-information</v-icon>
-            Zarządzanie uprawnieniami dla roli <strong>{{ permissionDialog.role.name }}</strong> jest obecnie dostępne tylko przez API.
-            Super Admin ma domyślnie wszystkie uprawnienia.
-          </v-alert>
+          <PermissionSelector
+            :role="permissionDialog.role"
+            :permissions="availablePermissions"
+            :initial-permissions="rolePermissions"
+            :loading="permissionDialog.loading"
+            :saving="permissionDialog.saving"
+            :error="permissionDialog.error"
+            @save="saveRolePermissions"
+            @cancel="closePermissionDialog"
+          />
         </v-card-text>
 
-        <v-card-actions class="dashboard-dialog-actions">
-          <v-spacer />
-          <UiButton variant="outline" @click="closePermissionDialog">
-            Zamknij
-          </UiButton>
-        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -203,7 +201,7 @@
 
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex'
-import { UiDataTable, UiButton, UiBadge, UiInput } from '@/dashboard/components/ui'
+import { UiDataTable, UiButton, UiBadge, UiInput, PermissionSelector } from '@/dashboard/components/ui'
 import ConfirmDialog from '@/dashboard/components/ui/ConfirmDialog.vue'
 
 const TABLE_HEADERS = [
@@ -246,6 +244,7 @@ export default {
     UiButton,
     UiBadge,
     UiInput,
+    PermissionSelector,
     ConfirmDialog
   },
   data() {
@@ -264,7 +263,10 @@ export default {
       },
       permissionDialog: {
         show: false,
-        role: null
+        role: null,
+        loading: false,
+        saving: false,
+        error: null
       },
       deleteDialog: {
         show: false,
@@ -283,10 +285,18 @@ export default {
   },
   computed: {
     ...mapState('roles', ['roles', 'loading']),
+    ...mapState('permissions', {
+      availablePermissions: 'permissions',
+      permissionsLoading: 'loading'
+    }),
     ...mapActions('ui', ['showSuccess', 'showError', 'showInfo']),
 
     headers() {
       return TABLE_HEADERS
+    },
+
+    rolePermissions() {
+      return this.permissionDialog.role?.permissions || []
     }
   },
   async created() {
@@ -297,7 +307,12 @@ export default {
       'fetchRoles',
       'createRole',
       'updateRole',
-      'deleteRole'
+      'deleteRole',
+      'assignPermissions'
+    ]),
+    ...mapActions('permissions', [
+      'fetchPermissions',
+      'fetchRolePermissions'
     ]),
     ...mapActions('ui', ['showSuccess', 'showError', 'showInfo']),
 
@@ -442,17 +457,74 @@ export default {
       }
     },
 
-    managePermissions(role) {
+    async managePermissions(role) {
       this.permissionDialog = {
         show: true,
-        role: role
+        role: role,
+        loading: true,
+        saving: false,
+        error: null
+      }
+
+      try {
+        // Load permissions and role permissions concurrently
+        await Promise.all([
+          this.fetchPermissions(),
+          this.loadRolePermissions(role.id)
+        ])
+      } catch (error) {
+        console.error('Error loading permissions:', error)
+        this.permissionDialog.error = 'Nie udało się załadować uprawnień'
+      } finally {
+        this.permissionDialog.loading = false
+      }
+    },
+
+    async loadRolePermissions(roleId) {
+      try {
+        const permissions = await this.fetchRolePermissions(roleId)
+        // Update role with permissions
+        this.permissionDialog.role = {
+          ...this.permissionDialog.role,
+          permissions: permissions
+        }
+      } catch (error) {
+        console.error('Error loading role permissions:', error)
+        throw error
+      }
+    },
+
+    async saveRolePermissions(permissionIds) {
+      this.permissionDialog.saving = true
+      this.permissionDialog.error = null
+
+      try {
+        await this.assignPermissions({
+          roleId: this.permissionDialog.role.id,
+          permissionIds: permissionIds
+        })
+
+        this.showSuccess(`Uprawnienia dla roli '${this.permissionDialog.role.name}' zostały zaktualizowane`)
+
+        // Refresh roles to update permissions count
+        await this.fetchRoles()
+
+        this.closePermissionDialog()
+      } catch (error) {
+        console.error('Save permissions error:', error)
+        this.permissionDialog.error = error.response?.data?.message || 'Nie udało się zapisać uprawnień'
+      } finally {
+        this.permissionDialog.saving = false
       }
     },
 
     closePermissionDialog() {
       this.permissionDialog = {
         show: false,
-        role: null
+        role: null,
+        loading: false,
+        saving: false,
+        error: null
       }
     },
 
