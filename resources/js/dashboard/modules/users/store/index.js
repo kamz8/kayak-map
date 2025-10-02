@@ -27,13 +27,8 @@ const state = () => ({
     sort_direction: 'desc'
   },
 
-  // Available options for filters
-  roles: [
-    { value: 'Super Admin', label: 'Super Administrator' },
-    { value: 'Admin', label: 'Administrator' },
-    { value: 'Editor', label: 'Edytor' },
-    { value: 'User', label: 'Użytkownik' }
-  ],
+  // Available options for filters (loaded from API)
+  roles: [],
 
   statuses: [
     { value: 'active', label: 'Aktywny' },
@@ -61,6 +56,17 @@ const mutations = {
 
   SET_USER(state, user) {
     state.user = user
+  },
+
+  SET_ROLES(state, roles) {
+    state.roles = roles.map(role => ({
+      id: role.id,
+      value: role.name,
+      label: role.name === 'Super Admin' ? 'Super Administrator' :
+             role.name === 'Admin' ? 'Administrator' :
+             role.name === 'Editor' ? 'Edytor' :
+             role.name === 'User' ? 'Użytkownik' : role.name
+    }))
   },
 
   ADD_USER(state, user) {
@@ -170,6 +176,26 @@ const actions = {
       throw error
     } finally {
       commit('SET_LOADING', false)
+    }
+  },
+
+  // Fetch available roles for filters and forms
+  async fetchRoles({ commit }) {
+    try {
+      const response = await apiClient.get('/dashboard/roles')
+      commit('SET_ROLES', response.data.data || response.data)
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch roles:', error)
+      // Fallback to default roles if API fails
+      const fallbackRoles = [
+        { id: 1, name: 'Super Admin' },
+        { id: 2, name: 'Admin' },
+        { id: 3, name: 'Editor' },
+        { id: 4, name: 'User' }
+      ]
+      commit('SET_ROLES', fallbackRoles)
+      return fallbackRoles
     }
   },
 

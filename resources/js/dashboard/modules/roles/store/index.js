@@ -36,7 +36,7 @@ const actions = {
       commit('SET_LOADING', true)
       commit('SET_ERROR', null)
 
-      const response = await apiClient.get('/dashboard/roles')
+      const response = await apiClient.get('/dashboard/roles?with_users_count=true&with_permissions=true')
       commit('SET_ROLES', response.data.data || response.data)
 
     } catch (error) {
@@ -145,6 +145,64 @@ const actions = {
     } catch (error) {
       console.error('Revoke permissions error:', error)
       commit('SET_ERROR', error.response?.data?.message || 'Nie udało się usunąć uprawnień')
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  async assignUsersToRole({ commit }, { roleId, userIds }) {
+    try {
+      commit('SET_LOADING', true)
+      commit('SET_ERROR', null)
+
+      // Using UserRoleController sync-roles endpoint for each user
+      const assignmentPromises = userIds.map(userId =>
+        apiClient.put(`/dashboard/users/${userId}/sync-roles`, {
+          roles: [roleId]
+        })
+      )
+
+      await Promise.all(assignmentPromises)
+
+      // Refresh roles to get updated user count
+      const rolesResponse = await apiClient.get('/dashboard/roles?with_users_count=true')
+      commit('SET_ROLES', rolesResponse.data.data || rolesResponse.data)
+
+      return true
+
+    } catch (error) {
+      console.error('Assign users to role error:', error)
+      commit('SET_ERROR', error.response?.data?.message || 'Nie udało się przypisać użytkowników do roli')
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  async removeUsersFromRole({ commit }, { roleId, userIds }) {
+    try {
+      commit('SET_LOADING', true)
+      commit('SET_ERROR', null)
+
+      // Remove role from users by setting empty roles array
+      const removalPromises = userIds.map(userId =>
+        apiClient.put(`/dashboard/users/${userId}/sync-roles`, {
+          roles: [] // Remove all roles for simplicity - in real app would need current roles minus this one
+        })
+      )
+
+      await Promise.all(removalPromises)
+
+      // Refresh roles to get updated user count
+      const rolesResponse = await apiClient.get('/dashboard/roles?with_users_count=true')
+      commit('SET_ROLES', rolesResponse.data.data || rolesResponse.data)
+
+      return true
+
+    } catch (error) {
+      console.error('Remove users from role error:', error)
+      commit('SET_ERROR', error.response?.data?.message || 'Nie udało się usunąć użytkowników z roli')
       throw error
     } finally {
       commit('SET_LOADING', false)

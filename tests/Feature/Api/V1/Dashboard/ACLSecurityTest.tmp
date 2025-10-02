@@ -1,0 +1,159 @@
+<?php
+
+namespace Tests\Feature\Api\V1\Dashboard;
+
+use App\Models\User;
+use Database\Seeders\Dashboard\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ACLSecurityTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $superAdmin1;
+    protected User $superAdmin2;
+    protected User $admin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->superAdmin1 = User::factory()->create(['email' => 'superadmin1@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->superAdmin1->assignRole('Super Admin');
+
+        $this->superAdmin2 = User::factory()->create(['email' => 'superadmin2@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->superAdmin2->assignRole('Super Admin');
+
+        $this->admin = User::factory()->create(['email' => 'admin@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->admin->assignRole('Admin');
+    }
+
+    private function headers(): array
+    {
+        return [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'X-Client-Type' => 'web'
+        ];
+    }
+
+    /** @test */
+    public function it_returns_safe_security_status()
+    {
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson('/api/v1/dashboard/security/status', $this->headers());
+
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'super_admin_count' => 2,
+                    'admin_count' => 1,
+                    'super_admin_status' => 'safe',
+                    'admin_status' => 'safe'
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_reports_critical_status_when_below_minimum()
+    {
+        $this->superAdmin2->delete();
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson('/api/v1/dashboard/security/status', $this->headers());
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    'super_admin_count' => 1,
+                    'super_admin_status' => 'critical'
+                ]
+            ]);
+
+        $warnings = $response->json('data.warnings');
+        $this->assertNotEmpty($warnings);
+    }
+
+    /** @test */
+    public function it_allows_deleting_regular_user()
+    {
+        $regularUser = User::factory()->create(['is_active' => true, 'email_verified_at' => now()]);
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson("/api/v1/dashboard/users/{$regularUser->id}/can-delete", $this->headers());
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    'can_delete' => true,
+                    'reasons' => []
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_prevents_deleting_last_super_admin()
+    {
+        $this->superAdmin2->delete();
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson("/api/v1/dashboard/users/{$this->superAdmin1->id}/can-delete", $this->headers());
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => [
+                    'can_delete' => false
+                ]
+            ]);
+
+        $reasons = $response->json('data.reasons');
+        $this->assertNotEmpty($reasons);
+    }
+
+    /** @test */
+    public function it_allows_deleting_super_admin_when_others_exist()
+    {
+        $superAdmin3 = User::factory()->create(['is_active' => true, 'email_verified_at' => now()]);
+        $superAdmin3->assignRole('Super Admin');
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson("/api/v1/dashboard/users/{$this->superAdmin2->id}/can-delete", $this->headers());
+
+        $response->assertOk()
+            ->assertJson([
+                'data' => ['can_delete' => true]
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_admin_summary()
+    {
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson('/api/v1/dashboard/security/admin-summary', $this->headers());
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'super_admins' => ['*' => ['id', 'email', 'roles']],
+                    'admins' => ['*' => ['id', 'email', 'roles']],
+                    'counts',
+                    'security_status'
+                ]
+            ])
+            ->assertJson([
+                'data' => [
+                    'counts' => [
+                        'super_admin_count' => 2,
+                        'admin_count' => 1,
+                        'total_admin_accounts' => 3
+                    ]
+                ]
+            ]);
+    }
+}

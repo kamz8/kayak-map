@@ -22,7 +22,10 @@ class UserRoleService
         $roles = Role::whereIn('id', $roleIds)->get();
         $user->assignRole($roles);
 
-        return $user->fresh(['roles.permissions']);
+        $user->refresh();
+        $user->load(['roles.permissions']);
+
+        return $user;
     }
 
     public function revokeRoles(User $user, array $roleIds, User $currentUser): User
@@ -32,7 +35,10 @@ class UserRoleService
         $roles = Role::whereIn('id', $roleIds)->get();
         $user->removeRole($roles);
 
-        return $user->fresh(['roles.permissions']);
+        $user->refresh();
+        $user->load(['roles.permissions']);
+
+        return $user;
     }
 
     public function syncRoles(User $user, array $roleIds, User $currentUser): User
@@ -42,7 +48,10 @@ class UserRoleService
         $roles = Role::whereIn('id', $roleIds)->get();
         $user->syncRoles($roles);
 
-        return $user->fresh(['roles.permissions']);
+        $user->refresh();
+        $user->load(['roles.permissions']);
+
+        return $user;
     }
 
     public function getSystemSecurityStatus(): array

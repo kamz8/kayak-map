@@ -20,7 +20,12 @@
       "Bash(docker logs:*)",
       "Bash(mkdir:*)",
       "Bash(php artisan test:*)",
-      "Bash(php artisan make:cast:*)"
+      "Bash(php artisan make:cast:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(find:*)",
+      "Bash(for file in *.tmp)",
+      "Bash(do powershell -Command \"Copy-Item ''''$file'''' ''''$file%.tmp.php''''\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

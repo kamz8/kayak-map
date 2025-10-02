@@ -1,0 +1,139 @@
+<?php
+
+namespace Tests\Feature\Api\V1\Dashboard;
+
+use App\Models\User;
+use Database\Seeders\Dashboard\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+
+class ACLRoleTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $superAdmin;
+    protected User $admin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->superAdmin = User::factory()->create([
+            'email' => 'superadmin@test.com',
+            'is_active' => true,
+            'email_verified_at' => now()
+        ]);
+        $this->superAdmin->assignRole('Super Admin');
+
+        $this->admin = User::factory()->create([
+            'email' => 'admin@test.com',
+            'is_active' => true,
+            'email_verified_at' => now()
+        ]);
+        $this->admin->assignRole('Admin');
+    }
+
+    private function headers(): array
+    {
+        return [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'X-Client-Type' => 'web'
+        ];
+    }
+
+    /** @test */
+    public function it_lists_all_roles()
+    {
+        $response = $this->actingAs($this->superAdmin, 'api')
+            ->getJson('/api/v1/dashboard/roles', $this->headers());
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    '*' => ['id', 'name', 'guard_name']
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_creates_new_role()
+    {
+        $response = $this->actingAs($this->superAdmin, 'api')
+            ->postJson('/api/v1/dashboard/roles', [
+                'name' => 'Content Manager',
+                'permissions' => [Permission::where('name', 'content.view')->first()->id]
+            ], $this->headers());
+
+        $response->assertCreated();
+        $this->assertDatabaseHas('roles', ['name' => 'Content Manager']);
+    }
+
+    /** @test */
+    public function it_prevents_duplicate_role_names()
+    {
+        $response = $this->actingAs($this->superAdmin, 'api')
+            ->postJson('/api/v1/dashboard/roles', [
+                'name' => 'Admin'
+            ], $this->headers());
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    /** @test */
+    public function it_updates_role()
+    {
+        $role = Role::where('name', 'Moderator')->first();
+
+        $response = $this->actingAs($this->superAdmin, 'api')
+            ->putJson("/api/v1/dashboard/roles/{$role->id}", [
+                'name' => 'Senior Moderator'
+            ], $this->headers());
+
+        $response->assertOk();
+        $this->assertDatabaseHas('roles', ['name' => 'Senior Moderator']);
+    }
+
+    /** @test */
+    public function it_prevents_non_super_admin_from_modifying_super_admin_role()
+    {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+
+        $response = $this->actingAs($this->admin, 'api')
+            ->putJson("/api/v1/dashboard/roles/{$superAdminRole->id}", [
+                'name' => 'Hacked'
+            ], $this->headers());
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
+    public function it_deletes_role()
+    {
+        $role = Role::create(['name' => 'Temporary Role', 'guard_name' => 'web']);
+
+        $response = $this->actingAs($this->superAdmin, 'api')
+            ->deleteJson("/api/v1/dashboard/roles/{$role->id}", [], $this->headers());
+
+        $response->assertStatus(204);
+        $this->assertDatabaseMissing('roles', ['name' => 'Temporary Role']);
+    }
+
+    /** @test */
+    public function it_prevents_deleting_system_roles()
+    {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+
+        $response = $this->actingAs($this->superAdmin, 'api')
+            ->deleteJson("/api/v1/dashboard/roles/{$superAdminRole->id}", [], $this->headers());
+
+        $response->assertForbidden();
+    }
+}

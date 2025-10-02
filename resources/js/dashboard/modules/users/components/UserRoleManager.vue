@@ -40,11 +40,11 @@
           <template #chip="{ props, item }">
             <v-chip
               v-bind="props"
-              :color="getRoleColor(item.raw.value)"
+              :color="getRoleColor(item?.raw?.value || item?.value)"
               variant="flat"
               size="small"
             >
-              {{ item.raw.label }}
+              {{ item?.raw?.label || item?.label || item }}
             </v-chip>
           </template>
         </v-select>
@@ -130,7 +130,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('auth', ['user as currentUser']),
+    ...mapGetters('auth', {
+      currentUser: 'user'
+    }),
 
     // Get current user roles as array of role names
     currentUserRoles() {
@@ -146,6 +148,8 @@ export default {
 
     // Filter available roles based on current user permissions
     availableRoleOptions() {
+      if (!this.currentUser) return []
+
       return this.availableRoles.filter(role => {
         // Super Admin can assign any role
         if (this.currentUser.is_super_admin) {
@@ -163,6 +167,8 @@ export default {
 
     // Check if current user can manage roles for this user
     canManageRoles() {
+      if (!this.currentUser || !this.user) return false
+
       // Super Admin can manage anyone
       if (this.currentUser.is_super_admin) {
         return true
@@ -218,9 +224,15 @@ export default {
       this.error = null
 
       try {
+        // Convert role names to role IDs
+        const roleIds = this.selectedRoles.map(roleName => {
+          const role = this.availableRoles.find(r => r.value === roleName)
+          return role ? role.id : null
+        }).filter(id => id !== null)
+
         const updatedUser = await this.syncRoles({
           userId: this.user.id,
-          roles: this.selectedRoles
+          roles: roleIds
         })
 
         this.$emit('roles-updated', updatedUser)
@@ -243,6 +255,11 @@ export default {
 
     checkSecurityWarnings() {
       this.securityWarning = ''
+
+      // Guard against undefined values
+      if (!this.currentUser || !this.user) {
+        return
+      }
 
       // Check if trying to assign Super Admin without being Super Admin
       if (this.selectedRoles.includes('Super Admin') && !this.currentUser.is_super_admin) {

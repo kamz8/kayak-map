@@ -54,7 +54,15 @@ class RoleService
             $role->syncPermissions($permissions);
         }
 
-        return $role->fresh(['permissions']);
+        // Reload the role with permissions relation
+        $freshRole = $role->fresh(['permissions']);
+
+        // If fresh() returns null, reload manually
+        if (!$freshRole) {
+            $freshRole = Role::with('permissions')->find($role->id);
+        }
+
+        return $freshRole;
     }
 
     public function updateRole(Role $role, array $data, User $currentUser): Role
@@ -68,7 +76,20 @@ class RoleService
             $role->syncPermissions($permissions);
         }
 
-        return $role->fresh(['permissions']);
+        // Reload the role with permissions relation
+        $freshRole = $role->fresh(['permissions']);
+
+        // If fresh() returns null, reload manually
+        if (!$freshRole) {
+            $freshRole = Role::with('permissions')->find($role->id);
+        }
+
+        // Ultimate fallback - if both methods failed, throw exception with details
+        if (!$freshRole) {
+            throw new \Exception("Failed to reload role after update. Role ID: {$role->id}, Name: {$role->name}");
+        }
+
+        return $freshRole;
     }
 
     public function deleteRole(Role $role): bool
@@ -86,7 +107,15 @@ class RoleService
         $permissions = Permission::whereIn('id', $permissionIds)->get();
         $role->givePermissionTo($permissions);
 
-        return $role->fresh(['permissions']);
+        // Reload the role with permissions relation
+        $freshRole = $role->fresh(['permissions']);
+
+        // If fresh() returns null, reload manually
+        if (!$freshRole) {
+            $freshRole = Role::with('permissions')->find($role->id);
+        }
+
+        return $freshRole;
     }
 
     public function revokePermissions(Role $role, array $permissionIds): Role
@@ -98,7 +127,15 @@ class RoleService
         $permissions = Permission::whereIn('id', $permissionIds)->get();
         $role->revokePermissionTo($permissions);
 
-        return $role->fresh(['permissions']);
+        // Reload the role with permissions relation
+        $freshRole = $role->fresh(['permissions']);
+
+        // If fresh() returns null, reload manually
+        if (!$freshRole) {
+            $freshRole = Role::with('permissions')->find($role->id);
+        }
+
+        return $freshRole;
     }
 
     protected function validateRoleModification(Role $role, User $currentUser): void

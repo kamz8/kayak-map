@@ -245,11 +245,15 @@ export default {
     }
   },
   async created() {
-    await this.fetchUsers()
+    await Promise.all([
+      this.fetchUsers(),
+      this.fetchRoles()
+    ])
   },
   methods: {
     ...mapActions('users', [
       'fetchUsers',
+      'fetchRoles',
       'deleteUser',
       'setFilters',
       'resetFilters',
