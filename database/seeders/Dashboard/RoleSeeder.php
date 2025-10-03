@@ -114,11 +114,11 @@ class RoleSeeder extends Seeder
             'media.delete',
         ]);
 
-        // User permissions - minimal, mainly for profile management
-        // Users without dashboard access should only have profile management
+        // User permissions - minimal, for public API access and reading public resources
         $user->givePermissionTo([
-            // No dashboard access
-            // No administrative permissions
+            'trails.view',      // View trails (public API)
+            'regions.view',     // View regions (public API)
+            'api.access',       // General API access
         ]);
 
         $this->command->info('Created roles and assigned permissions');

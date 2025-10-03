@@ -1,31 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:www.shadcn-vue.com)",
-      "WebFetch(domain:github.com)",
-      "Bash(npm run build:*)",
-      "Bash(netstat:*)",
-      "Bash(findstr:*)",
-      "Bash(tasklist)",
-      "Bash(docker-compose:*)",
-      "Bash(mv:*)",
-      "Bash(docker ps:*)",
-      "Bash(docker inspect:*)",
-      "Read(//d/Laravel/android-wizard/resources/js/components/ui/**)",
-      "Read(//d/Laravel/android-wizard/resources/js/lib/**)",
-      "Read(//d/Laravel/android-wizard/**)",
-      "Bash(timeout 10 npm run dev)",
-      "Bash(docker exec:*)",
-      "Bash(curl:*)",
-      "Bash(docker logs:*)",
-      "Bash(mkdir:*)",
-      "Bash(php artisan test:*)",
-      "Bash(php artisan make:cast:*)",
-      "Bash(php artisan tinker:*)",
-      "Bash(find:*)",
-      "Bash(for file in *.tmp)",
-      "Bash(do powershell -Command \"Copy-Item ''''$file'''' ''''$file%.tmp.php''''\")",
-      "Bash(done)"
+      "Bash(docker exec:*)"
     ],
     "deny": [],
     "ask": []

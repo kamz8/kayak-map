@@ -93,6 +93,11 @@ class PermissionSeeder extends Seeder
             'media.optimize',
         ];
 
+        // API permissions (api.*)
+        $apiPermissions = [
+            'api.access',       // General API access for authenticated users
+        ];
+
         // All permissions combined
         $allPermissions = array_merge(
             $dashboardPermissions,
@@ -102,7 +107,8 @@ class PermissionSeeder extends Seeder
             $rolePermissions,
             $permissionPermissions,
             $systemPermissions,
-            $mediaPermissions
+            $mediaPermissions,
+            $apiPermissions
         );
 
         // Create permissions

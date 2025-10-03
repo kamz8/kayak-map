@@ -7,7 +7,7 @@ use Database\Seeders\Dashboard\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UserManagementTest extends TestCase
+class UserRoleManagementTest extends TestCase
 {
     use RefreshDatabase;
 
