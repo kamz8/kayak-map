@@ -21,7 +21,18 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = JWTAuth::fromUser($user);
+        // Assign default 'User' role to newly registered user
+        $user->assignRole('User');
+
+        // Load roles and permissions for JWT token claims
+        $user->load('roles.permissions');
+
+        // Generate JWT token with user claims (including roles/permissions)
+        $customClaims = $this->getUserClaims($user);
+        $token = JWTAuth::customClaims($customClaims)->fromUser($user);
+
+        // Dispatch UserLoggedIn event to update last login timestamp
+        event(new \App\Events\UserLoggedIn($user, request()->ip(), 'web'));
 
         return [
             'user' => $user,
@@ -44,6 +55,9 @@ class AuthService
         }
 
         $tokens = $this->generateTokens($user);
+
+        // Dispatch UserLoggedIn event to update last login timestamp
+        event(new \App\Events\UserLoggedIn($user, request()->ip(), 'web'));
 
         return [
             'user' => $user,

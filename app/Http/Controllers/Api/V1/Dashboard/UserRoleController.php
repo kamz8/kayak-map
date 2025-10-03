@@ -41,9 +41,10 @@ class UserRoleController extends Controller
      *     )
      * )
      */
-    public function getUserRoles(User $user): JsonResponse
+    public function getUserRoles($userId): JsonResponse
     {
         try {
+            $user = User::findOrFail($userId);
             $userWithRoles = $this->userRoleService->getUserWithRoles($user);
             return UserRoleResponse::userWithRoles($userWithRoles);
 
@@ -70,9 +71,10 @@ class UserRoleController extends Controller
      *     )
      * )
      */
-    public function assignRoles(AssignRolesRequest $request, User $user): JsonResponse
+    public function assignRoles(AssignRolesRequest $request, $userId): JsonResponse
     {
         try {
+            $user = User::findOrFail($userId);
             $userWithRoles = $this->userRoleService->assignRoles(
                 $user,
                 $request->validated()['roles'],
@@ -103,9 +105,10 @@ class UserRoleController extends Controller
      *     )
      * )
      */
-    public function revokeRoles(AssignRolesRequest $request, User $user): JsonResponse
+    public function revokeRoles(AssignRolesRequest $request, $userId): JsonResponse
     {
         try {
+            $user = User::findOrFail($userId);
             $userWithRoles = $this->userRoleService->revokeRoles(
                 $user,
                 $request->validated()['roles'],
@@ -136,9 +139,10 @@ class UserRoleController extends Controller
      *     )
      * )
      */
-    public function syncRoles(AssignRolesRequest $request, User $user): JsonResponse
+    public function syncRoles(AssignRolesRequest $request, $userId): JsonResponse
     {
         try {
+            $user = User::findOrFail($userId);
             $userWithRoles = $this->userRoleService->syncRoles(
                 $user,
                 $request->validated()['roles'],

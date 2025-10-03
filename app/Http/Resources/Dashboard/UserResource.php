@@ -34,6 +34,7 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->format('Y-m-d H:i:s'),
             'phone_verified' => $this->phone_verified,
             'last_login_at' => $this->last_login_at?->format('Y-m-d H:i:s'),
+            'last_login_ip' => $this->last_login_ip,
 
             // Roles and permissions
             'roles' => $this->whenLoaded('roles', function () {

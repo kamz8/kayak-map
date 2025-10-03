@@ -27,7 +27,11 @@ class AppServiceProvider extends ServiceProvider
             $event->extendSocialite('google', \SocialiteProviders\Google\Provider::class);
         });
 
-
+        // Register UserLoggedIn event listener
+        Event::listen(
+            \App\Events\UserLoggedIn::class,
+            \App\Listeners\UpdateUserLastLogin::class
+        );
     }
 
     /**

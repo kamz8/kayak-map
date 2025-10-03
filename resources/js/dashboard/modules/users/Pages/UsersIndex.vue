@@ -105,18 +105,6 @@
 
       <!-- Custom actions -->
       <template #actions="{ item }">
-        <v-tooltip v-if="$can('users.assign_roles')" text="Zarządzaj rolami">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-shield-account"
-              size="x-small"
-              variant="text"
-              color="warning"
-              @click="manageUserRoles(item)"
-            />
-          </template>
-        </v-tooltip>
       </template>
     </UiDataTable>
 
