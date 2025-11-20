@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
@@ -85,7 +86,7 @@ class Region extends Model
     protected function slug(): Attribute
     {
         return Attribute::make(
-            set: fn ($value) => str_slug($value),
+            set: fn ($value) => Str::slug($value),
         );
     }
 

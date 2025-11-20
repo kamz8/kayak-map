@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Dashboard\PermissionController;
 use App\Http\Controllers\Api\V1\Dashboard\RoleController;
 use App\Http\Controllers\Api\V1\Dashboard\SystemSecurityController;
+use App\Http\Controllers\Api\V1\Dashboard\TrailController;
 use App\Http\Controllers\Api\V1\Dashboard\UserController;
 use App\Http\Controllers\Api\V1\Dashboard\UserRoleController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,13 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/dashboard')
     ->middleware(['api'])
     ->group(function () {
+
+        // Trails Management
+        Route::get('trails/statistics', [TrailController::class, 'statistics'])
+            ->name('dashboard.trails.statistics');
+        Route::patch('trails/{trail}/status', [TrailController::class, 'changeStatus'])
+            ->name('dashboard.trails.change-status');
+        Route::apiResource('trails', TrailController::class);
 
         // Users Management
         Route::apiResource('users', UserController::class);

@@ -73,6 +73,25 @@
                 ],
                 "summary": "Odświeżenie tokena JWT",
                 "operationId": "e5a4627e54da71851a760487c5b64b99",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "refresh_token"
+                                ],
+                                "properties": {
+                                    "refresh_token": {
+                                        "description": "Refresh token",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Token odświeżony",
@@ -85,14 +104,9 @@
                         }
                     },
                     "401": {
-                        "description": "Nieprawidłowy token"
+                        "description": "Nieprawidłowy refresh token"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             }
         },
         "/auth/logout": {
@@ -362,6 +376,1314 @@
                         "description": "Invalid provider"
                     }
                 }
+            }
+        },
+        "/api/dashboard/permissions": {
+            "get": {
+                "tags": [
+                    "Dashboard - Permissions"
+                ],
+                "summary": "Pobierz listę uprawnień",
+                "operationId": "eb7a8b87cc5d6b20a1c81d48713d44e2",
+                "parameters": [
+                    {
+                        "name": "module",
+                        "in": "query",
+                        "description": "Filtruj według modułu",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "with_roles",
+                        "in": "query",
+                        "description": "Dołącz role",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "grouped",
+                        "in": "query",
+                        "description": "Pogrupuj według modułów",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista uprawnień pobrana pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Dashboard - Permissions"
+                ],
+                "summary": "Utwórz nowe uprawnienie",
+                "operationId": "31bab2738d2ed06b90141515befb7be3",
+                "responses": {
+                    "201": {
+                        "description": "Uprawnienie utworzone pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/permissions/{permission}": {
+            "get": {
+                "tags": [
+                    "Dashboard - Permissions"
+                ],
+                "summary": "Pobierz szczegóły uprawnienia",
+                "operationId": "9aad3045e1836b9e681379b2e646e4bd",
+                "parameters": [
+                    {
+                        "name": "permission",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Uprawnienie pobrane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Dashboard - Permissions"
+                ],
+                "summary": "Zaktualizuj uprawnienie",
+                "operationId": "628ccc5668962705a6995c66068dad00",
+                "parameters": [
+                    {
+                        "name": "permission",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Uprawnienie zaktualizowane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Dashboard - Permissions"
+                ],
+                "summary": "Usuń uprawnienie",
+                "operationId": "de21045f48704402ddc846efa73c4e09",
+                "parameters": [
+                    {
+                        "name": "permission",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Uprawnienie usunięte pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/permissions/modules": {
+            "get": {
+                "tags": [
+                    "Dashboard - Permissions"
+                ],
+                "summary": "Pobierz dostępne moduły uprawnień",
+                "operationId": "27bd9b54833a90097adca11570f1bb73",
+                "responses": {
+                    "200": {
+                        "description": "Lista modułów pobrana pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/roles": {
+            "get": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Pobierz listę ról",
+                "operationId": "6e047a399347b51b96bedb2d7b798882",
+                "parameters": [
+                    {
+                        "name": "with_permissions",
+                        "in": "query",
+                        "description": "Dołącz uprawnienia",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "with_users_count",
+                        "in": "query",
+                        "description": "Dołącz liczbę użytkowników",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista ról pobrana pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Utwórz nową rolę",
+                "operationId": "0ef9b4ff7da02e946ef6c7bbef03fce5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Manager"
+                                    },
+                                    "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rola utworzona pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/roles/{role}": {
+            "get": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Pobierz szczegóły roli",
+                "operationId": "8b8675ef53bcac1ce065622f5d95ecb1",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rola pobrana pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Zaktualizuj rolę",
+                "operationId": "a137c305e455904f3e9130db1ce5c025",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rola zaktualizowana pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Usuń rolę",
+                "operationId": "7e4225a08dc960e3270734d1baadfd5f",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Rola usunięta pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/roles/{role}/assign-permissions": {
+            "post": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Przypisz uprawnienia do roli",
+                "operationId": "54c30a169841b1d1582626c4bef600ce",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Uprawnienia przypisane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/roles/{role}/revoke-permissions": {
+            "delete": {
+                "tags": [
+                    "Dashboard - Roles"
+                ],
+                "summary": "Odbierz uprawnienia od roli",
+                "operationId": "624ed92b346678b994990bc3794e5ec6",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Uprawnienia odebrane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/security/status": {
+            "get": {
+                "tags": [
+                    "Dashboard - System Security"
+                ],
+                "summary": "Sprawdź status bezpieczeństwa systemu",
+                "operationId": "9607d45e2e01dae3a2fdf70b7f2a49f0",
+                "responses": {
+                    "200": {
+                        "description": "Status bezpieczeństwa systemu"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/users/{user}/can-delete": {
+            "get": {
+                "tags": [
+                    "Dashboard - System Security"
+                ],
+                "summary": "Sprawdź czy użytkownika można bezpiecznie usunąć",
+                "operationId": "25f3ff0cfc36896b323d9fafa45e55f0",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Informacja o możliwości usunięcia użytkownika"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/security/emergency-info": {
+            "get": {
+                "tags": [
+                    "Dashboard - System Security"
+                ],
+                "summary": "Pobierz informacje o odzyskiwaniu dostępu w nagłych wypadkach",
+                "operationId": "72998970930c7da486b1c3f70fe53b4f",
+                "responses": {
+                    "200": {
+                        "description": "Instrukcje odzyskiwania dostępu"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/security/admin-summary": {
+            "get": {
+                "tags": [
+                    "Dashboard - System Security"
+                ],
+                "summary": "Pobierz podsumowanie administratorów w systemie",
+                "operationId": "e0b3b6bf595759f5a4c6660ac816a93e",
+                "responses": {
+                    "200": {
+                        "description": "Podsumowanie administratorów"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/dashboard/trails": {
+            "get": {
+                "tags": [
+                    "Dashboard - Trails"
+                ],
+                "summary": "Lista szlaków dla dashboardu",
+                "description": "Pobiera paginowaną listę szlaków z zaawansowanymi filtrami",
+                "operationId": "6ac17a48152e5af0bdb8f72374af0da6",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Numer strony",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Liczba elementów na stronę (max 100)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Wyszukiwanie w nazwie szlaku, rzeki lub opisie",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtruj po statusie",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive",
+                                "draft",
+                                "archived"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "statuses[]",
+                        "in": "query",
+                        "description": "Filtruj po wielu statusach",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "active",
+                                    "inactive",
+                                    "draft",
+                                    "archived"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "difficulty",
+                        "in": "query",
+                        "description": "Filtruj po trudności",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "łatwy",
+                                "umiarkowany",
+                                "trudny"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "difficulties[]",
+                        "in": "query",
+                        "description": "Filtruj po wielu poziomach trudności",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "łatwy",
+                                    "umiarkowany",
+                                    "trudny"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "region_id",
+                        "in": "query",
+                        "description": "Filtruj po ID regionu",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "region_ids[]",
+                        "in": "query",
+                        "description": "Filtruj po wielu regionach",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Data początkowa (utworzenia)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-01-01"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Data końcowa (utworzenia)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-12-31"
+                        }
+                    },
+                    {
+                        "name": "min_scenery",
+                        "in": "query",
+                        "description": "Minimalna ocena krajobrazu (0-10)",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 10,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "max_scenery",
+                        "in": "query",
+                        "description": "Maksymalna ocena krajobrazu (0-10)",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 10,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "min_rating",
+                        "in": "query",
+                        "description": "Minimalna ocena szlaku (0-10)",
+                        "schema": {
+                            "type": "number",
+                            "maximum": 10,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "max_rating",
+                        "in": "query",
+                        "description": "Maksymalna ocena szlaku (0-10)",
+                        "schema": {
+                            "type": "number",
+                            "maximum": 10,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "min_length",
+                        "in": "query",
+                        "description": "Minimalna długość szlaku (km)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "max_length",
+                        "in": "query",
+                        "description": "Maksymalna długość szlaku (km)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "author",
+                        "in": "query",
+                        "description": "Filtruj po autorze",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sortuj według pola",
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at",
+                            "enum": [
+                                "id",
+                                "trail_name",
+                                "river_name",
+                                "difficulty",
+                                "scenery",
+                                "rating",
+                                "trail_length",
+                                "status",
+                                "created_at",
+                                "updated_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Kolejność sortowania",
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "with[]",
+                        "in": "query",
+                        "description": "Dodatkowe relacje do załadowania",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "images",
+                                    "sections",
+                                    "points",
+                                    "riverTrack"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista szlaków pobrana pomyślnie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nieautoryzowany dostęp"
+                    },
+                    "403": {
+                        "description": "Brak uprawnień"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/dashboard/trails/statistics": {
+            "get": {
+                "tags": [
+                    "Dashboard - Trails"
+                ],
+                "summary": "Statystyki szlaków",
+                "description": "Pobiera statystyki dotyczące szlaków",
+                "operationId": "44ef385e6f217b94438093e7032224cf",
+                "responses": {
+                    "200": {
+                        "description": "Statystyki pobrane pomyślnie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 156
+                                        },
+                                        "by_status": {
+                                            "properties": {
+                                                "active": {
+                                                    "type": "integer",
+                                                    "example": 120
+                                                },
+                                                "inactive": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "draft": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "archived": {
+                                                    "type": "integer",
+                                                    "example": 6
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "by_difficulty": {
+                                            "properties": {
+                                                "easy": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "moderate": {
+                                                    "type": "integer",
+                                                    "example": 80
+                                                },
+                                                "hard": {
+                                                    "type": "integer",
+                                                    "example": 26
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "averages": {
+                                            "properties": {
+                                                "rating": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 7.85
+                                                },
+                                                "scenery": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 8.2
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "total_length_km": {
+                                            "type": "integer",
+                                            "example": 12500
+                                        },
+                                        "recent_count": {
+                                            "type": "integer",
+                                            "example": 15
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nieautoryzowany dostęp"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/dashboard/trails/{id}": {
+            "get": {
+                "tags": [
+                    "Dashboard - Trails"
+                ],
+                "summary": "Szczegóły szlaku",
+                "description": "Pobiera szczegółowe informacje o szlaku",
+                "operationId": "e28d8a6142c3f4f05d2787dbed5dccf5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID szlaku",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Szczegóły szlaku pobrane pomyślnie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Szlak nie został znaleziony"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/dashboard/trails/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Dashboard - Trails"
+                ],
+                "summary": "Zmień status szlaku",
+                "description": "Aktualizuje status szlaku",
+                "operationId": "f2eafb63175a63f54bff16398bc2dc0e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID szlaku",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "inactive",
+                                            "draft",
+                                            "archived"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status zaktualizowany pomyślnie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Status szlaku został zaktualizowany"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Nieprawidłowy status"
+                    },
+                    "404": {
+                        "description": "Szlak nie został znaleziony"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/dashboard/users": {
+            "get": {
+                "tags": [
+                    "Dashboard - Users"
+                ],
+                "summary": "Lista użytkowników",
+                "operationId": "e63468c5fa60df2cce84b850d7afcb22",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista użytkowników pobrana pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Dashboard - Users"
+                ],
+                "summary": "Utwórz nowego użytkownika",
+                "operationId": "9625f738469c64d128613ff0948ddf8e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "first_name",
+                                    "last_name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "roles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Użytkownik utworzony pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/dashboard/users/{user}": {
+            "get": {
+                "tags": [
+                    "Dashboard - Users"
+                ],
+                "summary": "Szczegóły użytkownika",
+                "operationId": "df429aab49faa9ec56ab87bae455632c",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Szczegóły użytkownika pobrane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Dashboard - Users"
+                ],
+                "summary": "Aktualizuj użytkownika",
+                "operationId": "75b44034dabf95b41e9c43cb3cf0fe45",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Użytkownik zaktualizowany pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Dashboard - Users"
+                ],
+                "summary": "Usuń użytkownika",
+                "operationId": "2411b39d973299010707d6ce19d588cf",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Użytkownik usunięty pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/users/{user}/roles": {
+            "get": {
+                "tags": [
+                    "Dashboard - User Roles"
+                ],
+                "summary": "Pobierz role użytkownika",
+                "operationId": "5cc30b00421c9904741aec82a384fdc5",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role użytkownika pobrane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/users/{user}/assign-roles": {
+            "post": {
+                "tags": [
+                    "Dashboard - User Roles"
+                ],
+                "summary": "Przypisz role użytkownikowi",
+                "operationId": "913f13cb68fa9c0d1fc0be7f8c65b633",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role przypisane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/users/{user}/revoke-roles": {
+            "delete": {
+                "tags": [
+                    "Dashboard - User Roles"
+                ],
+                "summary": "Odbierz role użytkownikowi",
+                "operationId": "2ded5247355c0b938a762d0b40808e60",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role odebrane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard/users/{user}/sync-roles": {
+            "put": {
+                "tags": [
+                    "Dashboard - User Roles"
+                ],
+                "summary": "Zsynchronizuj role użytkownika (zastąp wszystkie)",
+                "operationId": "f0c41f8143644e3345f91fb3969eef68",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role zsynchronizowane pomyślnie"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/gpx/upload": {
@@ -1494,6 +2816,30 @@
         {
             "name": "Auth",
             "description": "Endpoint autoryzacji - logowanie, wylogowywanie, odświeżanie tokena"
+        },
+        {
+            "name": "Dashboard - Permissions",
+            "description": "Zarządzanie uprawnieniami w panelu administracyjnym"
+        },
+        {
+            "name": "Dashboard - Roles",
+            "description": "Zarządzanie rolami w panelu administracyjnym"
+        },
+        {
+            "name": "Dashboard - System Security",
+            "description": "Monitorowanie bezpieczeństwa systemu i zabezpieczenia przed utratą kontroli"
+        },
+        {
+            "name": "Dashboard - Trails",
+            "description": "Zarządzanie szlakami w panelu administracyjnym"
+        },
+        {
+            "name": "Dashboard - Users",
+            "description": "Zarządzanie użytkownikami w panelu administracyjnym"
+        },
+        {
+            "name": "Dashboard - User Roles",
+            "description": "Zarządzanie rolami użytkowników w panelu administracyjnym"
         },
         {
             "name": "GPX",
