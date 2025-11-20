@@ -19,7 +19,7 @@ test('dashboard roles page loads correctly', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard/roles')
+            ->visit('/dashboard/roles')
             ->waitFor('.roles-index', 15)
             ->assertSee('Role systemowe')
             ->screenshot('roles-test');

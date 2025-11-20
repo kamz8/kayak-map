@@ -29,7 +29,7 @@ test('dashboard vue app loads completely', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard')
+            ->visit('/dashboard')
             ->waitFor('.dashboard-layout', 20) // Extended timeout for Vue mounting
             ->pause(2000) // Allow Vue initialization
             ->assertSee('Panel administracyjny')
@@ -43,7 +43,7 @@ test('vue roles component renders with data', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard/roles')
+            ->visit('/dashboard/roles')
             ->waitFor('.roles-index', 20) // Wait for Vue component mount
             ->waitFor('.v-data-table', 15) // Wait for Vuetify DataTable
             ->pause(2000) // Allow API data loading
@@ -62,7 +62,7 @@ test('vue permission selector modal works', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard/roles')
+            ->visit('/dashboard/roles')
             ->waitFor('.roles-index', 20)
             ->waitFor('.v-data-table', 15)
             ->pause(2000)
@@ -89,7 +89,7 @@ test('vue permission search reactivity works', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard/roles')
+            ->visit('/dashboard/roles')
             ->waitFor('.v-data-table', 15)
             ->pause(2000)
 
@@ -114,7 +114,7 @@ test('vue modal close transition works', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard/roles')
+            ->visit('/dashboard/roles')
             ->waitFor('.v-data-table', 15)
             ->pause(2000)
 
@@ -138,7 +138,7 @@ test('vue component error handling', function () {
 
     $this->browse(function (Browser $browser) use ($adminUser) {
         $browser->loginAs($adminUser)
-            ->visit('https://kayak-map.test/dashboard/roles')
+            ->visit('/dashboard/roles')
             ->waitFor('.v-data-table', 15)
             ->pause(2000)
 
