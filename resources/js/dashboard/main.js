@@ -40,4 +40,34 @@ app.config.globalProperties.$isSuperAdmin = () => permissionService.isSuperAdmin
 // Initialize auth
 store.dispatch('auth/initialize')
 
+// Global error handlers
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason)
+
+  // Handle session expiration errors
+  if (event.reason?.code === 'REFRESH_TOKEN_EXPIRED' ||
+      event.reason?.message?.includes('Refresh token expired') ||
+      event.reason?.message?.includes('Session expired')) {
+    // Prevent default error logging
+    event.preventDefault()
+
+    // Show user-friendly message if not already shown
+    if (!window.location.href.includes('session_expired=true')) {
+      store.dispatch('ui/showError', 'Twoja sesja wygasła. Zaloguj się ponownie.')
+    }
+  }
+})
+
+// Handle global errors
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Global error:', err, info)
+
+  // Handle session expiration
+  if (err?.code === 'REFRESH_TOKEN_EXPIRED' ||
+      err?.message?.includes('Refresh token expired') ||
+      err?.message?.includes('Session expired')) {
+    store.dispatch('ui/showError', 'Twoja sesja wygasła. Zaloguj się ponownie.')
+  }
+}
+
 app.mount('#dashboard-app')

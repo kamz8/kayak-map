@@ -164,12 +164,37 @@ export class TokenManager {
       console.error('Token refresh failed:', error)
 
       if (error.response?.status === 401) {
-        // Refresh token is invalid, clear all tokens
+        // Refresh token is invalid or expired
         this.clearTokens()
-        throw new Error('Refresh token expired, please login again')
+        this.handleSessionExpired()
+
+        const refreshError = new Error('Refresh token expired, please login again')
+        refreshError.code = 'REFRESH_TOKEN_EXPIRED'
+        throw refreshError
       }
 
       throw new Error('Failed to refresh token')
+    }
+  }
+
+  /**
+   * Handle session expiration with user notification
+   */
+  handleSessionExpired() {
+    // Clear tokens
+    this.clearTokens()
+
+    // Show user-friendly notification
+    if (typeof window !== 'undefined') {
+      // Dispatch custom event that can be caught by Vue components
+      window.dispatchEvent(new CustomEvent('session-expired', {
+        detail: { message: 'Twoja sesja wygasła. Zaloguj się ponownie.' }
+      }))
+
+      // Redirect to login after a short delay to allow notification to show
+      setTimeout(() => {
+        window.location.href = '/dashboard/login?session_expired=true'
+      }, 2000)
     }
   }
 
@@ -212,6 +237,10 @@ export class TokenManager {
         // Use the new token
         config.headers.Authorization = `Bearer ${this.getAccessToken()}`
       } catch (error) {
+        // If refresh fails with expired token, don't continue the request
+        if (error.code === 'REFRESH_TOKEN_EXPIRED') {
+          throw new Error('Session expired')
+        }
         throw error
       }
     } else {
@@ -245,9 +274,11 @@ export class TokenManager {
         originalRequest.headers.Authorization = `Bearer ${result.access_token}`
         return axios(originalRequest)
       } catch (refreshError) {
-        // Refresh failed, redirect to login
-        this.clearTokens()
-        window.location.href = '/dashboard/login'
+        // Refresh failed - session expired
+        // Don't call handleSessionExpired here if it was already called in performRefresh
+        if (refreshError.code !== 'REFRESH_TOKEN_EXPIRED') {
+          this.handleSessionExpired()
+        }
         return Promise.reject(refreshError)
       }
     }

@@ -42,6 +42,7 @@
         v-model:page="internalPage"
         v-model:items-per-page="internalItemsPerPage"
         v-model:sort-by="sortBy"
+        v-model="internalSelected"
         :headers="headersWithActions"
         :items="filteredItems"
         :loading="loading"
@@ -49,6 +50,7 @@
         :class="dataTableClasses"
         :hover="hover"
         :density="density"
+        :show-select="showSelect"
         :items-per-page-text="'Elementów na stronie:'"
         :page-text="'{0}-{1} z {2}'"
         :no-data-text="'Brak danych do wyświetlenia'"
@@ -113,7 +115,7 @@
               </template>
             </v-tooltip>
 
-            <slot name="actions" :item="item" />
+            <slot name="row-actions" :item="item" />
           </div>
         </template>
 
@@ -157,7 +159,8 @@ export default {
     delete: (item) => item && typeof item === 'object',
     'update:page': (page) => typeof page === 'number',
     'update:items-per-page': (itemsPerPage) => typeof itemsPerPage === 'number',
-    'update:sort-by': (sortBy) => Array.isArray(sortBy)
+    'update:sort-by': (sortBy) => Array.isArray(sortBy),
+    'update:selected': (selected) => Array.isArray(selected)
   },
   props: {
     title: String,
@@ -233,6 +236,14 @@ export default {
     currentItemsPerPage: {
       type: Number,
       default: 10
+    },
+    showSelect: {
+      type: Boolean,
+      default: false
+    },
+    selected: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -265,8 +276,12 @@ export default {
     },
 
     hasActions() {
-      return Object.values(this.actions).some(action => action === true) ||
-             (this.$slots.actions && this.$slots.actions().length > 0)
+      // Check if any default actions are enabled OR if custom row-actions slot is provided
+      const hasDefaultActions = Object.values(this.actions).some(action => action === true)
+      const hasCustomRowActions = !!this.$slots['row-actions']
+      const hasHeaderActions = !!this.$slots.actions
+
+      return hasDefaultActions || hasCustomRowActions || hasHeaderActions
     },
 
     headersWithActions() {
@@ -295,6 +310,15 @@ export default {
           return value && String(value).toLowerCase().includes(searchTerm)
         })
       })
+    },
+
+    internalSelected: {
+      get() {
+        return this.selected
+      },
+      set(value) {
+        this.$emit('update:selected', value)
+      }
     }
   },
   watch: {

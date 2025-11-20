@@ -160,9 +160,21 @@ export default {
       return 'Logowanie...'
     }
   },
+
+  mounted() {
+    // Check if redirected due to session expiration
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('session_expired') === 'true') {
+      this.showWarning('Twoja sesja wygasła. Zaloguj się ponownie.')
+
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  },
+
   methods: {
     ...mapActions('auth', ['login']),
-    ...mapActions('ui', ['showSuccess', 'showError']),
+    ...mapActions('ui', ['showSuccess', 'showError', 'showWarning']),
 
     async handleLogin() {
       const { valid } = await this.$refs.loginForm.validate()

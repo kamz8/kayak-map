@@ -41,9 +41,9 @@ export default {
         return {
             localSelectedDifficulties: this.value,
             difficulties: [
-                { text: 'Łatwy', value: 'łatwy' },
-                { text: 'Umiarkowany', value: 'umiarkowany' },
-                { text: 'Trudny', value: 'trudny' }
+                { text: 'Łatwy', value: 'łatwy', color: 'success', icon: 'mdi-chevron-up' },
+                { text: 'Umiarkowany', value: 'umiarkowany', color: 'warning', icon: 'mdi-chevron-double-up' },
+                { text: 'Trudny', value: 'trudny', color: 'error', icon: 'mdi-chevron-triple-up' }
             ]
         };
     },
