@@ -164,6 +164,56 @@ class DashboardTrailService extends TrailService
     }
 
     /**
+     * Masowa zmiana statusu szlaków przez queue batch
+     *
+     * @param array $trailIds IDs of trails to update
+     * @param string $status New status
+     * @param int $userId User who initiated the operation
+     * @return string Batch ID for tracking progress
+     * @throws \InvalidArgumentException
+     */
+    public function bulkChangeStatus(array $trailIds, string $status, int $userId): string
+    {
+        $allowedStatuses = ['active', 'inactive', 'draft', 'archived'];
+
+        if (!in_array($status, $allowedStatuses)) {
+            throw new \InvalidArgumentException('Nieprawidłowy status szlaku.');
+        }
+
+        // Validate that all trail IDs exist
+        $existingCount = Trail::whereIn('id', $trailIds)->count();
+        if ($existingCount !== count($trailIds)) {
+            throw new \InvalidArgumentException('Niektóre ID szlaków nie istnieją.');
+        }
+
+        // Split trail IDs into chunks for batch processing (50 trails per job)
+        $chunks = array_chunk($trailIds, 50);
+
+        // Create batch jobs
+        $jobs = [];
+        foreach ($chunks as $chunk) {
+            $jobs[] = new \App\Jobs\BulkTrailStatusChangeJob($chunk, $status, $userId);
+        }
+
+        // Dispatch batch with name and callbacks
+        $batch = \Illuminate\Support\Facades\Bus::batch($jobs)
+            ->name('Bulk Trail Status Change - User ' . $userId)
+            ->allowFailures() // Continue even if some jobs fail
+            ->onQueue('default')
+            ->dispatch();
+
+        \Illuminate\Support\Facades\Log::info('Bulk status change batch dispatched', [
+            'batch_id' => $batch->id,
+            'total_trails' => count($trailIds),
+            'total_jobs' => count($jobs),
+            'new_status' => $status,
+            'user_id' => $userId,
+        ]);
+
+        return $batch->id;
+    }
+
+    /**
      * Pobierz statystyki szlaków dla dashboardu
      */
     public function getStatistics(): array

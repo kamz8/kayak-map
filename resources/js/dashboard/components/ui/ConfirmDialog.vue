@@ -90,11 +90,11 @@ export default {
     },
     confirmVariant: {
       type: String,
-      default: 'flat'
+      default: 'destructive'
     },
     cancelVariant: {
       type: String,
-      default: 'text'
+      default: 'ghost'
     },
     maxWidth: {
       type: [String, Number],

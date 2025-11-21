@@ -9,21 +9,21 @@ export const STATUS_CONFIG = {
     variant: 'success',
     color: 'success',
     label: 'Aktywny',
-    description: 'Publiczny',
+    description: 'Szlak widoczny publicznie',
     icon: 'mdi-check-decagram'
   },
-  hidden: {
+  inactive: {
     variant: 'default',
-    color: 'primary',
-    label: 'Ukryty',
-    description: 'Tylko z linkiem',
+    color: 'grey',
+    label: 'Nieaktywny',
+    description: 'Szlak ukryty',
     icon: 'mdi-eye-off-outline'
   },
   draft: {
     variant: 'secondary',
     color: 'secondary',
     label: 'Szkic',
-    description: 'Prywatny edycja',
+    description: 'W trakcie edycji',
     icon: 'mdi-pencil-circle'
   },
   archived: {

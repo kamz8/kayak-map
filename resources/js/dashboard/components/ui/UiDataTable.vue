@@ -38,10 +38,105 @@
       </div>
 
       <!-- Enhanced data table -->
+      <v-data-table-server
+        v-if="serverSide"
+        v-model="internalSelected"
+        :headers="headersWithActions"
+        :items="items"
+        :items-length="totalItems"
+        :loading="loading"
+        :items-per-page-options="itemsPerPageOptions"
+        :class="dataTableClasses"
+        :hover="hover"
+        :density="density"
+        :show-select="showSelect"
+        :items-per-page-text="'Elementów na stronie:'"
+        :page-text="'{0}-{1} z {2}'"
+        :no-data-text="'Brak danych do wyświetlenia'"
+        :loading-text="'Ładowanie... Proszę czekać'"
+        @update:options="handleOptionsUpdate"
+      >
+        <!-- Custom header slots -->
+        <template v-for="header in headers" :key="header.key" #[`header.${header.key}`]="{ column }">
+          <slot :name="`header.${header.key}`" :column="column">
+            <span class="ui-header-text">{{ column.title }}</span>
+          </slot>
+        </template>
+
+        <!-- Custom item slots -->
+        <template v-for="header in headers" :key="header.key" #[`item.${header.key}`]="{ item, value }">
+          <slot :name="`item.${header.key}`" :item="item" :value="value">
+            {{ value }}
+          </slot>
+        </template>
+
+        <!-- Enhanced actions column -->
+        <template v-if="hasActions" #item.actions="{ item }">
+          <div class="ui-action-buttons">
+            <v-tooltip v-if="actions.view" text="Podgląd" location="top">
+              <template #activator="{ props }">
+                <UiButton
+                  v-bind="props"
+                  variant="ghost"
+                  size="icon"
+                  @click="$emit('view', item)"
+                >
+                  <v-icon icon="mdi-eye" size="small" />
+                </UiButton>
+              </template>
+            </v-tooltip>
+
+            <v-tooltip v-if="actions.edit" text="Edytuj" location="top">
+              <template #activator="{ props }">
+                <UiButton
+                  v-bind="props"
+                  variant="ghost"
+                  size="icon"
+                  @click="$emit('edit', item)"
+                >
+                  <v-icon icon="mdi-pencil" size="small" />
+                </UiButton>
+              </template>
+            </v-tooltip>
+
+            <v-tooltip v-if="actions.delete" text="Usuń" location="top">
+              <template #activator="{ props }">
+                <UiButton
+                  v-bind="props"
+                  variant="ghost"
+                  size="icon"
+                  @click="$emit('delete', item)"
+                >
+                  <v-icon icon="mdi-delete" size="small" color="error" />
+                </UiButton>
+              </template>
+            </v-tooltip>
+
+            <slot name="row-actions" :item="item" />
+          </div>
+        </template>
+
+        <!-- Loading slot -->
+        <template #loading>
+          <v-skeleton-loader
+            class="mx-auto border"
+            type="table"
+          />
+        </template>
+
+        <!-- No data slot -->
+        <template #no-data>
+          <div class="ui-no-data">
+            <v-icon :icon="noDataIcon" size="48" color="surface-variant" />
+            <h4 class="ui-no-data-title">{{ noDataTitle }}</h4>
+            <p class="ui-no-data-text">{{ noDataText }}</p>
+          </div>
+        </template>
+      </v-data-table-server>
+
+      <!-- Client-side data table -->
       <v-data-table
-        v-model:page="internalPage"
-        v-model:items-per-page="internalItemsPerPage"
-        v-model:sort-by="sortBy"
+        v-else
         v-model="internalSelected"
         :headers="headersWithActions"
         :items="filteredItems"
@@ -55,9 +150,6 @@
         :page-text="'{0}-{1} z {2}'"
         :no-data-text="'Brak danych do wyświetlenia'"
         :loading-text="'Ładowanie... Proszę czekać'"
-        @update:page="handlePageChange"
-        @update:items-per-page="handleItemsPerPageChange"
-        @update:sort-by="handleSortChange"
       >
         <!-- Custom header slots -->
         <template v-for="header in headers" :key="header.key" #[`header.${header.key}`]="{ column }">
@@ -157,10 +249,9 @@ export default {
     view: (item) => item && typeof item === 'object',
     edit: (item) => item && typeof item === 'object',
     delete: (item) => item && typeof item === 'object',
-    'update:page': (page) => typeof page === 'number',
-    'update:items-per-page': (itemsPerPage) => typeof itemsPerPage === 'number',
-    'update:sort-by': (sortBy) => Array.isArray(sortBy),
-    'update:selected': (selected) => Array.isArray(selected)
+    'update:options': (options) => options && typeof options === 'object',
+    'update:selected': (selected) => Array.isArray(selected),
+    'update:search': (search) => typeof search === 'string'
   },
   props: {
     title: String,
@@ -244,19 +335,18 @@ export default {
     selected: {
       type: Array,
       default: () => []
+    },
+    serverSide: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
       search: '',
-      internalPage: 1,
-      internalItemsPerPage: 10,
-      sortBy: []
+      sortBy: [],
+      searchDebounceTimer: null
     }
-  },
-  mounted() {
-    this.internalPage = this.page || 1
-    this.internalItemsPerPage = this.currentItemsPerPage || 10
   },
   computed: {
     tableClasses() {
@@ -299,6 +389,9 @@ export default {
     },
 
     filteredItems() {
+      // W trybie server-side, zwracamy items bez filtrowania lokalnego
+      if (this.serverSide) return this.items
+
       if (!this.search || !this.searchable) return this.items
 
       const searchTerm = this.search.toLowerCase().trim()
@@ -322,23 +415,13 @@ export default {
     }
   },
   watch: {
-    items: {
-      handler() {
-        this.resetPagination()
-      },
-      deep: true
-    },
-    search() {
-      this.resetPagination()
-    },
-    page(newVal) {
-      if (newVal && this.internalPage !== newVal) {
-        this.internalPage = newVal
-      }
-    },
-    currentItemsPerPage(newVal) {
-      if (newVal && this.internalItemsPerPage !== newVal) {
-        this.internalItemsPerPage = newVal
+    search(newVal) {
+      // W trybie server-side, emitujemy search do rodzica z debounce
+      if (this.serverSide) {
+        clearTimeout(this.searchDebounceTimer)
+        this.searchDebounceTimer = setTimeout(() => {
+          this.$emit('update:search', newVal)
+        }, 500)
       }
     }
   },
@@ -346,23 +429,11 @@ export default {
     getNestedValue(obj, path) {
       return path.split('.').reduce((current, key) => current && current[key], obj)
     },
-    resetPagination() {
-      this.internalPage = 1
-    },
-    handlePageChange(page) {
-      if (page && this.internalPage !== page) {
-        this.internalPage = page
-        this.$emit('update:page', page)
+    handleOptionsUpdate(options) {
+      // In server-side mode, emit to parent to handle pagination
+      if (this.serverSide) {
+        this.$emit('update:options', options)
       }
-    },
-    handleItemsPerPageChange(itemsPerPage) {
-      if (itemsPerPage && this.internalItemsPerPage !== itemsPerPage) {
-        this.internalItemsPerPage = itemsPerPage
-        this.$emit('update:items-per-page', itemsPerPage)
-      }
-    },
-    handleSortChange(sortBy) {
-      this.$emit('update:sort-by', sortBy)
     }
   }
 }

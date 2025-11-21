@@ -23,25 +23,20 @@
             </template>
 
             <v-list density="compact" min-width="180">
-              <v-list-item @click="bulkChangeStatus('active')">
+              <v-list-item
+                v-for="option in statusOptions"
+                :key="option.value"
+                @click="bulkChangeStatus(option.value)"
+              >
                 <template #prepend>
-                  <v-icon size="small" color="success">mdi-check-circle</v-icon>
+                  <v-icon
+                    size="small"
+                    :color="getStatusColor(option.value)"
+                  >
+                    {{ getStatusIcon(option.value) }}
+                  </v-icon>
                 </template>
-                <v-list-item-title>Aktywny</v-list-item-title>
-              </v-list-item>
-
-              <v-list-item @click="bulkChangeStatus('draft')">
-                <template #prepend>
-                  <v-icon size="small" color="secondary">mdi-pencil-circle</v-icon>
-                </template>
-                <v-list-item-title>Szkic</v-list-item-title>
-              </v-list-item>
-
-              <v-list-item @click="bulkChangeStatus('archived')">
-                <template #prepend>
-                  <v-icon size="small">mdi-archive</v-icon>
-                </template>
-                <v-list-item-title>Archiwum</v-list-item-title>
+                <v-list-item-title>{{ option.title }}</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -70,18 +65,19 @@
     </transition>
 
     <UiDataTable
-      v-model:page="internalPage"
-      v-model:items-per-page="internalItemsPerPage"
       v-model:selected="selectedTrails"
       title="Lista szlaków"
       :headers="headers"
       :items="trails"
       :loading="loading"
       :total-items="totalItems"
+      :server-side="true"
       :show-select="true"
+      :searchable="true"
+      :search-label="'Wyszukaj szlak (nazwa, rzeka, opis)...'"
       :actions="{ view: false, edit: true, delete: true }"
-      @update:page="handlePageChange"
-      @update:items-per-page="handleItemsPerPageChange"
+      @update:options="handleOptionsUpdate"
+      @update:search="handleSearchChange"
       @edit="editTrail"
       @delete="confirmDeleteTrail"
     >
@@ -415,6 +411,8 @@ export default {
       internalPage: 1,
       internalItemsPerPage: 10,
       selectedTrails: [],
+      searchQuery: '',
+      sortBy: [],
       filters: {
         difficulty: null,
         river: null,
@@ -435,6 +433,13 @@ export default {
         count: 0,
         newStatus: null,
         loading: false
+      },
+      batchTracking: {
+        batchId: null,
+        polling: false,
+        pollingInterval: null,
+        progress: 0,
+        status: 'idle' // idle, processing, completed, failed
       }
     }
   },
@@ -488,6 +493,7 @@ export default {
 
         this.trails = response.data.data
         this.totalItems = response.data.meta.total
+        this.internalPage = response.data.meta.current_page
 
       } catch (error) {
         console.error('Failed to fetch trails:', error)
@@ -505,98 +511,13 @@ export default {
       }
     },
 
-    async loadMockData() {
-      // Temporary mock data until API is ready
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      const mockTrails = [
-        {
-          id: 1,
-          trail_name: 'Wisła - Kraków do Tynca',
-          river_name: 'Wisła',
-          trail_length: 12.5,
-          difficulty: 'łatwy',
-          status: 'active'
-        },
-        {
-          id: 2,
-          trail_name: 'Dunajec - Spływ pontonowy przez Pieniny',
-          river_name: 'Dunajec',
-          trail_length: 18.2,
-          difficulty: 'umiarkowany',
-          status: 'active'
-        },
-        {
-          id: 3,
-          trail_name: 'Bóbr - Przełom Bardo',
-          river_name: 'Bóbr',
-          trail_length: 25.7,
-          difficulty: 'trudny',
-          status: 'active'
-        },
-        {
-          id: 4,
-          trail_name: 'Czarna Hańcza - Wigierski Park Narodowy',
-          river_name: 'Czarna Hańcza',
-          trail_length: 15.3,
-          difficulty: 'łatwy',
-          status: 'active'
-        },
-        {
-          id: 5,
-          trail_name: 'Drawa - Rezerwat Przyrody',
-          river_name: 'Drawa',
-          trail_length: 22.1,
-          difficulty: 'umiarkowany',
-          status: 'draft'
-        },
-        {
-          id: 6,
-          trail_name: 'San - Bieszczadzki szlak',
-          river_name: 'San',
-          trail_length: 35.8,
-          difficulty: 'ekspertowy',
-          status: 'active'
-        },
-        {
-          id: 7,
-          trail_name: 'Wda - Rezerwat Przełom Wdy',
-          river_name: 'Wda',
-          trail_length: 19.5,
-          difficulty: 'trudny',
-          status: 'active'
-        },
-        {
-          id: 8,
-          trail_name: 'Pilica - Spała do Tomaszowa',
-          river_name: 'Pilica',
-          trail_length: 28.3,
-          difficulty: 'umiarkowany',
-          status: 'archived'
-        }
-      ]
-
-      // Apply filters
-      let filtered = [...mockTrails]
-
-      if (this.filters.difficulty) {
-        filtered = filtered.filter(t => t.difficulty === this.filters.difficulty)
-      }
-
-      if (this.filters.river) {
-        filtered = filtered.filter(t => t.river_name === this.filters.river)
-      }
-
-      if (this.filters.status) {
-        filtered = filtered.filter(t => t.status === this.filters.status)
-      }
-
-      this.trails = filtered
-      this.totalItems = filtered.length
-    },
-
-    buildFilterParams() {
+     buildFilterParams() {
       const params = {}
+
+      // Search query
+      if (this.searchQuery && this.searchQuery.trim()) {
+        params.search = this.searchQuery.trim()
+      }
 
       if (this.filters.difficulty) {
         params.difficulty = this.filters.difficulty
@@ -613,15 +534,25 @@ export default {
       return params
     },
 
-    handlePageChange(page) {
-      this.internalPage = page
+    handleSearchChange(search) {
+      this.searchQuery = search
+      this.internalPage = 1
       this.fetchTrails()
     },
 
-    handleItemsPerPageChange(itemsPerPage) {
-      this.internalItemsPerPage = itemsPerPage
-      this.internalPage = 1
-      this.fetchTrails()
+    handleOptionsUpdate(options) {
+      const pageChanged = this.internalPage !== options.page
+      const itemsPerPageChanged = this.internalItemsPerPage !== options.itemsPerPage
+      const sortChanged = JSON.stringify(this.sortBy) !== JSON.stringify(options.sortBy)
+
+      this.internalPage = options.page
+      this.internalItemsPerPage = options.itemsPerPage
+      this.sortBy = options.sortBy || []
+
+      // Fetch data if anything changed
+      if (pageChanged || itemsPerPageChanged || sortChanged) {
+        this.fetchTrails()
+      }
     },
 
     async viewTrail(trail) {
@@ -776,48 +707,96 @@ export default {
         const ids = this.selectedTrails.map(trail => trail.id)
         const newStatus = this.bulkStatusDialog.newStatus
 
-        // API call for bulk status change
-        await apiClient.post('/dashboard/trails/bulk-status', {
+        // API call for bulk status change (returns batch_id)
+        const response = await apiClient.post('/dashboard/trails/bulk-status', {
           ids,
           status: newStatus
         })
 
-        // Update local state
-        this.trails = this.trails.map(trail => {
-          if (ids.includes(trail.id)) {
-            return { ...trail, status: newStatus }
-          }
-          return trail
-        })
+        const { batch_id, total_trails } = response.data
 
-        this.showSuccess(`Zaktualizowano status ${ids.length} ${this.getTrailsWord(ids.length)}`)
+        // Close dialog and start polling
         this.bulkStatusDialog.show = false
-        this.clearSelection()
+        this.bulkStatusDialog.loading = false
+
+        // Show info that process started
+        this.showInfo(`Rozpoczęto zmianę statusu ${total_trails} ${this.getTrailsWord(total_trails)}. Proces trwa w tle...`)
+
+        // Start polling for batch status
+        this.startBatchPolling(batch_id, newStatus)
 
       } catch (error) {
         console.error('Failed to bulk change status:', error)
 
-        // Fallback for mock data (temporary)
-        if (error.response?.status === 404 || error.code === 'ERR_NETWORK') {
-          const ids = this.selectedTrails.map(trail => trail.id)
-          const newStatus = this.bulkStatusDialog.newStatus
-
-          this.trails = this.trails.map(trail => {
-            if (ids.includes(trail.id)) {
-              return { ...trail, status: newStatus }
-            }
-            return trail
-          })
-
-          this.showSuccess(`Zaktualizowano status ${ids.length} ${this.getTrailsWord(ids.length)} (mock)`)
-          this.bulkStatusDialog.show = false
-          this.clearSelection()
-        } else {
-          this.showError('Nie udało się zmienić statusu')
-        }
-      } finally {
         this.bulkStatusDialog.loading = false
+        this.showError('Nie udało się uruchomić zmiany statusu')
       }
+    },
+
+    startBatchPolling(batchId, newStatus) {
+      // Initialize batch tracking
+      this.batchTracking.batchId = batchId
+      this.batchTracking.polling = true
+      this.batchTracking.status = 'processing'
+      this.batchTracking.newStatus = newStatus
+
+      // Poll every 2 seconds
+      this.batchTracking.pollingInterval = setInterval(async () => {
+        await this.checkBatchStatus()
+      }, 2000)
+
+      // Also check immediately
+      this.checkBatchStatus()
+    },
+
+    async checkBatchStatus() {
+      if (!this.batchTracking.batchId) return
+
+      try {
+        const response = await apiClient.get(`/dashboard/trails/batch-status/${this.batchTracking.batchId}`)
+        const batch = response.data
+
+        // Update progress
+        this.batchTracking.progress = batch.progress
+
+        console.log('Batch status:', batch)
+
+        // Check if finished
+        if (batch.finished) {
+          this.stopBatchPolling()
+
+          // Refresh trails list
+          await this.fetchTrails()
+
+          // Clear selection
+          this.clearSelection()
+
+          // Show success message
+          const successCount = batch.total_jobs - batch.failed_jobs
+          this.showSuccess(
+            `Zaktualizowano status ${successCount} ${this.getTrailsWord(successCount)}` +
+            (batch.failed_jobs > 0 ? ` (${batch.failed_jobs} błędów)` : '')
+          )
+
+          this.batchTracking.status = 'completed'
+        }
+      } catch (error) {
+        console.error('Failed to check batch status:', error)
+
+        // Stop polling on error
+        this.stopBatchPolling()
+        this.batchTracking.status = 'failed'
+        this.showError('Nie udało się sprawdzić statusu operacji')
+      }
+    },
+
+    stopBatchPolling() {
+      if (this.batchTracking.pollingInterval) {
+        clearInterval(this.batchTracking.pollingInterval)
+        this.batchTracking.pollingInterval = null
+      }
+
+      this.batchTracking.polling = false
     },
 
     getTrailsWord(count) {

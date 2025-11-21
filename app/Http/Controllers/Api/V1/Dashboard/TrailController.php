@@ -329,4 +329,134 @@ class TrailController extends Controller
             ], 400);
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/dashboard/trails/bulk-status",
+     *     tags={"Dashboard - Trails"},
+     *     summary="Masowa zmiana statusu szlaków",
+     *     description="Zmienia status wielu szlaków naraz przez queue batch",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"ids", "status"},
+     *             @OA\Property(property="ids", type="array", @OA\Items(type="integer"), example={1,2,3,4,5}),
+     *             @OA\Property(property="status", type="string", enum={"active", "inactive", "draft", "archived"}, example="active")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=202,
+     *         description="Batch job utworzony pomyślnie",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Masowa zmiana statusu została uruchomiona"),
+     *             @OA\Property(property="batch_id", type="string", example="9a8c1234-5678-90ab-cdef-1234567890ab"),
+     *             @OA\Property(property="total_trails", type="integer", example=100),
+     *             @OA\Property(property="status", type="string", example="active")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Nieprawidłowe dane"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Błąd walidacji"
+     *     )
+     * )
+     */
+    public function bulkChangeStatus(\App\Http\Requests\Dashboard\Trail\BulkStatusChangeRequest $request): JsonResponse
+    {
+        $validated = $request->validatedData();
+
+        try {
+            $batchId = $this->trailService->bulkChangeStatus(
+                $validated['ids'],
+                $validated['status'],
+                $request->user()->id
+            );
+
+            return response()->json([
+                'message' => 'Masowa zmiana statusu została uruchomiona',
+                'batch_id' => $batchId,
+                'total_trails' => count($validated['ids']),
+                'status' => $validated['status'],
+            ], 202); // 202 Accepted - processing started
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Bulk status change failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'message' => 'Wystąpił błąd podczas uruchamiania masowej zmiany statusu'
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/dashboard/trails/batch-status/{batchId}",
+     *     tags={"Dashboard - Trails"},
+     *     summary="Status batch job",
+     *     description="Pobiera status masowej operacji (batch job)",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="batchId",
+     *         in="path",
+     *         required=true,
+     *         description="ID batch job",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Status batch job",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="batch_id", type="string"),
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="total_jobs", type="integer"),
+     *             @OA\Property(property="pending_jobs", type="integer"),
+     *             @OA\Property(property="processed_jobs", type="integer"),
+     *             @OA\Property(property="failed_jobs", type="integer"),
+     *             @OA\Property(property="progress", type="integer", description="Progress percentage"),
+     *             @OA\Property(property="finished", type="boolean"),
+     *             @OA\Property(property="cancelled", type="boolean"),
+     *             @OA\Property(property="created_at", type="string"),
+     *             @OA\Property(property="finished_at", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Batch job nie został znaleziony"
+     *     )
+     * )
+     */
+    public function getBatchStatus(string $batchId): JsonResponse
+    {
+        $batch = \Illuminate\Support\Facades\Bus::findBatch($batchId);
+
+        if (!$batch) {
+            return response()->json([
+                'message' => 'Batch job nie został znaleziony'
+            ], 404);
+        }
+
+        return response()->json([
+            'batch_id' => $batch->id,
+            'name' => $batch->name,
+            'total_jobs' => $batch->totalJobs,
+            'pending_jobs' => $batch->pendingJobs,
+            'processed_jobs' => $batch->processedJobs(),
+            'failed_jobs' => $batch->failedJobs,
+            'progress' => $batch->progress(),
+            'finished' => $batch->finished(),
+            'cancelled' => $batch->cancelled(),
+            'created_at' => $batch->createdAt,
+            'finished_at' => $batch->finishedAt,
+        ]);
+    }
 }
