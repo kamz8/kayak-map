@@ -145,6 +145,36 @@ services:
         networks:
             - laravel
 
+    # Laravel Queue Worker
+    queue:
+        image: kayak-app
+        container_name: kayak-queue
+        restart: unless-stopped
+        working_dir: /var/www/html
+        environment:
+            APP_ENV: local
+            APP_DEBUG: 'true'
+            APP_KEY: ${APP_KEY}
+            DB_HOST: db
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+            REDIS_HOST: redis
+            REDIS_PASSWORD: null
+            REDIS_PORT: 6379
+            QUEUE_CONNECTION: redis
+        volumes:
+            - .:/var/www/html:cached
+            - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+            - laravel-storage:/var/www/html/storage
+        depends_on:
+            - app
+            - redis
+        networks:
+            - laravel
+        command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=300"]
+
     # Testing database
     wartkinurt_mysql_testing:
         image: mariadb:11.2
