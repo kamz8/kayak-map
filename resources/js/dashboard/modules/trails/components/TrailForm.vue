@@ -54,12 +54,14 @@
                 <FormField
                   v-model.number="formData.trail_length"
                   type="text"
-                  label="Długość szlaku (km)"
-                  placeholder="12.5"
+                  label="Długość szlaku"
+                  placeholder="12500"
+                  suffix="m"
                   required
                   :rules="[
                     v => !!v || 'Długość jest wymagana',
-                    v => v > 0 || 'Długość musi być większa od 0'
+                    v => v > 0 || 'Długość musi być większa od 0',
+                    v => Number.isInteger(Number(v)) || 'Długość musi być liczbą całkowitą'
                   ]"
                 />
               </v-col>
@@ -87,8 +89,9 @@
                 <FormField
                   v-model.number="formData.scenery"
                   type="text"
-                  label="Ocena krajobrazu (0-10)"
+                  label="Malowniczość (0-10)"
                   placeholder="8"
+                  append-icon="mdi-pine-tree"
                   :rules="[
                     v => v === '' || v === null || (v >= 0 && v <= 10) || 'Ocena musi być między 0 a 10'
                   ]"
@@ -173,7 +176,8 @@
 
       <!-- Actions Sidebar - Right Column -->
       <v-col cols="12" lg="4">
-        <v-card>
+        <!-- Status and Actions Card - FIRST -->
+        <v-card class="mb-6">
           <v-card-title>Status i akcje</v-card-title>
 
           <v-card-text>
@@ -205,6 +209,55 @@
                 Anuluj
               </v-btn>
             </div>
+          </v-card-text>
+        </v-card>
+
+        <!-- Trail Management Actions -->
+        <v-card v-if="isEdit" class="mb-6">
+          <v-card-title>Zarządzanie szczegółami</v-card-title>
+          <v-card-text>
+            <div class="d-flex flex-column gap-3">
+              <v-btn
+                variant="outlined"
+                block
+                prepend-icon="mdi-map-marker-path"
+                @click="$router.push(`/dashboard/trails/${trail.id}/editor`)"
+              >
+                Edytor szlaku
+              </v-btn>
+
+              <v-btn
+                variant="outlined"
+                block
+                prepend-icon="mdi-image-multiple"
+                @click="$router.push(`/dashboard/trails/${trail.id}/gallery`)"
+              >
+                Zarządzaj zdjęciami
+              </v-btn>
+
+              <v-btn
+                variant="outlined"
+                block
+                prepend-icon="mdi-link-variant"
+                @click="$router.push(`/dashboard/trails/${trail.id}/links`)"
+              >
+                Edycja linków
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+
+        <!-- Main Image Card -->
+        <v-card v-if="trail?.main_image" class="mb-6">
+          <v-card-title>Obrazek główny</v-card-title>
+          <v-card-text>
+            <v-img
+              :src="trail.main_image.path"
+              :alt="trail.trail_name"
+              cover
+              aspect-ratio="16/9"
+              class="main-image-preview"
+            />
           </v-card-text>
         </v-card>
       </v-col>
@@ -306,5 +359,12 @@ export default {
 <style scoped>
 .gap-3 {
   gap: 12px;
+}
+
+.main-image-preview {
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
