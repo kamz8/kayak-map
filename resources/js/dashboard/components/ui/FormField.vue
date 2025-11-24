@@ -14,6 +14,8 @@
       :readonly="readonly"
       :prepend-inner-icon="prependIcon"
       :append-inner-icon="appendIcon"
+      :prefix="prefix"
+      :suffix="suffix"
       :variant="variant"
       :density="density"
       :clearable="clearable"
@@ -125,6 +127,8 @@ export default {
     accept: String,
     prependIcon: String,
     appendIcon: String,
+    prefix: String,
+    suffix: String,
     variant: {
       type: String,
       default: 'outlined'
