@@ -339,6 +339,7 @@ import { UiDataTable, UiButton, UiBadge, ConfirmDialog } from '@/dashboard/compo
 import { mapActions } from 'vuex'
 import apiClient from '@/dashboard/plugins/axios.js'
 import { useTrailStatus } from '@/dashboard/composables/useTrailStatus.js'
+import UnitMixin from "@/mixins/UnitMixin.js";
 
 const DIFFICULTY_CONFIG = {
   'łatwy': {
@@ -383,6 +384,7 @@ export default {
     UiBadge,
     ConfirmDialog
   },
+  mixins: [UnitMixin],
   setup() {
     const {
       getStatusVariant,
@@ -645,7 +647,7 @@ export default {
     },
 
     formatLength(length) {
-      return `${length} km`
+      return this.formatTrailLength(length)
     },
 
     // Bulk operations
