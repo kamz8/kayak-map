@@ -130,21 +130,6 @@ class DashboardTrailService extends TrailService
      */
     public function getTrailForDashboard(Trail $trail): Trail
     {
-        $trail->load([
-            'images',
-            'regions',
-            'sections',
-            'points',
-            'riverTrack'
-        ]);
-
-        $trail->loadCount([
-            'images',
-            'sections',
-            'points',
-            'regions'
-        ]);
-
         return $trail;
     }
 

@@ -33,5 +33,19 @@ export default [
         { text: 'Dodaj szlak' }
       ]
     }
+  },
+  {
+    path: '/dashboard/trails/:id/edit',
+    name: 'DashboardTrailsEdit',
+    component: () => import('../Pages/TrailsEdit.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Edytuj szlak - Dashboard',
+      breadcrumbs: [
+        { text: 'Dashboard', to: '/dashboard' },
+        { text: 'Szlaki', to: '/dashboard/trails' },
+        { text: 'Edytuj szlak' }
+      ]
+    }
   }
 ]

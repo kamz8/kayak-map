@@ -8,16 +8,6 @@ use App\Http\Controllers\Api\V1\Dashboard\UserController;
 use App\Http\Controllers\Api\V1\Dashboard\UserRoleController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Dashboard API Routes
-|--------------------------------------------------------------------------
-|
-| Here are the API routes specifically for the dashboard administration panel.
-| All routes require authentication and dashboard access permission.
-|
-*/
-
 Route::prefix('/dashboard')
     ->middleware(['api'])
     ->group(function () {
@@ -25,9 +15,28 @@ Route::prefix('/dashboard')
         // Trails Management
         Route::get('trails/statistics', [TrailController::class, 'statistics'])
             ->name('dashboard.trails.statistics');
+
+        // Bulk Operations (must be before apiResource)
+        Route::post('trails/bulk-status', [TrailController::class, 'bulkChangeStatus'])
+            ->name('dashboard.trails.bulk-status');
+        Route::get('trails/batch-status/{batchId}', [TrailController::class, 'getBatchStatus'])
+            ->name('dashboard.trails.batch-status');
+
+        // SPECYFICZNE TRASY Z {trail} PRZED apiResource
         Route::patch('trails/{trail}/status', [TrailController::class, 'changeStatus'])
             ->name('dashboard.trails.change-status');
-        Route::apiResource('trails', TrailController::class);
+        Route::get('trails/{trail}', [TrailController::class, 'show'])
+            ->name('dashboard.trails.show');
+        Route::put('trails/{trail}', [TrailController::class, 'update'])
+            ->name('dashboard.trails.update');
+        Route::delete('trails/{trail}', [TrailController::class, 'destroy'])
+            ->name('dashboard.trails.destroy');
+
+        // Pozostałe metody z apiResource
+        Route::get('trails', [TrailController::class, 'index'])
+            ->name('dashboard.trails.index');
+        Route::post('trails', [TrailController::class, 'store'])
+            ->name('dashboard.trails.store');
 
         // Users Management
         Route::apiResource('users', UserController::class);

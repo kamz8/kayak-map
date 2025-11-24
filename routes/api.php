@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\TrailGeocodingController;
 use App\Http\Controllers\Api\V1\TrailMapController;
 use App\Http\Controllers\Api\V1\WeatherProxyController;
 use App\Http\Controllers\Api\V1\Dashboard\UserController as DashboardUserController;
+use App\Http\Controllers\Api\V1\Dashboard\TrailController as DashboardTrailController;
 use App\Http\Middleware\Auth\CheckRegistrationEnabled;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;

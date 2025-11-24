@@ -37,6 +37,7 @@ export default defineConfig({
     build: {
         manifest: true,
         outDir: 'public/build',
+        assetsDir: '',
         rollupOptions: {
             input: {
                 app: 'resources/js/app.js',
@@ -46,10 +47,11 @@ export default defineConfig({
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name.endsWith('.eot') ||
                         assetInfo.name.endsWith('.woff') ||
+                        assetInfo.name.endsWith('.woff2') ||
                         assetInfo.name.endsWith('.ttf')) {
-                        return 'fonts/[name][extname]';
+                        return '[name][extname]';
                     }
-                    return 'assets/[name]-[hash][extname]';
+                    return '[name]-[hash][extname]';
                 }
             }
         }

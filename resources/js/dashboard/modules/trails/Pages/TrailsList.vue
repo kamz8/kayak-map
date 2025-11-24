@@ -475,6 +475,10 @@ export default {
   async created() {
     await this.fetchTrails()
   },
+  beforeUnmount() {
+    // Cleanup polling interval to prevent memory leaks
+    this.stopBatchPolling()
+  },
   methods: {
     ...mapActions('ui', ['showSuccess', 'showError', 'showInfo']),
 
@@ -496,11 +500,8 @@ export default {
         this.internalPage = response.data.meta.current_page
 
       } catch (error) {
-        console.error('Failed to fetch trails:', error)
-
         // Fallback to mock data if API fails (temporary)
         if (error.response?.status === 404 || error.code === 'ERR_NETWORK') {
-          console.warn('API not available, using mock data')
           await this.loadMockData()
         } else {
           this.error = error.message || 'Nie udało się pobrać szlaków'
@@ -555,10 +556,9 @@ export default {
       }
     },
 
-    async viewTrail(trail) {
-      this.showInfo(`Podgląd szlaku: ${trail.trail_name}`)
-      // TODO: Navigate to trail edit view
-      // this.$router.push(`/dashboard/trails/${trail.id}`)
+    viewTrail(trail) {
+      // Otwórz podgląd szlaku na froncie w nowej karcie
+      window.open(`/trail/${trail.slug}`, '_blank')
     },
 
     async editTrail(trail) {
@@ -704,7 +704,18 @@ export default {
       this.bulkStatusDialog.loading = true
 
       try {
-        const ids = this.selectedTrails.map(trail => trail.id)
+        // Extract IDs, filter out undefined/null, and ensure integers
+        const ids = this.selectedTrails
+          .map(trail => trail?.id)
+          .filter(id => id !== undefined && id !== null)
+          .map(id => parseInt(id, 10))
+
+        if (ids.length === 0) {
+          this.showError('Nie wybrano żadnych szlaków')
+          this.bulkStatusDialog.loading = false
+          return
+        }
+
         const newStatus = this.bulkStatusDialog.newStatus
 
         // API call for bulk status change (returns batch_id)
@@ -723,7 +734,7 @@ export default {
         this.showInfo(`Rozpoczęto zmianę statusu ${total_trails} ${this.getTrailsWord(total_trails)}. Proces trwa w tle...`)
 
         // Start polling for batch status
-        this.startBatchPolling(batch_id, newStatus)
+        this.startBatchPolling(batch_id, newStatus, total_trails)
 
       } catch (error) {
         console.error('Failed to bulk change status:', error)
@@ -733,12 +744,13 @@ export default {
       }
     },
 
-    startBatchPolling(batchId, newStatus) {
+    startBatchPolling(batchId, newStatus, totalTrails) {
       // Initialize batch tracking
       this.batchTracking.batchId = batchId
       this.batchTracking.polling = true
       this.batchTracking.status = 'processing'
       this.batchTracking.newStatus = newStatus
+      this.batchTracking.totalTrails = totalTrails
 
       // Poll every 2 seconds
       this.batchTracking.pollingInterval = setInterval(async () => {
@@ -759,8 +771,6 @@ export default {
         // Update progress
         this.batchTracking.progress = batch.progress
 
-        console.log('Batch status:', batch)
-
         // Check if finished
         if (batch.finished) {
           this.stopBatchPolling()
@@ -772,9 +782,9 @@ export default {
           this.clearSelection()
 
           // Show success message
-          const successCount = batch.total_jobs - batch.failed_jobs
+          const totalTrails = this.batchTracking.totalTrails
           this.showSuccess(
-            `Zaktualizowano status ${successCount} ${this.getTrailsWord(successCount)}` +
+            `Zaktualizowano status ${totalTrails} ${this.getTrailsWord(totalTrails)}` +
             (batch.failed_jobs > 0 ? ` (${batch.failed_jobs} błędów)` : '')
           )
 

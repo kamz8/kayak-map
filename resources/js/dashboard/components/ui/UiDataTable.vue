@@ -50,6 +50,8 @@
         :hover="hover"
         :density="density"
         :show-select="showSelect"
+        :item-value="itemValue"
+        :return-object="returnObject"
         :items-per-page-text="'Elementów na stronie:'"
         :page-text="'{0}-{1} z {2}'"
         :no-data-text="'Brak danych do wyświetlenia'"
@@ -146,6 +148,8 @@
         :hover="hover"
         :density="density"
         :show-select="showSelect"
+        :item-value="itemValue"
+        :return-object="returnObject"
         :items-per-page-text="'Elementów na stronie:'"
         :page-text="'{0}-{1} z {2}'"
         :no-data-text="'Brak danych do wyświetlenia'"
@@ -339,6 +343,14 @@ export default {
     serverSide: {
       type: Boolean,
       default: false
+    },
+    itemValue: {
+      type: String,
+      default: 'id'
+    },
+    returnObject: {
+      type: Boolean,
+      default: true
     }
   },
   data() {

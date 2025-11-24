@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api\V1\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\Trail\IndexTrailRequest;
+use App\Http\Requests\Dashboard\Trail\StoreTrailRequest;
+use App\Http\Requests\Dashboard\Trail\UpdateTrailRequest;
 use App\Http\Resources\Dashboard\TrailResource;
 use App\Models\Trail;
 use App\Services\Dashboard\DashboardTrailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
 
 /**
  * @OA\Tag(
@@ -264,11 +267,174 @@ class TrailController extends Controller
      *     )
      * )
      */
-    public function show(Trail $trail): TrailResource
+    public function show($id): TrailResource
     {
+        $trail = Trail::findOrFail($id);
         $trail = $this->trailService->getTrailForDashboard($trail);
-
         return new TrailResource($trail);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/dashboard/trails",
+     *     tags={"Dashboard - Trails"},
+     *     summary="Utwórz nowy szlak",
+     *     description="Tworzy nowy szlak kajakowy",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"trail_name", "river_name", "description", "trail_length", "difficulty"},
+     *             @OA\Property(property="trail_name", type="string", example="Wisła - Kraków do Tynca"),
+     *             @OA\Property(property="river_name", type="string", example="Wisła"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="trail_length", type="number", example=12.5),
+     *             @OA\Property(property="difficulty", type="string", enum={"łatwy", "umiarkowany", "trudny", "ekspertowy"}),
+     *             @OA\Property(property="author", type="string", nullable=true),
+     *             @OA\Property(property="scenery", type="integer", minimum=0, maximum=10, nullable=true),
+     *             @OA\Property(property="rating", type="number", minimum=0, maximum=10, nullable=true),
+     *             @OA\Property(property="difficulty_detailed", type="string", nullable=true),
+     *             @OA\Property(property="status", type="string", enum={"active", "inactive", "draft", "archived"}, nullable=true),
+     *             @OA\Property(property="start_lat", type="number", nullable=true),
+     *             @OA\Property(property="start_lng", type="number", nullable=true),
+     *             @OA\Property(property="end_lat", type="number", nullable=true),
+     *             @OA\Property(property="end_lng", type="number", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Szlak utworzony pomyślnie",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Szlak został utworzony"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Błąd walidacji"
+     *     )
+     * )
+     */
+    public function store(StoreTrailRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        // Generate slug from trail_name
+        $validated['slug'] = Str::slug($validated['trail_name']);
+
+        $trail = Trail::create($validated);
+
+        return response()->json([
+            'message' => 'Szlak został utworzony',
+            'data' => new TrailResource($trail)
+        ], 201);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/api/v1/dashboard/trails/{id}",
+     *     tags={"Dashboard - Trails"},
+     *     summary="Aktualizuj szlak",
+     *     description="Aktualizuje dane szlaku kajakowego",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID szlaku",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"trail_name", "river_name", "description", "trail_length", "difficulty"},
+     *             @OA\Property(property="trail_name", type="string"),
+     *             @OA\Property(property="river_name", type="string"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="trail_length", type="number"),
+     *             @OA\Property(property="difficulty", type="string", enum={"łatwy", "umiarkowany", "trudny", "ekspertowy"}),
+     *             @OA\Property(property="author", type="string", nullable=true),
+     *             @OA\Property(property="scenery", type="integer", minimum=0, maximum=10, nullable=true),
+     *             @OA\Property(property="rating", type="number", minimum=0, maximum=10, nullable=true),
+     *             @OA\Property(property="difficulty_detailed", type="string", nullable=true),
+     *             @OA\Property(property="status", type="string", enum={"active", "inactive", "draft", "archived"}, nullable=true),
+     *             @OA\Property(property="start_lat", type="number", nullable=true),
+     *             @OA\Property(property="start_lng", type="number", nullable=true),
+     *             @OA\Property(property="end_lat", type="number", nullable=true),
+     *             @OA\Property(property="end_lng", type="number", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Szlak zaktualizowany pomyślnie",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Szlak został zaktualizowany"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Szlak nie został znaleziony"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Błąd walidacji"
+     *     )
+     * )
+     */
+    public function update(UpdateTrailRequest $request, $id): JsonResponse
+    {
+        $trail = Trail::findOrFail($id);
+        $validated = $request->validated();
+
+        // Regenerate slug if trail_name changed
+        if (isset($validated['trail_name']) && $validated['trail_name'] !== $trail->trail_name) {
+            $validated['slug'] = Str::slug($validated['trail_name']);
+        }
+
+        $trail->update($validated);
+
+        return response()->json([
+            'message' => 'Szlak został zaktualizowany',
+            'data' => new TrailResource($trail->fresh())
+        ]);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/dashboard/trails/{id}",
+     *     tags={"Dashboard - Trails"},
+     *     summary="Usuń szlak",
+     *     description="Usuwa szlak kajakowy",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID szlaku",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Szlak usunięty pomyślnie",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Szlak został usunięty")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Szlak nie został znaleziony"
+     *     )
+     * )
+     */
+    public function destroy($id): JsonResponse
+    {
+        $trail = Trail::findOrFail($id);
+        $trail->delete();
+
+        return response()->json([
+            'message' => 'Szlak został usunięty'
+        ]);
     }
 
     /**
@@ -310,8 +476,9 @@ class TrailController extends Controller
      *     )
      * )
      */
-    public function changeStatus(Trail $trail, \Illuminate\Http\Request $request): JsonResponse
+    public function changeStatus($id, \Illuminate\Http\Request $request): JsonResponse
     {
+        $trail = Trail::findOrFail($id);
         $validated = $request->validate([
             'status' => 'required|string|in:active,inactive,draft,archived'
         ]);
