@@ -104,6 +104,7 @@
                   type="text"
                   label="Ocena szlaku (0-10)"
                   placeholder="7.5"
+                  append-icon="mdi-star"
                   :rules="[
                     v => v === '' || v === null || (v >= 0 && v <= 10) || 'Ocena musi być między 0 a 10'
                   ]"
