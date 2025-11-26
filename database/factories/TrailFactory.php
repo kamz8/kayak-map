@@ -28,7 +28,7 @@ class TrailFactory extends Factory
             'difficulty_detailed' => $this->faker->sentence(),
             'scenery' => $this->faker->numberBetween(0, 10),
             'rating' => $this->faker->randomFloat(1, 0, 10),
-            'status' => $this->faker->randomElement(['active', 'inactive', 'draft', 'archived']),
+            'status' => 'active', // Domyślnie active dla testów
         ];
     }
 
@@ -50,6 +50,13 @@ class TrailFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'draft',
+        ]);
+    }
+
+    public function archived()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'archived',
         ]);
     }
 
