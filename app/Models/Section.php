@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 /**
@@ -21,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  *     @OA\Property(property="nuisance", type="string"),
  *     @OA\Property(property="cleanliness", type="string")
  * )
+ * @method static find(int $modelId)
  */
 
 class Section extends Model
@@ -45,9 +45,9 @@ class Section extends Model
         return $this->belongsTo(Trail::class);
     }
 
-    public function links(): HasMany
+    public function links(): MorphToMany
     {
-        return $this->hasMany(Link::class);
+        return $this->morphToMany(Link::class, 'linkable');
     }
 
     public function images(): MorphToMany

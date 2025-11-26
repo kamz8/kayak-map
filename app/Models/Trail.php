@@ -35,6 +35,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  *     @OA\Property(property="scenery", type="integer"),
  *     @OA\Property(property="rating", type="number", format="float")
  * )
+ * @method static find(int $modelId)
  */
 class Trail extends Model
 {
@@ -83,7 +84,7 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
-    public function links(): MorphToMany
+    public function links() : MorphToMany
     {
         return $this->morphToMany(Link::class, 'linkable');
     }

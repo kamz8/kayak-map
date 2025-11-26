@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Dashboard\LinkController;
 use App\Http\Controllers\Api\V1\Dashboard\PermissionController;
 use App\Http\Controllers\Api\V1\Dashboard\RoleController;
 use App\Http\Controllers\Api\V1\Dashboard\SystemSecurityController;
@@ -37,6 +38,30 @@ Route::prefix('/dashboard')
             ->name('dashboard.trails.index');
         Route::post('trails', [TrailController::class, 'store'])
             ->name('dashboard.trails.store');
+
+        // Trail Links Management
+        Route::prefix('trails/{id}')->group(function () {
+            Route::get('links', [LinkController::class, 'indexForTrail'])
+                ->name('dashboard.trails.links.index');
+            Route::post('links', [LinkController::class, 'storeForTrail'])
+                ->name('dashboard.trails.links.store');
+            Route::put('links/{linkId}', [LinkController::class, 'updateForTrail'])
+                ->name('dashboard.trails.links.update');
+            Route::delete('links/{linkId}', [LinkController::class, 'destroyForTrail'])
+                ->name('dashboard.trails.links.destroy');
+        });
+
+        // Section Links Management
+        Route::prefix('trails/{trailId}/sections/{sectionId}')->group(function () {
+            Route::get('links', [LinkController::class, 'indexForSection'])
+                ->name('dashboard.trails.sections.links.index');
+            Route::post('links', [LinkController::class, 'storeForSection'])
+                ->name('dashboard.trails.sections.links.store');
+            Route::put('links/{linkId}', [LinkController::class, 'updateForSection'])
+                ->name('dashboard.trails.sections.links.update');
+            Route::delete('links/{linkId}', [LinkController::class, 'destroyForSection'])
+                ->name('dashboard.trails.sections.links.destroy');
+        });
 
         // Users Management
         Route::apiResource('users', UserController::class);
@@ -77,3 +102,12 @@ Route::prefix('/dashboard')
                 ->name('dashboard.security.emergency-info');
         });
     });
+
+Route::fallback(function() {
+    return response()->json([
+        'error' => [
+            'code' => 404,
+            'message' => 'API endpoint not found'
+        ]
+    ], 404);
+});

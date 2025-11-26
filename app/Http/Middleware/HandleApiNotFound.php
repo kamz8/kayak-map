@@ -15,17 +15,21 @@ class HandleApiNotFound
      */
     public function handle(Request $request, Closure $next)
     {
-        $response = $next($request);
+        try {
+            return $next($request);
+        } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
 
-        if ($request->is('api/*') && $response->status() === 404) {
-            return response()->json([
-                'error' => [
-                    'code' => 404,
-                    'message' => 'API endpoint not found'
-                ]
-            ], 404);
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'error' => [
+                        'code' => 404,
+                        'message' => 'API endpoint not found'
+                    ]
+                ], 404);
+            }
+
+            throw $e;
         }
-
-        return $response;
     }
+
 }
