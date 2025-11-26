@@ -35,6 +35,20 @@ export default [
     }
   },
   {
+    path: '/dashboard/trails/:id/links',
+    name: 'DashboardTrailLinks',
+    component: () => import('../Pages/TrailLinks.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Zarządzanie linkami - Dashboard',
+      breadcrumbs: [
+        { text: 'Dashboard', to: '/dashboard' },
+        { text: 'Szlaki', to: '/dashboard/trails' },
+        { text: 'Linki' }
+      ]
+    }
+  },
+  {
     path: '/dashboard/trails/:id/edit',
     name: 'DashboardTrailsEdit',
     component: () => import('../Pages/TrailsEdit.vue'),
@@ -45,6 +59,21 @@ export default [
         { text: 'Dashboard', to: '/dashboard' },
         { text: 'Szlaki', to: '/dashboard/trails' },
         { text: 'Edytuj szlak' }
+      ]
+    }
+  },
+  {
+    path: '/dashboard/trails/:id/sections/:sectionId/links',
+    name: 'DashboardSectionLinks',
+    component: () => import('../Pages/SectionLinks.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Zarządzanie linkami - Dashboard',
+      breadcrumbs: [
+        { text: 'Dashboard', to: '/dashboard' },
+        { text: 'Szlaki', to: '/dashboard/trails' },
+        { text: 'Sekcje', to: '/dashboard/trails/:id/sections' },
+        { text: 'Linki' }
       ]
     }
   }

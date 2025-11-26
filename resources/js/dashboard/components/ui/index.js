@@ -4,6 +4,8 @@
  */
 
 // New UI Kit Components (shadcn/ui style)
+import UiDraggableCard from "@ui/UiDraggableCard.vue";
+
 export { default as UiButton } from './UiButton.vue'
 export { default as UiCard } from './UiCard.vue'
 export { default as UiInput } from './UiInput.vue'
@@ -12,6 +14,7 @@ export { default as UiBreadcrumb } from './UiBreadcrumb.vue'
 export { default as UiDataTable } from './UiDataTable.vue'
 export { default as UiAvatar } from './UiAvatar.vue'
 export { default as UiDialog } from './UiDialog.vue'
+export { default as UiDraggableCard } from './UiDraggableCard.vue'
 export { default as PermissionSelector } from './PermissionSelector.vue'
 export { default as UserSelector } from './UserSelector.vue'
 
@@ -52,6 +55,7 @@ export function registerUiComponents(app) {
   app.component('UiDialog', UiDialog)
   app.component('PermissionSelector', PermissionSelector)
   app.component('UserSelector', UserSelector)
+    app.component('UIDraggableCard', UiDraggableCard)
 
   // Legacy components (keep for compatibility)
   app.component('ConfirmDialog', ConfirmDialog)

@@ -353,6 +353,15 @@ export default {
       if (this.$route.path.includes('/dashboard/permissions/') && this.$route.path.includes('/edit')) {
         return 'Edytuj uprawnienie'
       }
+      if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/sections/') && this.$route.path.includes('/links')) {
+        return 'Zarządzanie linkami sekcji'
+      }
+      if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/links')) {
+        return 'Zarządzanie linkami szlaku'
+      }
+      if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/edit')) {
+        return 'Edytuj szlak'
+      }
 
       return routeMap[this.$route.path] || 'Dashboard'
     },
@@ -366,6 +375,18 @@ export default {
         '/dashboard/settings/profile': 'Zarządzaj swoim profilem i danymi osobistymi',
         '/dashboard/security/change-password': 'Utwórz silne hasło aby zabezpieczyć swoje konto'
       }
+
+      // Handle dynamic routes (check most specific paths first)
+      if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/sections/') && this.$route.path.includes('/links')) {
+        return 'Zarządzanie linkami i zasobami zewnętrznymi sekcji'
+      }
+      if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/links')) {
+        return 'Zarządzanie linkami i zasobami zewnętrznymi szlaku'
+      }
+      if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/edit')) {
+        return 'Edycja informacji o szlaku kajakowym'
+      }
+
       return subtitleMap[this.$route.path] || null
     },
 

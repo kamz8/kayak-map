@@ -37,7 +37,7 @@ export default {
       default: 'default',
       validator: (v) => ['default', 'outlined', 'elevated'].includes(v)
     },
-    class: String
+    class: String,
   },
   computed: {
     elevation() {
