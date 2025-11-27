@@ -7,7 +7,8 @@
         class="ui-breadcrumb-item"
         :class="{
           'ui-breadcrumb-item--active': index === items.length - 1,
-          'ui-breadcrumb-item--clickable': item.to && index !== items.length - 1
+          'ui-breadcrumb-item--clickable': item.to && index !== items.length - 1,
+          'ui-breadcrumb-item--muted': item.muted
         }"
       >
         <!-- Home icon for first item if enabled -->
@@ -17,21 +18,25 @@
           size="small"
           class="ui-breadcrumb-home-icon"
         />
-        
+
         <!-- Clickable breadcrumb -->
         <router-link
           v-if="item.to && index !== items.length - 1"
           :to="item.to"
           class="ui-breadcrumb-link"
+          :class="{ 'ui-breadcrumb-link--muted': item.muted }"
         >
           {{ item.text }}
         </router-link>
-        
+
         <!-- Non-clickable breadcrumb (current page) -->
         <span
           v-else
           class="ui-breadcrumb-text"
-          :class="{ 'ui-breadcrumb-text--current': index === items.length - 1 }"
+          :class="{
+            'ui-breadcrumb-text--current': index === items.length - 1,
+            'ui-breadcrumb-text--muted': item.muted
+          }"
         >
           {{ item.text }}
         </span>
@@ -159,6 +164,20 @@ export default {
   color: hsl(var(--v-theme-on-surface-variant));
   opacity: 0.5;
   margin: 0 2px;
+}
+
+/* Muted styles */
+.ui-breadcrumb-link--muted {
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.ui-breadcrumb-link--muted:hover {
+  opacity: 0.8;
+}
+
+.ui-breadcrumb-text--muted {
+  opacity: 0.6;
 }
 
 /* Variant styles */
