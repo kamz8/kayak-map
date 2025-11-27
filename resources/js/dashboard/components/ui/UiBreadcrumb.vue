@@ -3,6 +3,7 @@
     <ol class="ui-breadcrumb-list">
       <li
         v-for="(item, index) in items"
+        v-show="item.text"
         :key="item.key || index"
         class="ui-breadcrumb-item"
         :class="{
