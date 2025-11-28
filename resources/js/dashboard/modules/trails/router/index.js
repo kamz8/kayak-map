@@ -44,6 +44,7 @@ export default [
       breadcrumbs: [
         { text: 'Dashboard', to: '/dashboard' },
         { text: 'Szlaki', to: '/dashboard/trails' },
+        { key: 'trail', text: '', to: '', muted: true }, // Dynamic - updated by component
         { text: 'Linki' }
       ]
     }
@@ -72,7 +73,8 @@ export default [
       breadcrumbs: [
         { text: 'Dashboard', to: '/dashboard' },
         { text: 'Szlaki', to: '/dashboard/trails' },
-        { text: 'Sekcje', to: '/dashboard/trails/:id/sections' },
+        { key: 'trail', text: '', to: '', muted: true }, // Dynamic - updated by component
+        { key: 'section', text: '', muted: true }, // Dynamic - updated by component
         { text: 'Linki' }
       ]
     }

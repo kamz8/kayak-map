@@ -4,6 +4,7 @@
         <div class="page-header mb-6">
             <h1 class="ui-heading">{{ trailName || 'Szlak' }}</h1>
             <p class="text-subtitle-1 text-medium-emphasis">Zarządzanie linkami</p>
+
         </div>
 
         <!-- Two Column Layout -->
@@ -12,23 +13,13 @@
             <v-col cols="12" lg="8">
                 <!-- Links List with Drag & Drop -->
                 <div v-if="links.length > 0" ref="linksContainer" class="links-list">
-                    <draggable
-                        v-model="links"
-                        item-key="id"
-                        handle=".drag-handle"
-                        ghost-class="draggable-ghost"
-                        @end="onDragEnd"
-                    >
-                        <template #item="{ element, index }">
-                            <LinkCard
-                                v-for="(link, index) in links"
-                                :key="link.id"
-                                :link="link"
-                                @update:link="updateLink(index, $event)"
-                                @delete="confirmDelete"
-                            />
-                        </template>
-                    </draggable>
+                    <LinkCard
+                        v-for="(link, index) in links"
+                        :key="link.id"
+                        :link="link"
+                        @update:link="updateLink(index, $event)"
+                        @delete="confirmDelete"
+                    />
                 </div>
 
                 <!-- Empty State -->
@@ -40,15 +31,25 @@
                     </p>
                 </v-card>
 
-                <!-- Add Link Button - Below Links -->
+                <!-- Add Link Button -->
                 <v-sheet class="mt-4 pa-4 d-flex justify-center" elevation="0" rounded>
                     <ui-button
                         color="primary"
-                        variant="destructive"
                         prepend-icon="mdi-plus"
                         @click="addNewLink"
+                        :disabled="links.length >= maxLinks"
+                        :title="links.length >= maxLinks ? `Maksymalnie ${maxLinks} linków` : ''"
                     >
                         Dodaj link
+                        <template #append>
+                            <v-chip
+                                size="small"
+                                variant="outlined"
+                                class="ml-2"
+                            >
+                                {{ links.length }}/{{ maxLinks }}
+                            </v-chip>
+                        </template>
                     </ui-button>
                 </v-sheet>
             </v-col>
@@ -59,24 +60,25 @@
                     <v-card-title>Akcje</v-card-title>
                     <v-card-text>
                         <div class="d-flex flex-column gap-3">
-                            <v-btn
+                            <ui-button
                                 color="success"
                                 block
                                 prepend-icon="mdi-content-save"
                                 :loading="loading"
                                 @click="saveAllLinks"
+                                :disabled="links.length === 0"
                             >
                                 Zapisz wszystkie
-                            </v-btn>
+                            </ui-button>
 
-                            <v-btn
+                            <ui-button
                                 variant="outlined"
                                 block
                                 prepend-icon="mdi-arrow-left"
                                 @click="$router.back()"
                             >
                                 Powrót
-                            </v-btn>
+                            </ui-button>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -93,6 +95,10 @@
                             <p>
                                 <v-icon size="small" class="mr-1">mdi-information</v-icon>
                                 Wybierz ikonę dla popularnych serwisów
+                            </p>
+                            <p class="mb-0">
+                                <v-icon size="small" class="mr-1">mdi-link</v-icon>
+                                Maksymalnie {{ maxLinks }} linków na szlak
                             </p>
                         </div>
                     </v-card-text>
@@ -119,13 +125,13 @@
 </template>
 
 <script>
-import {useSortable} from '@vueuse/integrations/useSortable'
+import draggable from 'vuedraggable'
 import LinkCard from '../components/LinkCard.vue'
 import ConfirmDialog from '@/dashboard/components/ui/ConfirmDialog.vue'
 import apiClient from '@/dashboard/plugins/axios'
-import draggable from 'vuedraggable'
-import {mapActions} from 'vuex'
-import UiButton from "@ui/UiButton.vue";
+import { mapActions } from 'vuex'
+import UiButton from "@ui/UiButton.vue"
+import { useBreadcrumbs } from '@/dashboard/composables/useBreadcrumbs'
 
 export default {
     name: 'TrailLinks',
@@ -137,6 +143,11 @@ export default {
         draggable
     },
 
+    setup() {
+        const { updateBreadcrumbByKey } = useBreadcrumbs()
+        return { updateBreadcrumbByKey }
+    },
+
     data() {
         return {
             links: [],
@@ -144,7 +155,8 @@ export default {
             loading: false,
             showDeleteDialog: false,
             linkToDelete: null,
-            maxLinks: 10
+            maxLinks: 10,
+            dragAndDropInitialized: false
         }
     },
 
@@ -167,11 +179,11 @@ export default {
 
     mounted() {
         this.fetchLinks()
-        this.initDragAndDrop()
     },
 
     methods: {
-        ...mapActions('ui', ['showSuccess', 'showError']),
+        ...mapActions('ui', ['showSuccess', 'showError', 'showInfo', 'showWarning']),
+
         parseMetaData(metaData) {
             if (typeof metaData === 'object' && metaData !== null) {
                 return metaData
@@ -185,7 +197,7 @@ export default {
                 }
             }
 
-            return {title: '', description: '', icon: ''}
+            return { title: '', description: '', icon: '' }
         },
 
         formatLinkForBackend(link) {
@@ -206,12 +218,17 @@ export default {
 
                 this.links = (response.data.data || response.data).map(link => ({
                     ...link,
-                    // Upewnij się że meta_data jest obiektem
                     meta_data: this.parseMetaData(link.meta_data)
                 }))
 
                 if (response.data.trail) {
                     this.trailName = response.data.trail.trail_name
+
+                    // Update only the trail breadcrumb item
+                    this.updateBreadcrumbByKey('trail', {
+                        text: response.data.trail.trail_name,
+                        to: `/dashboard/trails/${this.$route.params.id}/edit`
+                    })
                 }
             } catch (error) {
                 console.error('Failed to fetch links:', error)
@@ -221,10 +238,9 @@ export default {
             }
         },
 
-
         addNewLink() {
             if (this.links.length >= this.maxLinks) {
-                this.showError(`Nie można dodać więcej niż ${this.maxLinks} linków`)
+                this.showWarning(`Nie można dodać więcej niż ${this.maxLinks} linków`)
                 return
             }
 
@@ -239,12 +255,8 @@ export default {
                 isNew: true,
                 modified: true
             }
+
             this.links.push(newLink)
-
-            this.$nextTick(() => {
-                this.initDragAndDrop()
-            })
-
         },
 
         updateLink(index, updatedLink) {
@@ -257,9 +269,7 @@ export default {
 
         async saveAllLinks() {
             const linksToSave = this.links.filter(link => {
-                if (link.isNew) return true // Nowe linki zawsze zapisujemy
-
-                // Sprawdź czy link był modyfikowany
+                if (link.isNew) return true
                 return link.modified === true
             })
 
@@ -268,7 +278,6 @@ export default {
                 return
             }
 
-            // Walidacja przed zapisem
             const invalidLinks = linksToSave.filter(link => {
                 if (!link.url || link.url === 'https://') {
                     return true
@@ -303,7 +312,7 @@ export default {
             try {
                 await Promise.all(savePromises)
                 this.showSuccess(`Zapisano ${linksToSave.length} linków`)
-                await this.fetchLinks() // Odśwież listę po zapisie
+                await this.fetchLinks()
             } catch (error) {
                 console.error('Failed to save links:', error)
                 this.showError('Błąd podczas zapisywania linków')
@@ -313,16 +322,10 @@ export default {
         },
 
         async createLink(link) {
-            const metaDataString = typeof link.meta_data === 'object'
-                ? JSON.stringify(link.meta_data)
-                : link.meta_data
-
+            const formattedLink = this.formatLinkForBackend(link)
             const response = await apiClient.post(
                 `/dashboard/trails/${this.$route.params.id}/links`,
-                {
-                    url: link.url,
-                    meta_data: metaDataString
-                }
+                formattedLink
             )
             return response.data
         },
@@ -367,10 +370,6 @@ export default {
         cancelDelete() {
             this.showDeleteDialog = false
             this.linkToDelete = null
-        },
-
-        onDragEnd(evt) {
-            console.log('Drag ended:', evt.oldIndex, '->', evt.newIndex)
         }
     }
 }
@@ -387,6 +386,9 @@ export default {
 }
 
 .links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     margin-bottom: 24px;
 }
 </style>

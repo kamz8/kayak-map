@@ -113,6 +113,7 @@ import LinkCard from '../components/LinkCard.vue'
 import ConfirmDialog from '@/dashboard/components/ui/ConfirmDialog.vue'
 import apiClient from '@/dashboard/plugins/axios'
 import { mapActions } from 'vuex'
+import { useBreadcrumbs } from '@/dashboard/composables/useBreadcrumbs'
 
 export default {
   name: 'SectionLinks',
@@ -120,6 +121,11 @@ export default {
   components: {
     LinkCard,
     ConfirmDialog
+  },
+
+  setup() {
+    const { updateBreadcrumbByKey } = useBreadcrumbs()
+    return { updateBreadcrumbByKey }
   },
 
   data() {
@@ -169,6 +175,19 @@ export default {
         // Get section name
         if (response.data.section) {
           this.sectionName = response.data.section.name
+
+          // Update trail breadcrumb if available
+          if (response.data.trail) {
+            this.updateBreadcrumbByKey('trail', {
+              text: response.data.trail.trail_name,
+              to: `/dashboard/trails/${this.$route.params.id}/edit`
+            })
+          }
+
+          // Update section breadcrumb
+          this.updateBreadcrumbByKey('section', {
+            text: response.data.section.name
+          })
         }
       } catch (error) {
         console.error('Failed to fetch links:', error)

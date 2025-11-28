@@ -18,6 +18,9 @@ app.use(router)
 app.use(store)
 app.use(vuetify)
 
+// Provide store for composables (allows inject in lazy-loaded components)
+app.provide('store', store)
+
 window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

@@ -1,84 +1,64 @@
-import { getCurrentInstance } from 'vue'
+import { inject } from 'vue'
 
 /**
- * Composable for managing dynamic breadcrumbs
- * Allows updating specific breadcrumb items without redefining the entire array
+ * Composable for managing dynamic breadcrumb updates
+ * Store only patches specific breadcrumb items by key
+ * Base breadcrumbs always come from route.meta.breadcrumbs
+ *
+ * USAGE: Must be called inside setup()
  */
 export function useBreadcrumbs() {
-  const instance = getCurrentInstance()
-  const route = instance?.proxy?.$route
+  // Try to get store via inject (works in lazy-loaded components)
+  let store = null
 
-  if (!route) {
-    console.warn('useBreadcrumbs: Route not available')
+  try {
+    store = inject('store')
+  } catch (e) {
+    // Fallback - will be handled below
+  }
+
+  if (!store) {
+    console.warn('useBreadcrumbs: Vuex store not available. Make sure to call this composable inside setup().')
     return {
-      updateBreadcrumb: () => {},
       updateBreadcrumbByKey: () => {},
-      getBreadcrumbs: () => []
+      clearKey: () => {},
+      clearUpdates: () => {}
     }
   }
 
   /**
-   * Update a breadcrumb item by its key
+   * Update a breadcrumb item by its key (for dynamic content)
    * @param {string} key - Unique key of the breadcrumb item
    * @param {Object} updates - Object with properties to update (text, to, muted, etc.)
    */
   const updateBreadcrumbByKey = (key, updates) => {
-    if (!route.meta.breadcrumbs) {
-      console.warn('useBreadcrumbs: No breadcrumbs defined in route meta')
-      return
-    }
-
-    const breadcrumbs = route.meta.breadcrumbs
-    const index = breadcrumbs.findIndex(item => item.key === key)
-
-    if (index === -1) {
-      console.warn(`useBreadcrumbs: Breadcrumb with key "${key}" not found`)
-      return
-    }
-
-    // Update only the specified properties
-    breadcrumbs[index] = {
-      ...breadcrumbs[index],
-      ...updates
+    if (store) {
+      store.dispatch('breadcrumbs/updateBreadcrumbByKey', { key, updates })
     }
   }
 
   /**
-   * Update a breadcrumb item by its index
-   * @param {number} index - Index of the breadcrumb item
-   * @param {Object} updates - Object with properties to update (text, to, muted, etc.)
+   * Clear updates for a specific key
+   * @param {string} key - Key to clear
    */
-  const updateBreadcrumb = (index, updates) => {
-    if (!route.meta.breadcrumbs) {
-      console.warn('useBreadcrumbs: No breadcrumbs defined in route meta')
-      return
-    }
-
-    const breadcrumbs = route.meta.breadcrumbs
-
-    if (index < 0 || index >= breadcrumbs.length) {
-      console.warn(`useBreadcrumbs: Index ${index} out of bounds`)
-      return
-    }
-
-    // Update only the specified properties
-    breadcrumbs[index] = {
-      ...breadcrumbs[index],
-      ...updates
+  const clearKey = (key) => {
+    if (store) {
+      store.dispatch('breadcrumbs/clearKey', key)
     }
   }
 
   /**
-   * Get current breadcrumbs array
-   * @returns {Array}
+   * Clear all dynamic updates (useful on route change)
    */
-  const getBreadcrumbs = () => {
-    return route.meta.breadcrumbs || []
+  const clearUpdates = () => {
+    if (store) {
+      store.dispatch('breadcrumbs/clearUpdates')
+    }
   }
 
   return {
-    updateBreadcrumb,
     updateBreadcrumbByKey,
-    getBreadcrumbs
+    clearKey,
+    clearUpdates
   }
 }

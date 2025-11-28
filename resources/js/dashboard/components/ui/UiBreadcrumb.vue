@@ -2,13 +2,13 @@
   <nav :class="breadcrumbClasses" aria-label="Breadcrumb">
     <ol class="ui-breadcrumb-list">
       <li
-        v-for="(item, index) in items"
+        v-for="(item, index) in dynamicItems"
         v-show="item.text"
         :key="item.key || index"
         class="ui-breadcrumb-item"
         :class="{
-          'ui-breadcrumb-item--active': index === items.length - 1,
-          'ui-breadcrumb-item--clickable': item.to && index !== items.length - 1,
+          'ui-breadcrumb-item--active': index === dynamicItems.length - 1,
+          'ui-breadcrumb-item--clickable': item.to && index !== dynamicItems.length - 1,
           'ui-breadcrumb-item--muted': item.muted
         }"
       >
@@ -22,7 +22,7 @@
 
         <!-- Clickable breadcrumb -->
         <router-link
-          v-if="item.to && index !== items.length - 1"
+          v-if="item.to && index !== dynamicItems.length - 1"
           :to="item.to"
           class="ui-breadcrumb-link"
           :class="{ 'ui-breadcrumb-link--muted': item.muted }"
@@ -35,16 +35,16 @@
           v-else
           class="ui-breadcrumb-text"
           :class="{
-            'ui-breadcrumb-text--current': index === items.length - 1,
+            'ui-breadcrumb-text--current': index === dynamicItems.length - 1,
             'ui-breadcrumb-text--muted': item.muted
           }"
         >
           {{ item.text }}
         </span>
-        
+
         <!-- Separator -->
         <v-icon
-          v-if="index < items.length - 1"
+          v-if="index < dynamicItems.length - 1"
           :icon="separatorIcon"
           size="small"
           class="ui-breadcrumb-separator"
@@ -60,15 +60,16 @@ import { cn } from '@/dashboard/lib/utils'
 export default {
   name: 'UiBreadcrumb',
   props: {
-    items: {
-      type: Array,
-      required: true,
-      validator(items) {
-        return Array.isArray(items) && items.every(item => 
-          item && typeof item === 'object' && item.text
-        )
-      }
-    },
+      items: {
+          type: Array,
+          required: false,
+          default: null,
+          validator(items) {
+              return !items || (Array.isArray(items) && items.every(item =>
+                  item && typeof item === 'object' && ('text' in item)
+              ))
+          }
+      },
     variant: {
       type: String,
       default: 'default',
@@ -94,6 +95,14 @@ export default {
     class: String
   },
   computed: {
+      dynamicItems() {
+          // If items prop is provided, use it (for passing from store)
+          if (this.items && this.items.length > 0) {
+              return this.items
+          }
+          // Otherwise fallback to route.meta breadcrumbs
+          return this.$route.meta.breadcrumbs || []
+      },
     breadcrumbClasses() {
       return cn(
         'ui-breadcrumb',
@@ -215,11 +224,11 @@ export default {
   .ui-breadcrumb {
     font-size: 13px;
   }
-  
+
   .ui-breadcrumb-list {
     gap: 2px;
   }
-  
+
   .ui-breadcrumb-link,
   .ui-breadcrumb-text {
     padding: 2px 4px;
@@ -227,11 +236,11 @@ export default {
 }
 
 /* High contrast mode */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .ui-breadcrumb-link {
     border: 1px solid transparent;
   }
-  
+
   .ui-breadcrumb-link:hover {
     border-color: hsl(var(--v-theme-primary));
   }

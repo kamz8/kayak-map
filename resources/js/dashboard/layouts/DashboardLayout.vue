@@ -230,42 +230,58 @@ export default {
   computed: {
     ...mapGetters('auth', ['user']),
     ...mapGetters('ui', ['snackbar']),
+    ...mapGetters('breadcrumbs', { dynamicUpdates: 'updates' }),
 
     showBreadcrumbs() {
       return this.currentBreadcrumbs && this.currentBreadcrumbs.length > 1
     },
 
     currentBreadcrumbs() {
-      // Get breadcrumbs from route meta or generate default ones
+      let breadcrumbs = []
+
+      // 1. Get base breadcrumbs from route.meta (always primary source)
       if (this.$route.meta && this.$route.meta.breadcrumbs) {
-        return this.$route.meta.breadcrumbs
-      }
+        breadcrumbs = this.$route.meta.breadcrumbs
+      } else {
+        // 2. Generate default breadcrumbs based on route path
+        const path = this.$route.path
+        const segments = path.split('/').filter(Boolean)
 
-      // Generate default breadcrumbs based on route path
-      const path = this.$route.path
-      const segments = path.split('/').filter(Boolean)
-
-      if (segments.length <= 1) {
-        return [] // Don't show breadcrumbs for root dashboard
-      }
-
-      const breadcrumbs = [{ text: 'Dashboard', to: '/dashboard' }]
-
-      let currentPath = ''
-      for (let i = 0; i < segments.length; i++) {
-        if (segments[i] === 'dashboard') continue
-
-        currentPath += `/${segments[i]}`
-        const fullPath = `/dashboard${currentPath}`
-
-        const isLast = i === segments.length - 1
-        const text = this.capitalize(segments[i])
-
-        if (isLast) {
-          breadcrumbs.push({ text })
-        } else {
-          breadcrumbs.push({ text, to: fullPath })
+        if (segments.length <= 1) {
+          return [] // Don't show breadcrumbs for root dashboard
         }
+
+        breadcrumbs = [{ text: 'Dashboard', to: '/dashboard' }]
+
+        let currentPath = ''
+        for (let i = 0; i < segments.length; i++) {
+          if (segments[i] === 'dashboard') continue
+
+          currentPath += `/${segments[i]}`
+          const fullPath = `/dashboard${currentPath}`
+
+          const isLast = i === segments.length - 1
+          const text = this.capitalize(segments[i])
+
+          if (isLast) {
+            breadcrumbs.push({ text })
+          } else {
+            breadcrumbs.push({ text, to: fullPath })
+          }
+        }
+      }
+
+      // 3. Merge with dynamic updates from store (for items with keys)
+      if (this.dynamicUpdates && Object.keys(this.dynamicUpdates).length > 0) {
+        breadcrumbs = breadcrumbs.map(item => {
+          if (item.key && this.dynamicUpdates[item.key]) {
+            return {
+              ...item,
+              ...this.dynamicUpdates[item.key]
+            }
+          }
+          return item
+        })
       }
 
       return breadcrumbs
@@ -307,6 +323,13 @@ export default {
         const minOrderB = Math.min(...b.routes.map(route => route.meta.navigation.order || 999))
         return minOrderA - minOrderB
       })
+    }
+  },
+  watch: {
+    '$route'() {
+      // Clear dynamic updates when route changes
+      // New route will have its own route.meta.breadcrumbs
+      this.$store.dispatch('breadcrumbs/clearUpdates')
     }
   },
   methods: {

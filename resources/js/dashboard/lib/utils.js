@@ -3,9 +3,11 @@
  * Simplified version without external dependencies
  */
 
+import { getVariantProps } from '@/dashboard/design-system/tokens'
+
 /**
  * Merge class names (simplified clsx + twMerge equivalent)
- * @param  {...any} classes 
+ * @param  {...any} classes
  * @returns {string}
  */
 export function cn(...classes) {
@@ -24,7 +26,6 @@ export function cn(...classes) {
  * @returns {Object}
  */
 export function getVuetifyProps(component, variant, size = 'default') {
-  const { getVariantProps } = require('@/dashboard/design-system/tokens')
   return getVariantProps(component, variant, size)
 }
 
