@@ -26,7 +26,7 @@ class UpdateTrailRequest extends FormRequest
             'trail_name' => ['required', 'string', 'max:255'],
             'river_name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'trail_length' => ['required', 'integer', 'min:1', 'max:999999'],
+            'trail_length' => ['required', 'integer', 'min:1', 'max:99999999'],
             'difficulty' => ['required', 'string', Rule::in(['łatwy', 'umiarkowany', 'trudny'])],
             'author' => ['nullable', 'string', 'max:255'],
             'scenery' => ['nullable', 'integer', 'min:0', 'max:10'],
