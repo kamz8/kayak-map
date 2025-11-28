@@ -130,10 +130,18 @@
 - Powiązania: Trail → Images, Section → Images
 ```
 
-**Links**
-```php  
-- id, section_id, url, meta_data (JSON)
-- Linki zewnętrzne dla sekcji
+**Links (Polimorficzne linki)**
+```php
+- id, url, meta_data (JSON)
+- Linki zewnętrzne dla Trail, Section lub Region
+- Relacja: polymorphic many-to-many przez linkables
+```
+
+**Linkables (Pivot table)**
+```php
+- id, link_id, linkable_id, linkable_type
+- Polimorficzna tabela pivot dla Links
+- linkable_type: 'App\Models\Trail', 'App\Models\Section', 'App\Models\Region'
 ```
 
 #### Relacje
@@ -141,6 +149,9 @@
 - Trail → RiverTrack (one-to-one)
 - Trail → Section (one-to-many)
 - Trail → Point (one-to-many)
+- Trail ↔ Link (polymorphic many-to-many przez linkables)
+- Section ↔ Link (polymorphic many-to-many przez linkables)
+- Region ↔ Link (polymorphic many-to-many przez linkables)
 - Region → Region (self-referencing hierarchy)
 - User → SocialAccount (one-to-many)
 - User → VerificationCode (one-to-many)
@@ -220,6 +231,7 @@ layouts: [
 - **ReverseGeocodingController** - Geokodowanie
 - **WeatherProxyController** - Dane pogodowe
 - **GPXController** - Przetwarzanie plików GPX
+- **LinkController** - Zarządzanie linkami (Dashboard)
 
 #### Serwisy
 - **TrailService** - Logika biznesowa szlaków
@@ -227,10 +239,12 @@ layouts: [
 - **GeocodingService** - Usługi geolokalizacji
 - **SearchService** - Wyszukiwarka
 - **GpxProcessor** - Przetwarzanie plików GPS
+- **LinkService** - Uniwersalny serwis dla linków (Trail/Section/Region)
 
 #### Zasoby API (Resources)
 - **TrailResource** - Serializacja szlaków
 - **RegionResource** - Dane regionów
+- **LinkResource** - Serializacja linków z parsowaniem meta_data
 - **NearbyTrailsCollection** - Szlaki w pobliżu
 - **RecommendedTrailsCollection** - Rekomendacje
 
@@ -244,6 +258,28 @@ GET /api/v1/regions             # Lista regionów
 POST /api/v1/geocoding/reverse  # Odwrotne geokodowanie
 GET /api/v1/search              # Wyszukiwanie
 ```
+
+#### Dashboard API - Links Management
+```
+# Trail Links
+GET    /api/v1/dashboard/trails/{id}/links              # Lista linków dla szlaku
+POST   /api/v1/dashboard/trails/{id}/links              # Dodaj link do szlaku
+PUT    /api/v1/dashboard/trails/{id}/links/{linkId}     # Aktualizuj link szlaku
+DELETE /api/v1/dashboard/trails/{id}/links/{linkId}     # Usuń link szlaku
+
+# Section Links
+GET    /api/v1/dashboard/trails/{trailId}/sections/{sectionId}/links              # Lista linków dla sekcji
+POST   /api/v1/dashboard/trails/{trailId}/sections/{sectionId}/links              # Dodaj link do sekcji
+PUT    /api/v1/dashboard/trails/{trailId}/sections/{sectionId}/links/{linkId}     # Aktualizuj link sekcji
+DELETE /api/v1/dashboard/trails/{trailId}/sections/{sectionId}/links/{linkId}     # Usuń link sekcji
+```
+
+**Cechy Links API:**
+- ✅ **Polimorficzne relacje** - Link może należeć do wielu Trail/Section
+- ✅ **Optymalizacja query** - Selective column fetching (tylko potrzebne kolumny)
+- ✅ **Walidacja przynależności** - Link musi należeć do danego Trail/Section
+- ✅ **Meta data parsing** - Automatyczne parsowanie JSON meta_data
+- ✅ **Performance tested** - < 15 queries dla 100 linków, < 1000ms
 
 #### Filtry dla szlaków
 - `start_lat`, `end_lat`, `start_lng`, `end_lng` - Bounding box
@@ -531,6 +567,222 @@ php artisan db:seed AdminUserSeeder
 php artisan check:admin-user
 ```
 
+## 🎨 **Frontend Coding Standards - Dashboard UI Kit**
+
+### ⚠️ **WAŻNE: ZAWSZE używaj komponentów z UI Kit**
+
+Podczas kodowania Dashboard **ZAWSZE** używaj komponentów z `resources/js/dashboard/components/ui/`. **NIE** używaj surowych komponentów Vuetify bezpośrednio.
+
+### **Architektura UI**
+```
+resources/js/dashboard/
+├── design-system/
+│   ├── tokens.js          # Design tokens (kolory, spacing, variants)
+│   ├── styles.css         # Global UI styles
+│   └── theme/
+│       └── vuetify.js     # Vuetify theme config
+├── components/ui/
+│   ├── UiButton.vue       # ✅ NOWE komponenty (shadcn/ui style)
+│   ├── UiCard.vue
+│   ├── UiInput.vue
+│   ├── UiBadge.vue
+│   ├── UiDataTable.vue
+│   ├── DataTable.vue      # Legacy (compatibility)
+│   ├── FormField.vue
+│   ├── StatsCard.vue
+│   ├── ConfirmDialog.vue
+│   └── index.js           # Exports
+```
+
+### **Komponenty UI Kit - Przykłady Użycia**
+
+#### 1. UiButton (PRIORYTET: Zawsze używaj zamiast v-btn)
+```vue
+<!-- ✅ DOBRZE -->
+<UiButton variant="default" size="sm">Zapisz</UiButton>
+<UiButton variant="destructive" @click="deleteItem">Usuń</UiButton>
+<UiButton variant="outline">Anuluj</UiButton>
+<UiButton variant="ghost">Opcje</UiButton>
+
+<!-- ❌ ŹLE - nie używaj bezpośrednio -->
+<v-btn color="primary">Zapisz</v-btn>
+```
+
+**Dostępne varianty**: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`
+**Dostępne rozmiary**: `sm`, `default`, `lg`, `icon`
+
+#### 2. UiCard (zamiast v-card)
+```vue
+<!-- ✅ DOBRZE -->
+<UiCard title="Szczegóły Trasy" variant="elevated">
+  <template #subtitle>Informacje podstawowe</template>
+  <p>Zawartość karty...</p>
+  <template #actions>
+    <UiButton variant="default">Edytuj</UiButton>
+  </template>
+</UiCard>
+
+<!-- ❌ ŹLE -->
+<v-card>
+  <v-card-title>Szczegóły Trasy</v-card-title>
+  ...
+</v-card>
+```
+
+#### 3. UiInput (zamiast v-text-field)
+```vue
+<!-- ✅ DOBRZE -->
+<UiInput
+  v-model="trail.name"
+  placeholder="Nazwa szlaku"
+  :error-message="errors.name"
+/>
+
+<!-- ❌ ŹLE -->
+<v-text-field
+  v-model="trail.name"
+  label="Nazwa szlaku"
+/>
+```
+
+#### 4. UiBadge (statusy, etykiety)
+```vue
+<!-- ✅ DOBRZE -->
+<UiBadge variant="success">Aktywny</UiBadge>
+<UiBadge variant="destructive">Błąd</UiBadge>
+<UiBadge variant="warning">Ostrzeżenie</UiBadge>
+
+<!-- ❌ ŹLE -->
+<v-chip color="success">Aktywny</v-chip>
+```
+
+#### 5. UiDataTable (dla tabel CRUD)
+```vue
+<!-- ✅ DOBRZE -->
+<UiDataTable
+  title="Lista Tras"
+  :headers="headers"
+  :items="trails"
+  :actions="{ view: true, edit: true, delete: true }"
+  @edit="handleEdit"
+  @delete="handleDelete"
+>
+  <template #actions>
+    <UiButton variant="default" size="sm">
+      <v-icon start>mdi-plus</v-icon>
+      Dodaj Trasę
+    </UiButton>
+  </template>
+
+  <template #item.status="{ value }">
+    <UiBadge :variant="getStatusVariant(value)">
+      {{ value }}
+    </UiBadge>
+  </template>
+</UiDataTable>
+```
+
+### **Import Pattern**
+
+```vue
+<script>
+// Importuj komponenty UI
+import { UiButton, UiCard, UiInput, UiBadge, UiDataTable } from '@/dashboard/components/ui'
+
+export default {
+  name: 'TrailsManagement',
+  components: {
+    UiButton,
+    UiCard,
+    UiInput,
+    UiBadge,
+    UiDataTable
+  },
+  // ...
+}
+</script>
+```
+
+### **Design Tokens - Spójna Stylizacja**
+
+```javascript
+// Użyj design tokens dla custom stylów
+import { designTokens } from '@/dashboard/design-system/tokens'
+
+// Dostęp do wartości
+const primaryColor = designTokens.colors.primary
+const spacing = designTokens.spacing[4]
+const buttonProps = designTokens.variants.button.destructive
+```
+
+### **Wzorce Kodowania**
+
+#### Nazewnictwo
+- **Komponenty**: PascalCase (`UiButton`, `TrailsList`)
+- **Props**: camelCase (`modelValue`, `errorMessage`)
+- **Events**: kebab-case (`@update:model-value`)
+- **Slots**: kebab-case (`#actions`, `#item.status`)
+
+#### Props Validation
+```vue
+<script>
+export default {
+  props: {
+    variant: {
+      type: String,
+      default: 'default',
+      validator: (value) => ['default', 'outline', 'ghost'].includes(value)
+    },
+    size: {
+      type: String,
+      default: 'default',
+      validator: (value) => ['sm', 'default', 'lg'].includes(value)
+    }
+  }
+}
+</script>
+```
+
+#### Emits Validation
+```vue
+<script>
+export default {
+  emits: {
+    'update:modelValue': (value) => value !== undefined,
+    'submit': (data) => data && typeof data === 'object'
+  }
+}
+</script>
+```
+
+### **Accessibility (A11y)**
+- Wszystkie komponenty UI mają odpowiednie **ARIA attributes**
+- **Keyboard navigation** support out-of-the-box
+- **Screen reader** compatibility
+- Automatyczne **focus management**
+
+### **Performance Best Practices**
+- Używaj `computed` z cache dla danych transformacji
+- `v-memo` dla dużych list
+- Lazy loading dla heavy components
+- Debounced search inputs (automatycznie w UiDataTable)
+
+### **Pełna Dokumentacja**
+
+Szczegółowa dokumentacja wszystkich komponentów:
+- **Lokalizacja**: `resources/js/dashboard/components/ui/README.md`
+- **Design Tokens**: `resources/js/dashboard/design-system/tokens.js`
+- **Przykłady**: Zobacz istniejące widoki w `resources/js/dashboard/views/trails/`
+
+### **Checklist przed PR**
+- [ ] Używam komponentów UI Kit zamiast surowych Vuetify
+- [ ] Props są poprawnie walidowane
+- [ ] Emits są zdefiniowane z walidacją
+- [ ] Komponenty są responsywne
+- [ ] Accessibility attributes są dodane
+- [ ] Stylowanie zgodne z design tokens
+- [ ] Nazewnictwo zgodne z konwencją
+
 ## Użytkowanie
 
 ### Dla Deweloperów
@@ -560,6 +812,8 @@ php artisan check:admin-user
 - **Database** - MySQL z pełną strukturą spatial
 - **Authentication** - JWT + OAuth (Google/Facebook) + **RFC 6749 Refresh Token Flow**
 - **Dashboard Panel** - Separate SPA dla administracji
+- **Dashboard UI Kit** - Komponenty UI w stylu shadcn/ui (UiButton, UiCard, UiInput, UiBadge, UiDataTable)
+- **Links API** - Polimorficzny system zarządzania linkami (Trail/Section/Region)
 - **Docker Setup** - Multi-container development environment
 
 ## 🔐 **OAuth 2.0 Refresh Token System (RFC 6749)**
@@ -730,7 +984,9 @@ const REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes before expiry
 
 ---
 
-*Dokumentacja aktualizowana: 15.09.2025*
+*Dokumentacja aktualizowana: 26.11.2025*
 *Wersja projektu: Laravel 11 + Vue 3*
 *Dashboard Status: **PRODUCTION READY** ✅*
+*Dashboard UI Kit: **shadcn/ui STYLE** ✅*
+*Links API: **POLYMORPHIC + OPTIMIZED** ✅*
 *OAuth 2.0 Refresh Token: **RFC 6749 COMPLIANT** ✅*

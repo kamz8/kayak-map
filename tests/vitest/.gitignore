@@ -1,0 +1,7 @@
+# Vitest output
+coverage/
+*.log
+
+# Test artifacts
+screenshots/
+videos/

@@ -29,10 +29,13 @@ const mutations = {
    * @param {Object} payload - { key, updates }
    */
   UPDATE_BREADCRUMB_BY_KEY(state, { key, updates }) {
-    // Store only the updates for this key
+    // Merge updates with existing values for this key
     state.updates = {
       ...state.updates,
-      [key]: updates
+      [key]: {
+        ...state.updates[key],
+        ...updates
+      }
     }
   },
 

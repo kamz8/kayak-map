@@ -6,6 +6,8 @@
         "build": "vite build && npm run move-manifest",
         "render": "vite build --config=vite.config.render.js",
         "herd": "vite --config=vite.config.herd.js",
+        "test": "vitest",
+        "coverage": "vitest run --coverage",
         "docker:dev": "docker-compose up nginx vite -d && echo 'App: https://kayak-map.test (add to /etc/hosts: 127.0.0.1 kayak-map.test)' && docker-compose logs -f vite",
         "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
         "move-manifest": "node move-manifest.js",
@@ -25,13 +27,18 @@
     },
     "devDependencies": {
         "@vitejs/plugin-basic-ssl": "^1.1.0",
+        "@vitejs/plugin-vue": "^6.0.2",
+        "@vitest/coverage-v8": "^2.1.9",
+        "@vitest/ui": "^2.1.9",
+        "@vue/test-utils": "^2.4.6",
+        "jsdom": "^25.0.1",
         "sass-embedded": "^1.93.3",
         "vite-plugin-browser-sync": "^3.0.4",
-        "vite-plugin-vuetify": "^2.1.2"
+        "vite-plugin-vuetify": "^2.1.2",
+        "vitest": "^2.1.9"
     },
     "dependencies": {
         "@mdi/font": "^7.4.47",
-        "@vitejs/plugin-vue": "^5.1.4",
         "@vue-leaflet/vue-leaflet": "^0.10.1",
         "@vueuse/core": "^10.11.1",
         "@vueuse/head": "^2.0.0",
