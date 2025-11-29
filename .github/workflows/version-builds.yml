@@ -1,0 +1,73 @@
+name: Version Based Builds
+
+on:
+  push:
+    branches: [ master, develop, 'feature/*' ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: registry.wartkinurt.pl
+  APP_NAME: kayak-app
+
+jobs:
+  build-and-tag:
+    name: Build and Tag
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Extract version metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.APP_NAME }}
+        tags: |
+          # Dla release - użyj tag z GitHub release
+          type=ref,event=tag
+          # Dla master - latest + commit sha
+          type=ref,event=branch
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,prefix=
+          # Dla develop - develop branch
+          type=raw,value=develop,enable={{is_default_branch}}
+          # Dla feature branches - nazwa brancha
+          type=ref,event=branch
+          # Dla PR - pr number
+          type=ref,event=pr
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          APP_ENV=production
+          GIT_COMMIT=${{ github.sha }}
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+
+    - name: Output tags info
+      run: |
+        echo "Built tags: ${{ steps.meta.outputs.tags }}"
+        echo "Event: ${{ github.event_name }}"
+        echo "Ref: ${{ github.ref }}"
