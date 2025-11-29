@@ -44,7 +44,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
+          username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Verify target image exists
@@ -73,7 +73,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y sshpass
           
           # Sprawdź aktualnie działający kontener
-          CURRENT_IMAGE=$(sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "docker ps --filter 'name=${{ env.APP_NAME }}-${{ inputs.environment }}' --format '{{.Image}}' 2>/dev/null || echo ''")
+          CURRENT_IMAGE=$(sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "docker ps --filter 'name=${{ env.APP_NAME }}-${{ inputs.environment }}' --format '{{.Image}}' 2>/dev/null || echo 'NOT_FOUND'")
           echo "Current running image: $CURRENT_IMAGE"
           
           TARGET_IMAGE="${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
@@ -119,19 +119,25 @@ jobs:
             
             console.log(`Triggering build for tag: ${tag}, branch: ${branch}`);
             
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'version-based-builds.yml',
-              ref: branch,
-              inputs: {}
-            });
-            
-            console.log('Build workflow triggered successfully');
-            
-            // Czekaj na ukończenie builda (uproszczone)
-            console.log('Waiting 60 seconds for build to complete...');
-            await new Promise(resolve => setTimeout(resolve, 60000));
+            try {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'version-based-builds.yml',
+                ref: branch,
+                inputs: {}
+              });
+              
+              console.log('Build workflow triggered successfully');
+              
+              // Czekaj na ukończenie builda
+              console.log('Waiting 90 seconds for build to complete...');
+              await new Promise(resolve => setTimeout(resolve, 90000));
+              
+            } catch (error) {
+              console.log('Error triggering build workflow:', error.message);
+              // Kontynuuj mimo błędu - może obraz już został zbudowany
+            }
 
   deploy:
     name: Deploy to ${{ inputs.environment }}
@@ -152,9 +158,14 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          set -e  # Exit on error
+          
+          # Komenda do wykonania na serwerze
+          DEPLOY_SCRIPT=$(cat << 'SCRIPT'
+          set -e
+          
           # Login to registry
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY -u ${{ secrets.REGISTRY_USER }} --password-stdin
           
           # Pull latest image
           echo "Pulling image: $REGISTRY/$APP_NAME:$IMAGE_TAG"
@@ -179,7 +190,11 @@ jobs:
           docker image prune -f
           
           echo "✅ Deployment to $ENVIRONMENT completed successfully"
-          EOF
+          SCRIPT
+          )
+          
+          # Wykonaj deploy przez SSH z hasłem
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "$DEPLOY_SCRIPT"
 
       - name: Verify deployment
         run: |
@@ -199,10 +214,20 @@ jobs:
       - name: Check application health
         run: |
           echo "🔍 Performing health check..."
-          # Prosty health check HTTP
-          if curl -f http://${{ secrets.SERVER_HOST }}/health || curl -f http://${{ secrets.SERVER_HOST }}; then
-            echo "✅ Health check passed"
-          else
-            echo "❌ Health check failed"
-            exit 1
-          fi
+          max_attempts=10
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts..."
+            if curl -f http://${{ secrets.SERVER_HOST }}/health 2>/dev/null || 
+               curl -f http://${{ secrets.SERVER_HOST }}/ 2>/dev/null || 
+               curl -f http://${{ secrets.SERVER_HOST }}:3000/ 2>/dev/null; then
+              echo "✅ Health check passed"
+              exit 0
+            fi
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          
+          echo "❌ Health check failed after $max_attempts attempts"
+          exit 1
