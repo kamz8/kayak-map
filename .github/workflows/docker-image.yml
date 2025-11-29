@@ -1,6 +1,5 @@
 name: Build and Push Docker Image
 
-# Workflow uruchamiany ręcznie
 on:
   workflow_dispatch:
     inputs:
@@ -40,14 +39,13 @@ jobs:
       - name: Prepare tags
         id: prep
         run: |
-          MAIN_TAG="${{ github.repository_owner }}/wartkinurt:${{ github.event.inputs.image_tag }}"
+          MAIN_TAG="wartkinurt:${{ github.event.inputs.image_tag }}"
           TAGS="registry.wartkinurt.pl/${MAIN_TAG}"
 
-          # Dodaj dodatkowe tagi, jeśli są
           if [[ -n "${{ github.event.inputs.additional_tags }}" ]]; then
             IFS=',' read -ra ADDITIONAL_TAGS <<< "${{ github.event.inputs.additional_tags }}"
             for tag in "${ADDITIONAL_TAGS[@]}"; do
-              TAGS="${TAGS},registry.wartkinurt.pl/${{ github.repository_owner }}/wartkinurt:${tag}"
+              TAGS="${TAGS},registry.wartkinurt.pl/wartkinurt:${tag}"
             done
           fi
 
@@ -61,8 +59,8 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.prep.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=registry.wartkinurt.pl/wartkinurt:latest
+          cache-to: type=inline
           platforms: linux/amd64
           build-args: |
             BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
