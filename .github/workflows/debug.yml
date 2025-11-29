@@ -1,0 +1,24 @@
+name: Debug Registry Login
+
+on: [workflow_dispatch]
+
+jobs:
+  debug-login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Docker version
+        run: docker --version
+        
+      - name: Test registry connectivity
+        run: |
+          echo "Testing registry: registry.wartkinurt.pl"
+          curl -v https://registry.wartkinurt.pl/v2/ 2>&1 | head -20
+          
+      - name: Manual login test
+        run: |
+          docker login registry.wartkinurt.pl -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} -p ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+          
+      - name: Check if we can pull images
+        run: |
+          # Sprawdź czy możemy pobrać jakiś obraz
+          docker pull registry.wartkinurt.pl/kayak-app:latest || echo "Cannot pull image"
