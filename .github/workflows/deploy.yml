@@ -1,5 +1,9 @@
 name: Version Based Deploy
 
+permissions:
+  actions: write
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:
