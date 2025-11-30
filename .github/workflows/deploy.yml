@@ -111,17 +111,14 @@ jobs:
         run: |
           echo "📁 Preparing deployment files..."
           
-          # Upewnij się że mamy docker-compose.prod.yml
           if [ ! -f "docker-compose.prod.yml" ]; then
             echo "❌ docker-compose.prod.yml not found!"
             exit 1
           fi
           
-          # Użyj docker-compose.prod.yml jako głównego
           cp docker-compose.prod.yml docker-compose.yml
           echo "✅ Using docker-compose.prod.yml"
           
-          # Sprawdź czy mamy .env.example
           if [ -f ".env.example" ]; then
             echo "✅ Found .env.example"
           else
@@ -130,7 +127,6 @@ jobs:
 
       - name: Create deployment package
         run: |
-          # Stwórz archiwum z plikami do deploy
           echo "📦 Creating deployment package..."
           tar -czf deploy.tar.gz \
             docker-compose.yml \
@@ -155,28 +151,24 @@ jobs:
         run: |
           set -e
           
-          DEPLOY_SCRIPT=$(cat << 'SCRIPT'
-          set -e
+          # Uproszczony DEPLOY_SCRIPT bez heredoc problemów
+          DEPLOY_SCRIPT='set -e
           echo "🚀 Starting full deployment to $DEPLOY_PATH"
           
-          # Stwórz katalog deploy jeśli nie istnieje
           sudo mkdir -p $DEPLOY_PATH
           sudo chown $USER:$USER $DEPLOY_PATH
           cd $DEPLOY_PATH
           
-          # Wyczyść jeśli to pierwszy deploy (opcjonalnie)
           if [ "${{ inputs.force_redeploy }}" == "true" ]; then
             echo "🧹 Cleaning existing deployment..."
             docker-compose down 2>/dev/null || true
             sudo rm -rf ./* 2>/dev/null || true
           fi
           
-          # Rozpakuj pliki deployment
           echo "📦 Extracting deployment files..."
           tar -xzf deploy.tar.gz
           rm -f deploy.tar.gz
           
-          # Sprawdź czy już istnieje .env (żeby nie nadpisać istniejącej konfiguracji)
           if [ ! -f ".env" ]; then
             if [ -f ".env.example" ]; then
               echo "📝 Creating .env from .env.example"
@@ -185,7 +177,7 @@ jobs:
             else
               echo "❌ No .env file found and no .env.example available!"
               echo "📝 Creating basic .env file..."
-              cat > .env << ENV
+              cat > .env << EOF
 APP_ENV=production
 APP_DEBUG=false
 APP_KEY=base64:temp_key_change_me_in_production
@@ -197,45 +189,36 @@ DB_PASSWORD=change_me
 REDIS_HOST=redis
 QUEUE_CONNECTION=redis
 CACHE_DRIVER=redis
-ENV
+EOF
             fi
           else
             echo "✅ Using existing .env file"
           fi
           
-          # Login to registry
           echo "🔐 Logging to Docker registry..."
           echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login $REGISTRY -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin
           
-          # Uruchom docker-compose
           echo "🐳 Starting docker-compose..."
           docker-compose pull
           docker-compose up -d
           
-          # Poczekaj aż kontenery się uruchomią
           echo "⏳ Waiting for containers to start..."
           sleep 30
           
-          # Sprawdź status
           echo "📊 Deployment status:"
           docker-compose ps
           
-          # Pokaż logi z aplikacji
           echo "📋 Application logs:"
           docker-compose logs --tail=20 app || echo "No app logs available"
           
           echo "✅ Full deployment completed successfully!"
-          echo "🌐 Application should be available at: https://wartkinurt.pl"
-          SCRIPT
-          )
+          echo "🌐 Application should be available at: https://wartkinurt.pl"'
           
-          # Wyślij pliki na serwer
           echo "📤 Uploading deployment files to server..."
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }} \
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }}" \
             deploy.tar.gz \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy.tar.gz
           
-          # Wykonaj deploy script
           echo "🛠️ Executing deployment script..."
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "$DEPLOY_SCRIPT"
@@ -276,5 +259,4 @@ ENV
           done
           
           echo "❌ Health check failed after $max_attempts attempts"
-          echo "Application might still be starting up..."
           exit 1
