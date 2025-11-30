@@ -22,8 +22,9 @@ on:
 
 env:
   REGISTRY: ${{ secrets.DOCKER_REGISTRY_URL }}
-  APP_IMAGE: kamz8/wartkinurt  # ZMIANA: prawdziwa nazwa obrazu
+  APP_NAME: kayak-app
   DEPLOY_PATH: /home/services/kayak-prod
+
 
 jobs:
   check-image:
@@ -46,16 +47,13 @@ jobs:
       - name: Verify image exists
         id: verify-image
         run: |
-          # ZMIANA: Użyj prawdziwej nazwy obrazu
-          TARGET_IMAGE="${{ secrets.DOCKER_REGISTRY_URL }}/${{ env.APP_IMAGE }}:${{ inputs.image_tag }}"
-          echo "Checking: $TARGET_IMAGE"
+          TARGET_IMAGE="${{ secrets.DOCKER_REGISTRY_URL }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
           if docker manifest inspect "$TARGET_IMAGE" >/dev/null 2>&1; then
-            echo "✅ Image exists"
             echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "❌ Image not found"
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
 
   trigger-build-if-needed:
     name: Trigger Build if Image Missing
@@ -64,21 +62,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger docker-image.yml workflow
+      - name: Get workflow ID
+        id: get-workflow
+        run: |
+          # Pobierz listę workflow i znajdź ID dla "Build and Push Docker Image"
+          response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows")
+          echo "Available workflows:"
+          echo "$response" | jq -r '.workflows[] | "\(.name): \(.id)"'
+
+          workflow_id=$(echo "$response" | jq -r '.workflows[] | select(.name == "Build and Push Docker Image") | .id')
+          if [ -n "$workflow_id" ]; then
+            echo "Found workflow ID: $workflow_id"
+            echo "workflow_id=$workflow_id" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Workflow 'Build and Push Docker Image' not found"
+            exit 1
+          fi
+
+      - name: Trigger build workflow
         uses: actions/github-script@v7
         with:
           script: |
             const branch = '${{ inputs.branch }}';
             const tag = '${{ inputs.image_tag }}';
+            const workflowId = '${{ steps.get-workflow.outputs.workflow_id }}';
 
-            console.log(`Triggering docker-image.yml for branch: ${branch}, tag: ${tag}`);
+            console.log(`Triggering workflow ${workflowId} for branch: ${branch}, tag: ${tag}`);
 
             try {
-              // ZMIANA: Użyj nazwy pliku zamiast nazwy workflow
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                workflow_id: 'docker-image.yml',  // nazwa pliku workflow
+                workflow_id: workflowId,  // Użyj ID zamiast nazwy
                 ref: branch,
                 inputs: {
                   branch: branch,
@@ -87,25 +103,24 @@ jobs:
                 }
               });
 
-              console.log("docker-image.yml triggered successfully!");
-              console.log("Waiting 2 minutes for the image to build...");
+              console.log("✅ Build workflow triggered successfully!");
+              console.log("⏳ Waiting 2 minutes for the image to build...");
               await new Promise(resolve => setTimeout(resolve, 120000));
 
             } catch (error) {
-              console.error("Trigger failed:", error);
+              console.error("❌ Trigger failed:", error.message);
 
-              // Debug: jakie workflow są dostępne?
+              // Debug info
               const workflows = await github.rest.actions.listRepoWorkflows({
                 owner: context.repo.owner,
                 repo: context.repo.repo
               });
 
-              console.log("Available workflows:");
+              console.log("📋 Available workflows:");
               workflows.data.workflows.forEach(wf => {
-                console.log(`- ${wf.name} (file: ${wf.path})`);
+                console.log(`- ${wf.name} (ID: ${wf.id}, File: ${wf.path})`);
               });
             }
-
   deploy:
     needs: [check-image, trigger-build-if-needed]
     if: needs.check-image.outputs.image_exists == 'true' || needs.trigger-build-if-needed.result == 'success'
@@ -135,7 +150,7 @@ jobs:
       - name: Execute deploy script on server
         env:
           REGISTRY: ${{ secrets.DOCKER_REGISTRY_URL }}
-          APP_IMAGE: ${{ env.APP_IMAGE }}  # ZMIANA: używaj APP_IMAGE
+          APP_NAME: ${{ env.APP_NAME }}
           IMAGE_TAG: ${{ inputs.image_tag }}
           DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
         run: |
@@ -153,9 +168,7 @@ jobs:
 
            echo '${{ secrets.DOCKER_REGISTRY_PASSWORD }}' | docker login $REGISTRY -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin
 
-           # ZMIANA: Użyj prawdziwej nazwy obrazu
-           IMAGE=$REGISTRY/$APP_IMAGE:$IMAGE_TAG
-           echo 'Using image: $IMAGE'
+           IMAGE=$REGISTRY/$APP_NAME:$IMAGE_TAG
 
            docker-compose pull
            docker-compose up -d --remove-orphans
@@ -173,11 +186,10 @@ jobs:
         run: |
           for i in {1..15}; do
             if curl -fs https://wartkinurt.pl/ || curl -fs https://wartkinurt.pl/health; then
-              echo "✅ App is healthy"
+              echo "App OK"
               exit 0
             fi
-            echo "⏳ Waiting for app to start... ($i/15)"
             sleep 10
           done
-          echo "❌ Health check failed"
+          echo "Health check failed"
           exit 1
