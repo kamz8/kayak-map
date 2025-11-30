@@ -1,9 +1,5 @@
 name: Version Based Deploy
 
-permissions:
-  actions: write
-  contents: read
-  
 on:
   workflow_dispatch:
     inputs:
@@ -79,7 +75,7 @@ jobs:
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                workflow_id: 'docker-image.yml',
+                workflow_id: 'Build and Push Docker Image',
                 ref: branch,
                 inputs: {
                   branch: branch,
