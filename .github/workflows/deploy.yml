@@ -64,17 +64,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Usunięto krok "Get workflow ID" - nie jest już potrzebny.
+
       - name: Trigger docker-image.yml workflow
         uses: actions/github-script@v7
         with:
           script: |
             const branch = '${{ inputs.branch }}';
             const tag = '${{ inputs.image_tag }}';
-            const core = require('@actions/core'); // <-- DODAJ TO
 
             console.log(`Triggering docker-image.yml for branch: ${branch}, tag: ${tag}`);
 
             try {
+              // Używamy NAZWY PLIKU - to jest stabilne
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -93,7 +95,8 @@ jobs:
 
             } catch (error) {
               console.error("❌ Trigger failed:", error);
-              // TUTAJ JEST KLUCZOWA POPRAWKA
+              // KLUCZOWE: Użycie core.setFailed() do oznaczenia joba jako nieudanego,
+              // co zablokuje job deploy
               core.setFailed("Triggering docker-image.yml failed: " + error.message);
             }
   deploy:
