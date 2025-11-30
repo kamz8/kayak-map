@@ -1,6 +1,6 @@
 services:
   app:
-    image: registry.wartkinurt.pl/kamz8/wartkinurtp:latest
+    image: registry.wartkinurt.pl/kamz8/wartkinurt:latest
     container_name: kayak-app-prod
     restart: unless-stopped
     ports:
@@ -46,7 +46,7 @@ services:
           memory: 1G
 
   queue-worker:
-    image: registry.wartkinurt.pl/kamz8/wartkinurtp:latest
+    image: registry.wartkinurt.pl/kamz8/wartkinurt:latest
     container_name: kayak-queue-prod
     restart: unless-stopped
     command: php artisan queue:work redis --tries=3 --timeout=90
@@ -73,7 +73,7 @@ services:
           memory: 512M
 
   scheduler:
-    image: registry.wartkinurt.pl/kamz8/wartkinurtp:latest
+    image: registry.wartkinurt.pl/kamz8/wartkinurt:latest
     container_name: kayak-scheduler-prod
     restart: unless-stopped
     command: php artisan schedule:work
