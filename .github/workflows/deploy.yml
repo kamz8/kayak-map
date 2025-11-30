@@ -4,118 +4,74 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Środowisko (production, staging, development)'
+        description: 'Środowisko (production, staging)'
         required: true
-        default: 'staging'
+        default: 'production'
         type: choice
         options:
           - production
           - staging
-          - development
       image_tag:
-        description: 'Tag obrazu do deploy (np. latest, v1.0.0, develop)'
+        description: 'Tag obrazu do deploy (np. latest, v1.0.0)'
         required: true
         default: 'latest'
-      force_redeploy:
-        description: 'Wymuś redeploy nawet jeśli wersja jest taka sama'
-        required: false
-        type: boolean
-        default: false
+      branch:
+        description: 'Branch do deploy (np. main, develop)'
+        required: true
+        default: 'main'
 
 env:
-  REGISTRY: registry.wartkinurt.pl
+  REGISTRY: ${{ secrets.DOCKER_REGISTRY_URL }}
   APP_NAME: kayak-app
+  DEPLOY_PATH: /home/services/kayak-prod
 
 jobs:
-  check-deployment:
-    name: Check Deployment Status
+  check-image:
+    name: Check Docker Image
     runs-on: ubuntu-latest
     outputs:
-      needs_deploy: ${{ steps.check.outputs.needs_deploy }}
-      current_version: ${{ steps.check.outputs.current_version }}
-      target_version: ${{ steps.check.outputs.target_version }}
       image_exists: ${{ steps.verify-image.outputs.exists }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
 
       - name: Login to Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: ${{ secrets.DOCKER_REGISTRY_URL }}
+          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
       - name: Verify target image exists
         id: verify-image
         run: |
-          TARGET_IMAGE="${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
+          TARGET_IMAGE="${{ secrets.DOCKER_REGISTRY_URL }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
           echo "Checking if image exists: $TARGET_IMAGE"
           
           if docker manifest inspect "$TARGET_IMAGE" > /dev/null 2>&1; then
             echo "✅ Target image exists"
             echo "exists=true" >> $GITHUB_OUTPUT
-            
-            # Pobierz SHA obrazu
-            IMAGE_SHA=$(docker inspect "$TARGET_IMAGE" --format='{{index .Config.Labels "org.opencontainers.image.revision"}}' 2>/dev/null || echo "")
-            echo "image_sha=$IMAGE_SHA" >> $GITHUB_OUTPUT
           else
             echo "❌ Target image not found"
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check current deployment (via SSH with password)
-        if: inputs.force_redeploy != 'true'
-        id: check
-        run: |
-          # Install sshpass for password authentication
-          sudo apt-get update && sudo apt-get install -y sshpass
-          
-          # Sprawdź aktualnie działający kontener
-          CURRENT_IMAGE=$(sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "docker ps --filter 'name=${{ env.APP_NAME }}-${{ inputs.environment }}' --format '{{.Image}}' 2>/dev/null || echo 'NOT_FOUND'")
-          echo "Current running image: $CURRENT_IMAGE"
-          
-          TARGET_IMAGE="${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
-          echo "Target image: $TARGET_IMAGE"
-          
-          if [[ "$CURRENT_IMAGE" == "$TARGET_IMAGE" ]]; then
-            echo "⚠️  Same version already deployed"
-            echo "needs_deploy=false" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Different version detected, deployment needed"
-            echo "needs_deploy=true" >> $GITHUB_OUTPUT
-          fi
-          
-          echo "current_version=$CURRENT_IMAGE" >> $GITHUB_OUTPUT
-          echo "target_version=$TARGET_IMAGE" >> $GITHUB_OUTPUT
-
   trigger-build-if-needed:
     name: Trigger Build if Image Missing
-    needs: check-deployment
-    if: needs.check-deployment.outputs.image_exists == 'false'
+    needs: check-image
+    if: needs.check-image.outputs.image_exists == 'false'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Determine branch from tag
-        id: branch-detector
-        run: |
-          TAG="${{ inputs.image_tag }}"
-          if [[ "$TAG" == "latest" ]]; then
-            echo "branch=master" >> $GITHUB_OUTPUT
-          elif [[ "$TAG" == "develop" ]]; then
-            echo "branch=develop" >> $GITHUB_OUTPUT
-          else
-            # Dla tagów wersji - spróbuj znaleźć odpowiedni branch
-            echo "branch=master" >> $GITHUB_OUTPUT
-          fi
-
       - name: Trigger Version Based Builds workflow
         uses: actions/github-script@v7
         with:
           script: |
             const tag = '${{ inputs.image_tag }}';
-            const branch = '${{ steps.branch-detector.outputs.branch }}';
+            const branch = '${{ inputs.branch }}';
             
             console.log(`Triggering build for tag: ${tag}, branch: ${branch}`);
             
@@ -129,80 +85,169 @@ jobs:
               });
               
               console.log('Build workflow triggered successfully');
-              
-              // Czekaj na ukończenie builda
-              console.log('Waiting 90 seconds for build to complete...');
-              await new Promise(resolve => setTimeout(resolve, 90000));
+              await new Promise(resolve => setTimeout(resolve, 120000));
               
             } catch (error) {
               console.log('Error triggering build workflow:', error.message);
-              // Kontynuuj mimo błędu - może obraz już został zbudowany
             }
 
   deploy:
-    name: Deploy to ${{ inputs.environment }}
-    needs: [check-deployment, trigger-build-if-needed]
-    if: |
-      (needs.check-deployment.outputs.needs_deploy == 'true' || inputs.force_redeploy == 'true') &&
-      (needs.check-deployment.outputs.image_exists == 'true' || needs.trigger-build-if-needed.result == 'success')
+    name: Deploy Application
+    needs: [check-image, trigger-build-if-needed]
+    if: needs.check-image.outputs.image_exists == 'true' || needs.trigger-build-if-needed.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Deploy application
+      - name: Prepare deployment files
+        run: |
+          echo "📁 Preparing deployment files..."
+          
+          # Upewnij się że mamy docker-compose.prod.yml
+          if [ ! -f "docker-compose.prod.yml" ]; then
+            echo "❌ docker-compose.prod.yml not found!"
+            exit 1
+          fi
+          
+          # Użyj docker-compose.prod.yml jako głównego
+          cp docker-compose.prod.yml docker-compose.yml
+          echo "✅ Using docker-compose.prod.yml"
+          
+          # Sprawdź czy mamy .env.example
+          if [ -f ".env.example" ]; then
+            echo "✅ Found .env.example"
+          else
+            echo "⚠️  No .env.example found"
+          fi
+
+      - name: Create deployment package
+        run: |
+          # Stwórz archiwum z plikami do deploy
+          echo "📦 Creating deployment package..."
+          tar -czf deploy.tar.gz \
+            docker-compose.yml \
+            .env.example \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='*.md' \
+            --exclude='tests' \
+            --exclude='vendor' \
+            2>/dev/null || echo "Some files missing, continuing..."
+          
+          echo "✅ Created deployment package:"
+          ls -la deploy.tar.gz
+
+      - name: Deploy to server
         env:
-          REGISTRY: ${{ env.REGISTRY }}
+          DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+          REGISTRY: ${{ secrets.DOCKER_REGISTRY_URL }}
           APP_NAME: ${{ env.APP_NAME }}
           IMAGE_TAG: ${{ inputs.image_tag }}
-          ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          set -e  # Exit on error
-          
-          # Komenda do wykonania na serwerze
-          DEPLOY_SCRIPT=$(cat << 'SCRIPT'
           set -e
           
+          DEPLOY_SCRIPT=$(cat << 'SCRIPT'
+          set -e
+          echo "🚀 Starting full deployment to $DEPLOY_PATH"
+          
+          # Stwórz katalog deploy jeśli nie istnieje
+          sudo mkdir -p $DEPLOY_PATH
+          sudo chown $USER:$USER $DEPLOY_PATH
+          cd $DEPLOY_PATH
+          
+          # Wyczyść jeśli to pierwszy deploy (opcjonalnie)
+          if [ "${{ inputs.force_redeploy }}" == "true" ]; then
+            echo "🧹 Cleaning existing deployment..."
+            docker-compose down 2>/dev/null || true
+            sudo rm -rf ./* 2>/dev/null || true
+          fi
+          
+          # Rozpakuj pliki deployment
+          echo "📦 Extracting deployment files..."
+          tar -xzf deploy.tar.gz
+          rm -f deploy.tar.gz
+          
+          # Sprawdź czy już istnieje .env (żeby nie nadpisać istniejącej konfiguracji)
+          if [ ! -f ".env" ]; then
+            if [ -f ".env.example" ]; then
+              echo "📝 Creating .env from .env.example"
+              cp .env.example .env
+              echo "⚠️  Remember to configure REAL .env file with production values!"
+            else
+              echo "❌ No .env file found and no .env.example available!"
+              echo "📝 Creating basic .env file..."
+              cat > .env << ENV
+          APP_ENV=production
+          APP_DEBUG=false
+          APP_KEY=base64:temp_key_change_me_in_production
+          DB_CONNECTION=mysql
+          DB_HOST=db
+          DB_DATABASE=kayak_app
+          DB_USERNAME=root
+          DB_PASSWORD=change_me
+          REDIS_HOST=redis
+          QUEUE_CONNECTION=redis
+          CACHE_DRIVER=redis
+          ENV
+            fi
+          else
+            echo "✅ Using existing .env file"
+          fi
+          
           # Login to registry
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY -u ${{ secrets.REGISTRY_USER }} --password-stdin
+          echo "🔐 Logging to Docker registry..."
+          echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login $REGISTRY -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin
           
-          # Pull latest image
-          echo "Pulling image: $REGISTRY/$APP_NAME:$IMAGE_TAG"
-          docker pull $REGISTRY/$APP_NAME:$IMAGE_TAG
+          # Uruchom docker-compose
+          echo "🐳 Starting docker-compose..."
+          docker-compose pull
+          docker-compose up -d
           
-          # Stop and remove old container
-          echo "Stopping old container: ${APP_NAME}-${ENVIRONMENT}"
-          docker stop ${APP_NAME}-${ENVIRONMENT} || true
-          docker rm ${APP_NAME}-${ENVIRONMENT} || true
+          # Poczekaj aż kontenery się uruchomią
+          echo "⏳ Waiting for containers to start..."
+          sleep 30
           
-          # Run new container with environment-specific settings
-          echo "Starting new container: ${APP_NAME}-${ENVIRONMENT}"
-          docker run -d \
-            --name ${APP_NAME}-${ENVIRONMENT} \
-            --restart unless-stopped \
-            -p 80:3000 \
-            -e NODE_ENV=production \
-            -e APP_ENV=$ENVIRONMENT \
-            $REGISTRY/$APP_NAME:$IMAGE_TAG
+          # Sprawdź status
+          echo "📊 Deployment status:"
+          docker-compose ps
           
-          # Clean up unused images
-          docker image prune -f
+          # Pokaż logi z aplikacji
+          echo "📋 Application logs:"
+          docker-compose logs --tail=20 app || echo "No app logs available"
           
-          echo "✅ Deployment to $ENVIRONMENT completed successfully"
+          echo "✅ Full deployment completed successfully!"
+          echo "🌐 Application should be available at: https://wartkinurt.pl"
           SCRIPT
           )
           
-          # Wykonaj deploy przez SSH z hasłem
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "$DEPLOY_SCRIPT"
+          # Wyślij pliki na serwer
+          echo "📤 Uploading deployment files to server..."
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }} \
+            deploy.tar.gz \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy.tar.gz
+          
+          # Wykonaj deploy script
+          echo "🛠️ Executing deployment script..."
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "$DEPLOY_SCRIPT"
 
       - name: Verify deployment
         run: |
-          echo "🏁 Deployment verification"
+          echo "🏁 Deployment completed"
           echo "Environment: ${{ inputs.environment }}"
-          echo "Image: ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
-          echo "Server: ${{ secrets.SERVER_HOST }}"
-          echo "Application should be available at: http://${{ secrets.SERVER_HOST }}"
+          echo "Branch: ${{ inputs.branch }}"
+          echo "Image: ${{ secrets.DOCKER_REGISTRY_URL }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
+          echo "Deploy path: ${{ env.DEPLOY_PATH }}"
+          echo "Server: ${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PORT }}"
 
   health-check:
     name: Health Check
@@ -214,20 +259,22 @@ jobs:
       - name: Check application health
         run: |
           echo "🔍 Performing health check..."
-          max_attempts=10
+          max_attempts=15
           attempt=1
           
           while [ $attempt -le $max_attempts ]; do
             echo "Attempt $attempt of $max_attempts..."
-            if curl -f http://${{ secrets.SERVER_HOST }}/health 2>/dev/null || 
-               curl -f http://${{ secrets.SERVER_HOST }}/ 2>/dev/null || 
-               curl -f http://${{ secrets.SERVER_HOST }}:3000/ 2>/dev/null; then
-              echo "✅ Health check passed"
+            if curl -f https://wartkinurt.pl/ 2>/dev/null || 
+               curl -f https://api.wartkinurt.pl/ 2>/dev/null || 
+               curl -f https://wartkinurt.pl/health 2>/dev/null; then
+              echo "✅ Health check passed - application is responding"
               exit 0
             fi
+            echo "⏳ Waiting 10 seconds..."
             sleep 10
             attempt=$((attempt + 1))
           done
           
           echo "❌ Health check failed after $max_attempts attempts"
+          echo "Application might still be starting up..."
           exit 1
