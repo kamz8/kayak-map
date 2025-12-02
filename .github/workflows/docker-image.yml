@@ -1,221 +1,73 @@
-name: Version Based Deploy
+name: Build and Push Docker Image
 
+# Workflow uruchamiany ręcznie
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Środowisko (production, staging, development)'
+      branch:
+        description: 'Branch do zbudowania (np. main, develop)'
         required: true
-        default: 'staging'
-        type: choice
-        options:
-          - production
-          - staging
-          - development
+        default: 'master'
       image_tag:
-        description: 'Tag obrazu do deploy (np. latest, v1.0.0, develop)'
+        description: 'Tag obrazu Docker (np. latest, v1.0.0)'
         required: true
         default: 'latest'
-      force_redeploy:
-        description: 'Wymuś redeploy nawet jeśli wersja jest taka sama'
+      additional_tags:
+        description: 'Dodatkowe tagi oddzielone przecinkami (opcjonalnie)'
         required: false
-        type: boolean
-        default: false
-
-env:
-  REGISTRY: ${{ vars.DOCKER_REGISTRY_URL }}
-  APP_NAME: kayak-app
 
 jobs:
-  check-deployment:
-    name: Check Deployment Status
+  build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    outputs:
-      needs_deploy: ${{ steps.check.outputs.needs_deploy }}
-      current_version: ${{ steps.check.outputs.current_version }}
-      target_version: ${{ steps.check.outputs.target_version }}
-      image_exists: ${{ steps.verify-image.outputs.exists }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
-      - name: Login to Registry
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Private Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ vars.DOCKER_REGISTRY_URL }}
           username: ${{ vars.DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
-      - name: Verify target image exists
-        id: verify-image
+      - name: Prepare tags
+        id: prep
         run: |
-          TARGET_IMAGE="${{ vars.DOCKER_REGISTRY_URL }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
-          echo "Checking if image exists: $TARGET_IMAGE"
+          MAIN_TAG="wartkinurt:${{ github.event.inputs.image_tag }}"
+          TAGS="registry.wartkinurt.pl/${MAIN_TAG}"
 
-          if docker manifest inspect "$TARGET_IMAGE" > /dev/null 2>&1; then
-            echo "✅ Target image exists"
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "❌ Target image not found"
-            echo "exists=false" >> $GITHUB_OUTPUT
+          # Dodaj dodatkowe tagi, jeśli są
+          if [[ -n "${{ github.event.inputs.additional_tags }}" ]]; then
+            IFS=',' read -ra ADDITIONAL_TAGS <<< "${{ github.event.inputs.additional_tags }}"
+            for tag in "${ADDITIONAL_TAGS[@]}"; do
+              TAGS="${TAGS},registry.wartkinurt.pl/wartkinurt:${tag}"
+            done
           fi
 
-      - name: Check current deployment (via SSH with password)
-        if: inputs.force_redeploy != 'true'
-        id: check
-        run: |
-          # Install sshpass for password authentication
-          sudo apt-get update && sudo apt-get install -y sshpass
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Przygotowane tagi: ${TAGS}"
 
-          # Sprawdź aktualnie działający kontener
-          CURRENT_IMAGE=$(sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "docker ps --filter 'name=${{ env.APP_NAME }}-${{ inputs.environment }}' --format '{{.Image}}' 2>/dev/null || echo 'NOT_FOUND'")
-          echo "Current running image: $CURRENT_IMAGE"
-
-          TARGET_IMAGE="${{ vars.DOCKER_REGISTRY_URL }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
-          echo "Target image: $TARGET_IMAGE"
-
-          if [[ "$CURRENT_IMAGE" == "$TARGET_IMAGE" ]]; then
-            echo "⚠️  Same version already deployed"
-            echo "needs_deploy=false" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Different version detected, deployment needed"
-            echo "needs_deploy=true" >> $GITHUB_OUTPUT
-          fi
-
-          echo "current_version=$CURRENT_IMAGE" >> $GITHUB_OUTPUT
-          echo "target_version=$TARGET_IMAGE" >> $GITHUB_OUTPUT
-
-  trigger-build-if-needed:
-    name: Trigger Build if Image Missing
-    needs: check-deployment
-    if: needs.check-deployment.outputs.image_exists == 'false'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Determine branch from tag
-        id: branch-detector
-        run: |
-          TAG="${{ inputs.image_tag }}"
-          if [[ "$TAG" == "latest" ]]; then
-            echo "branch=master" >> $GITHUB_OUTPUT
-          elif [[ "$TAG" == "develop" ]]; then
-            echo "branch=develop" >> $GITHUB_OUTPUT
-          else
-            echo "branch=master" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Trigger Version Based Builds workflow
-        uses: actions/github-script@v7
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v5
         with:
-          script: |
-            const tag = '${{ inputs.image_tag }}';
-            const branch = '${{ steps.branch-detector.outputs.branch }}';
+          context: .
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.event.inputs.image_tag }}
 
-            console.log(`Triggering build for tag: ${tag}, branch: ${branch}`);
-
-            try {
-              await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: 'version-based-builds.yml',
-                ref: branch,
-                inputs: {}
-              });
-
-              console.log('Build workflow triggered successfully');
-              await new Promise(resolve => setTimeout(resolve, 90000));
-
-            } catch (error) {
-              console.log('Error triggering build workflow:', error.message);
-            }
-
-  deploy:
-    name: Deploy to ${{ inputs.environment }}
-    needs: [check-deployment, trigger-build-if-needed]
-    if: |
-      (needs.check-deployment.outputs.needs_deploy == 'true' || inputs.force_redeploy == 'true') &&
-      (needs.check-deployment.outputs.image_exists == 'true' || needs.trigger-build-if-needed.result == 'success')
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-
-      - name: Deploy application
-        env:
-          REGISTRY: ${{ vars.DOCKER_REGISTRY_URL }}
-          APP_NAME: ${{ env.APP_NAME }}
-          IMAGE_TAG: ${{ inputs.image_tag }}
-          ENVIRONMENT: ${{ inputs.environment }}
-        run: |
-          set -e
-
-          DEPLOY_SCRIPT=$(cat << 'SCRIPT'
-          set -e
-
-          # Login to registry
-          echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login $REGISTRY -u ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin
-
-          # Pull latest image
-          echo "Pulling image: $REGISTRY/$APP_NAME:$IMAGE_TAG"
-          docker pull $REGISTRY/$APP_NAME:$IMAGE_TAG
-
-          # Stop and remove old container
-          echo "Stopping old container: ${APP_NAME}-${ENVIRONMENT}"
-          docker stop ${APP_NAME}-${ENVIRONMENT} || true
-          docker rm ${APP_NAME}-${ENVIRONMENT} || true
-
-          # Run new container
-          echo "Starting new container: ${APP_NAME}-${ENVIRONMENT}"
-          docker run -d \
-            --name ${APP_NAME}-${ENVIRONMENT} \
-            --restart unless-stopped \
-            -p 80:3000 \
-            -e NODE_ENV=production \
-            -e APP_ENV=$ENVIRONMENT \
-            $REGISTRY/$APP_NAME:$IMAGE_TAG
-
-          # Clean up
-          docker image prune -f
-
-          echo "✅ Deployment to $ENVIRONMENT completed successfully"
-          SCRIPT
-          )
-
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "$DEPLOY_SCRIPT"
-
-      - name: Verify deployment
-        run: |
-          echo "🏁 Deployment completed"
-          echo "Environment: ${{ inputs.environment }}"
-          echo "Image: ${{ vars.DOCKER_REGISTRY_URL }}/${{ env.APP_NAME }}:${{ inputs.image_tag }}"
-          echo "Server: ${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PORT }}"
-
-  health-check:
-    name: Health Check
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: Check application health
-        run: |
-          echo "🔍 Performing health check..."
-          max_attempts=10
-          attempt=1
-
-          while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt of $max_attempts..."
-            if curl -f http://${{ secrets.SERVER_HOST }}/health 2>/dev/null ||
-               curl -f http://${{ secrets.SERVER_HOST }}/ 2>/dev/null ||
-               curl -f http://${{ secrets.SERVER_HOST }}:3000/ 2>/dev/null; then
-              echo "✅ Health check passed"
-              exit 0
-            fi
-            sleep 10
-            attempt=$((attempt + 1))
-          done
-
-          echo "❌ Health check failed after $max_attempts attempts"
-          exit 1
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
