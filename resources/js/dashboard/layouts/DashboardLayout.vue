@@ -385,6 +385,9 @@ export default {
       if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/edit')) {
         return 'Edytuj szlak'
       }
+        if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/editor')) {
+            return 'Edytor szlaku'
+        }
 
       return routeMap[this.$route.path] || 'Dashboard'
     },
@@ -403,6 +406,9 @@ export default {
       if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/sections/') && this.$route.path.includes('/links')) {
         return 'Zarządzanie linkami i zasobami zewnętrznymi sekcji'
       }
+        if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/editor')) {
+            return 'Edytuj szlak trasy oraz punkty na mapie'
+        }
       if (this.$route.path.includes('/dashboard/trails/') && this.$route.path.includes('/links')) {
         return 'Zarządzanie linkami i zasobami zewnętrznymi szlaku'
       }

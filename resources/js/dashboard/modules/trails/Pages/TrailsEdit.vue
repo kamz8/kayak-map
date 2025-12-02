@@ -1,14 +1,38 @@
 <template>
   <div class="trails-edit">
+    <!-- Map Editor Card -->
+    <UiCard v-if="trail" title="Mapa Szlaku" class="mb-4">
+      <template #subtitle>
+        Zarządzaj dokładną trasą szlaku na interaktywnej mapie
+      </template>
+
+      <p class="text-secondary mb-4">
+        Edytuj trasę szlaku na mapie z możliwością rysowania i modyfikacji ścieżki.
+        Dodawaj punkty węzłowe, dostosowuj przebieg trasy i zapisuj zmiany.
+      </p>
+
+      <template #actions>
+        <UiButton variant="default" @click="openMapEditor">
+          <v-icon start>mdi-map-marker-path</v-icon>
+          Edytuj Mapę Szlaku
+        </UiButton>
+      </template>
+    </UiCard>
+
+    <!-- Trail Form -->
     <TrailForm
       v-if="trail"
       :trail="trail"
       :loading="loading"
       @submit="handleSubmit"
     />
+
+    <!-- Loading State -->
     <div v-else-if="loadingTrail" class="d-flex justify-center align-center" style="min-height: 400px;">
       <v-progress-circular indeterminate color="primary" size="64" />
     </div>
+
+    <!-- Error State -->
     <div v-else class="text-center pa-8">
       <v-icon size="64" color="error">mdi-alert-circle</v-icon>
       <h3 class="mt-4">Nie znaleziono szlaku</h3>
@@ -21,13 +45,16 @@
 
 <script>
 import TrailForm from '../components/TrailForm.vue'
+import { UiCard, UiButton } from '@/dashboard/components/ui'
 import { mapActions } from 'vuex'
 import apiClient from '@/dashboard/plugins/axios.js'
 
 export default {
   name: 'DashboardTrailsEdit',
   components: {
-    TrailForm
+    TrailForm,
+    UiCard,
+    UiButton
   },
   data() {
     return {
@@ -83,6 +110,13 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    openMapEditor() {
+      this.$router.push({
+        name: 'TrailMapEditor',
+        params: { id: this.$route.params.id }
+      })
     }
   }
 }

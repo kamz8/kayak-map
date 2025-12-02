@@ -5,6 +5,7 @@ import breadcrumbs from './modules/breadcrumbs.js'
 import users from '../modules/users/store/index.js'
 import roles from '../modules/roles/store/index.js'
 import permissions from '../modules/permissions/store/index.js'
+import trailEditor from '../modules/trails/editor/store/trailEditor.js'
 
 const store = createStore({
   modules: {
@@ -13,7 +14,8 @@ const store = createStore({
     breadcrumbs,
     users,
     roles,
-    permissions
+    permissions,
+    trailEditor
   },
   strict: process.env.NODE_ENV !== 'production'
 })

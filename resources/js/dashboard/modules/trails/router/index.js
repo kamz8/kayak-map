@@ -49,6 +49,28 @@ export default [
       ]
     }
   },
+    {
+        path: '/dashboard/trails/:id/editor',
+        name: 'TrailMapEditor',
+        component: () => import('../Pages/TrailMapEditor.vue'),
+        meta: {
+            requiresAuth: true,
+            title: 'Edytor Mapy Szlaku - Dashboard',
+            pageHeader: {
+                title: 'Edytor trasy - Szlak #',  // Will be updated dynamically with trail name
+                subtitle: 'Edytuj trasę szlaku oraz punkty na mapie'
+            },
+            breadcrumbs: [
+                { text: 'Dashboard', to: '/dashboard' },
+                { text: 'Szlaki', to: '/dashboard/trails' },
+                { key: 'trail', text: '', to: '', muted: true }, // Dynamic - updated by component
+                { text: 'Edytor szlaku' }
+            ],
+            navigation: {
+                hidden: true  // Don't show in sidebar navigation
+            }
+        }
+    },
   {
     path: '/dashboard/trails/:id/edit',
     name: 'DashboardTrailsEdit',

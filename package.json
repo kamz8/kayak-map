@@ -38,6 +38,7 @@
         "vitest": "^2.1.9"
     },
     "dependencies": {
+        "@geoman-io/leaflet-geoman-free": "^2.18.3",
         "@mdi/font": "^7.4.47",
         "@vue-leaflet/vue-leaflet": "^0.10.1",
         "@vueuse/core": "^10.11.1",
