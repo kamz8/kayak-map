@@ -1,5 +1,5 @@
 # Etap budowania
-FROM node:23-alpine as node-builder
+FROM node:25-bookworm-slim as node-builder
 WORKDIR /app
 COPY package*.json ./
 COPY vite.config.js ./
@@ -12,31 +12,42 @@ FROM composer:latest as composer
 WORKDIR /app
 COPY composer.json composer.lock ./
 COPY packages ./packages
-RUN composer install --no-dev
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Etap produkcyjny
-FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm-bookworm
 
-# Instalacja zależności produkcyjnych
-RUN apk add --no-cache \
-    libzip \
-    libpng \
-    libjpeg \
-    freetype \
-    libwebp \
+# Instalacja zależności systemowych i Node.js 23
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    apt-transport-https \
+    software-properties-common \
+    && mkdir -p /etc/apt/keyrings \
+    && wget -qO- https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_23.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs
+
+# Instalacja zależności dla PHP, Chromium i Browsershot
+RUN apt-get install -y \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libwebp-dev \
     chromium \
-    chromium-chromedriver \
-    nodejs \
-    npm \
     supervisor \
     netcat-openbsd \
-    && apk add --no-cache --virtual .build-deps \
-        $PHPIZE_DEPS \
-        libzip-dev \
-        libpng-dev \
-        libjpeg-turbo-dev \
-        freetype-dev \
-        libwebp-dev \
+    # Zależności dla Chromium/Puppeteer
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libgbm1 \
+    libxshmfence1 \
     && docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
@@ -49,19 +60,21 @@ RUN apk add --no-cache \
         opcache \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && npm install -g puppeteer \
-    && apk del .build-deps
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalacja puppeteer globalnie
+RUN npm install -g puppeteer@latest
 
 RUN sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/' /usr/local/etc/php-fpm.d/www.conf
 
 # Konfiguracja Browsershot
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     BROWSERSHOT_NODE_BINARY=/usr/bin/node \
     BROWSERSHOT_NPM_BINARY=/usr/bin/npm \
-    BROWSERSHOT_CHROME_PATH=/usr/bin/chromium-browser \
-    CHROME_PATH=/usr/bin/chromium-browser \
-    CHROME_DRIVER_PATH=/usr/bin/chromedriver
+    BROWSERSHOT_CHROME_PATH=/usr/bin/chromium \
+    CHROME_PATH=/usr/bin/chromium
 
 # Konfiguracja PHP i OPcache
 COPY docker/php/prod.ini /usr/local/etc/php/conf.d/
@@ -72,23 +85,20 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/
 
 # Kopiowanie aplikacji
 WORKDIR /var/www/html
-COPY . .
-COPY --from=node-builder /app/public/build public/build
-COPY --from=composer /app/vendor vendor/
+COPY --chown=www-data:www-data . .
+COPY --from=node-builder --chown=www-data:www-data /app/public/build public/build
+COPY --from=composer --chown=www-data:www-data /app/vendor vendor/
 
-# Tworzenie i konfiguracja .env
-COPY .env.example .env
+# Tworzenie .env
+RUN cp .env.example .env
 
 # Kopiowanie skryptu produkcyjnego
 COPY docker/scripts/prod-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/prod-entrypoint.sh
 
-# Optymalizacja autoloadera
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
-
 # Czyszczenie i ustawienie uprawnień
-RUN mkdir -p storage/framework/{cache,views,sessions} storage/logs && \
-    chown -R www-data:www-data . && \
+RUN mkdir -p storage/framework/{cache,views,sessions} storage/logs bootstrap/cache && \
+    chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 755 storage bootstrap/cache && \
     chmod -R 775 storage/framework storage/logs
 
