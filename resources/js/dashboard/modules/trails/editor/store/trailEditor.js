@@ -355,11 +355,7 @@ const actions = {
                     ])
 
                     commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
-
-                    if (coordinates.length > 0) {
-                        commit(MUTATIONS.SET_START_POINT, coordinates[0])
-                        commit(MUTATIONS.SET_END_POINT, coordinates[coordinates.length - 1])
-                    }
+                    console.log('✅ Loaded track coordinates:', coordinates.length, 'points')
                 }
                 // Handle array format: [{lat, lng}, ...] or [[lat, lng], ...]
                 else if (Array.isArray(trackPoints) && trackPoints.length > 0) {
@@ -371,21 +367,29 @@ const actions = {
                     )
 
                     commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
-
-                    if (coordinates.length > 0) {
-                        commit(MUTATIONS.SET_START_POINT, coordinates[0])
-                        commit(MUTATIONS.SET_END_POINT, coordinates[coordinates.length - 1])
-                    }
+                    console.log('✅ Loaded track coordinates:', coordinates.length, 'points')
                 } else {
                     console.warn('⚠️ track_points format not recognized:', trackPoints)
                 }
             }
 
+            // Set start point from database
             if (trail.start_lat && trail.start_lng) {
-                commit(MUTATIONS.SET_CENTER_POINT, [
+                const startPoint = [
                     parseFloat(trail.start_lat),
                     parseFloat(trail.start_lng)
-                ])
+                ]
+                commit(MUTATIONS.SET_START_POINT, startPoint)
+                commit(MUTATIONS.SET_CENTER_POINT, startPoint)
+            }
+
+            // Set end point from database
+            if (trail.end_lat && trail.end_lng) {
+                const endPoint = [
+                    parseFloat(trail.end_lat),
+                    parseFloat(trail.end_lng)
+                ]
+                commit(MUTATIONS.SET_END_POINT, endPoint)
             }
 
             // Load POI points if available

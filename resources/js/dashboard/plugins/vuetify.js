@@ -34,7 +34,12 @@ const kayakLightTheme = {
     'on-secondary': designTokens.colors['secondary-foreground'],
     'on-error': designTokens.colors['destructive-foreground'],
     'on-success': designTokens.colors['success-foreground'],
-    'on-warning': designTokens.colors['warning-foreground']
+    'on-warning': designTokens.colors['warning-foreground'],
+
+    'marker-active': '#5FAAC7',      // Jaśniejszy pomarańczowy dla trybu ciemnego
+    'marker-highlighted': '#A8DAEF', // Jaśniejszy żółty dla trybu ciemnego
+    anchor: '#87CEEB',
+    footer: '#055005',
   },
   variables: {
     // Border and input colors
