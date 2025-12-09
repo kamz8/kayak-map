@@ -8,10 +8,10 @@
                     <template #activator="{ props }">
                         <ui-button
                             v-bind="props"
-                            size="x-small"
+                            size="sm"
                             density="comfortable"
-                            variant="plain"
-                            :color="activeTool === 'draw' ? 'primary' : undefined"
+                            variant="default"
+                            :active="activeTool === 'draw'"
                             @click="handleDrawTool"
                             class="tool-button ui-interactive"
                         >
@@ -23,18 +23,18 @@
                 <!-- Edit Points -->
                 <v-tooltip text="Edytuj punkty (A)" location="bottom">
                     <template #activator="{ props }">
-                        <v-btn
+                        <ui-button
                             v-bind="props"
-                            size="x-small"
+                            size="sm"
                             density="comfortable"
-                            variant="flat"
-                            :color="activeTool === 'edit' ? 'primary' : undefined"
+                            variant="default"
+                            :active="activeTool === 'edit'"
                             :disabled="!hasTrack"
                             @click="handleEditTool"
                             class="tool-button ui-interactive"
                         >
-                            <v-icon>mdi-vector-points-edit</v-icon>
-                        </v-btn>
+                            <v-icon>mdi-vector-polyline-edit</v-icon>
+                        </ui-button>
                     </template>
                 </v-tooltip>
 
@@ -46,7 +46,7 @@
                             size="x-small"
                             density="comfortable"
                             variant="flat"
-                            :color="activeTool === 'poi' ? 'primary' : undefined"
+                            :active="activeTool === 'poi'"
                             @click="handlePoiTool"
                             class="tool-button ui-interactive"
                         >

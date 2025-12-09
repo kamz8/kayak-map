@@ -46,7 +46,7 @@ import { trailEditorGetters, trailEditorActions } from '../store/trailEditor.js'
 import MapCanvas from './MapCanvas.vue'
 import MapControls from './MapControls.vue'
 import EditorToolbar from './EditorToolbar.vue'
-import axios from 'axios'
+import apiClient from '@/dashboard/plugins/axios'
 
 export default {
     name: 'TrailMapEditorComponent',
@@ -100,7 +100,7 @@ export default {
                 await this.loadTrail(this.trailId)
 
                 // Fetch trail name for display
-                const response = await axios.get(`/api/v1/dashboard/trails/${this.trailId}`)
+                const response = await apiClient.get(`/dashboard/trails/${this.trailId}`)
                 this.trailName = response.data.data.trail_name
 
                 // Update page header with trail name

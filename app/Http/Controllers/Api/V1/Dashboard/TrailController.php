@@ -240,37 +240,91 @@ class TrailController extends Controller
         return response()->json($statistics);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/v1/dashboard/trails/{id}",
-     *     tags={"Dashboard - Trails"},
-     *     summary="Szczegóły szlaku",
-     *     description="Pobiera szczegółowe informacje o szlaku",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="ID szlaku",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Szczegóły szlaku pobrane pomyślnie",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Szlak nie został znaleziony"
-     *     )
-     * )
-     */
+  /**
+   * @OA\Get(
+   *     path="/api/v1/dashboard/trails/{id}",
+   *     tags={"Dashboard - Trails"},
+   *     summary="Szczegóły szlaku",
+   *     description="Pobiera szczegółowe informacje o szlaku. Domyślnie zwraca tylko podstawowe dane szlaku. Do pobrania relacji użyj parametru `with`.",
+   *     security={{"bearerAuth": {}}},
+   *     @OA\Parameter(
+   *         name="id",
+   *         in="path",
+   *         required=true,
+   *         description="ID szlaku",
+   *         @OA\Schema(type="integer")
+   *     ),
+   *     @OA\Parameter(
+   *         name="with",
+   *         in="query",
+   *         description="Dodatkowe relacje do załadowania (oddzielone przecinkami)",
+   *         @OA\Schema(
+   *             type="string",
+   *             enum={"images", "sections", "points", "riverTrack", "points.pointType"},
+   *             example="riverTrack,points"
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Szczegóły szlaku pobrane pomyślnie",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="id", type="integer", example=1),
+   *                 @OA\Property(property="trail_name", type="string", example="Wisła - Kraków do Tynca"),
+   *                 @OA\Property(property="river_name", type="string", example="Wisła"),
+   *                 @OA\Property(property="description", type="string", nullable=true),
+   *                 @OA\Property(property="status", type="string", example="active"),
+   *                 @OA\Property(property="difficulty", type="string", example="łatwy"),
+   *                 @OA\Property(property="trail_length", type="number", example=12.5),
+   *                 @OA\Property(property="scenery", type="integer", nullable=true, example=8),
+   *                 @OA\Property(property="rating", type="number", nullable=true, example=7.5),
+   *                 @OA\Property(property="slug", type="string", example="wisla-krakow-do-tynca"),
+   *                 @OA\Property(property="created_at", type="string", format="date-time"),
+   *                 @OA\Property(property="updated_at", type="string", format="date-time"),
+   *                 @OA\Property(property="river_track", type="object", nullable=true,
+   *                     description="Dostępne tylko z with=riverTrack",
+   *                     @OA\Property(property="id", type="integer"),
+   *                     @OA\Property(property="track_points", type="array", @OA\Items(type="array", @OA\Items(type="number")))
+   *                 ),
+   *                 @OA\Property(property="points", type="array", nullable=true,
+   *                     description="Dostępne tylko z with=points",
+   *                     @OA\Items(type="object",
+   *                         @OA\Property(property="id", type="integer"),
+   *                         @OA\Property(property="name", type="string"),
+   *                         @OA\Property(property="lat", type="number"),
+   *                         @OA\Property(property="lng", type="number"),
+   *                         @OA\Property(property="point_type", type="object", nullable=true,
+   *                             description="Dostępne tylko z with=points.pointType",
+   *                             @OA\Property(property="id", type="integer"),
+   *                             @OA\Property(property="name", type="string"),
+   *                             @OA\Property(property="icon", type="string")
+   *                         )
+   *                     )
+   *                 )
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Szlak nie został znaleziony"
+   *     ),
+   *     @OA\Response(
+   *         response=400,
+   *         description="Nieprawidłowe parametry relacji"
+   *     )
+   * )
+   */
     public function show($id): TrailResource
     {
         $trail = Trail::findOrFail($id);
-        $trail = $this->trailService->getTrailForDashboard($trail);
+
+      $with = [];
+      if (request()->has('with')) {
+        $with = explode(',', request()->input('with'));
+      }
+
+      // Przekaż żądane relacje do serwisu
+      $trail = $this->trailService->getTrailForDashboard($trail, $with);
         return new TrailResource($trail);
     }
 

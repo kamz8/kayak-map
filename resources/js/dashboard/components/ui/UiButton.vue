@@ -1,26 +1,28 @@
 <template>
   <v-btn
-    v-bind="vuetifyProps"
-    :disabled="disabled"
-    :loading="loading"
-    :class="buttonClasses"
-    @click="$emit('click', $event)"
+      v-bind="vuetifyProps"
+      :disabled="disabled"
+      :loading="loading"
+      :class="buttonClasses"
+      :color="color"
+      :active="active"
+      @click="$emit('click', $event)"
   >
     <template v-if="$slots.prepend" #prepend>
-      <slot name="prepend" />
+      <slot name="prepend"/>
     </template>
 
-    <slot />
+    <slot/>
 
     <template v-if="$slots.append" #append>
-      <slot name="append" />
+      <slot name="append"/>
     </template>
   </v-btn>
 </template>
 
 <script>
-import { designTokens } from '@/dashboard/design-system/tokens'
-import { cn } from '@/dashboard/lib/utils'
+import {designTokens} from '@/dashboard/design-system/tokens'
+import {cn} from '@/dashboard/lib/utils'
 
 export default {
   name: 'UiButton',
@@ -38,22 +40,24 @@ export default {
     },
     disabled: Boolean,
     loading: Boolean,
-    class: String
+    class: String,
+    color: String,
+    active: Boolean,
   },
   computed: {
     vuetifyProps() {
       const variantProps = designTokens.variants.button[this.variant] || {}
       const sizeProps = designTokens.sizes[this.size] || {}
 
-      return { ...variantProps, ...sizeProps }
+      return {...variantProps, ...sizeProps}
     },
 
     buttonClasses() {
       return cn(
-        'ui-button',
-        `ui-button--${this.variant}`,
-        `ui-button--${this.size}`,
-        this.class
+          'ui-button',
+          `ui-button--${this.variant}`,
+          `ui-button--${this.size}`,
+          this.class
       )
     }
   }

@@ -12,7 +12,7 @@
                 >
                     <v-icon size="small">mdi-layers</v-icon>
                 </v-btn>
-                <transition name="ui-fade">
+                <transition name="ui-fade" type="transition" mode="out-in">
                     <div v-if="showLayerOptions" class="layer-options">
                         <v-btn
                             size="x-small"

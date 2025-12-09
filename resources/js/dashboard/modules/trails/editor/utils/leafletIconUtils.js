@@ -1,240 +1,178 @@
-import { Icon } from 'leaflet'
+import L from 'leaflet'
 
 /**
- * Map of MDI icon names to their SVG paths
+ * Definicje kolorów dla POI (Point of Interest), mapowane na klucze kolorów Vuetify lub konkretne wartości HEX.
+ * Ten obiekt jest używany w PoiMapMarker.vue do dynamicznego pobierania koloru z motywu Vuetify.
+ * Zapewnia spójność wizualną z resztą aplikacji.
  */
-const MDI_ICONS = {
-    'mdi-tent': mdiTent,
-    'mdi-dam': mdiDam,
-    'mdi-bridge': mdiBridge,
-    'mdi-hand-pointing-right': mdiHandPointingRight,
-    'mdi-store': mdiStore,
-    'mdi-home-group': mdiHomeGroup,
-    'mdi-water-outline': mdiWaterOutline,
-    'mdi-alert': mdiAlert,
-    'mdi-water': mdiWater,
-    'mdi-kayaking': mdiKayaking,
-    'mdi-alert-octagon': mdiAlertOctagon,
-    'mdi-medical-bag': mdiMedicalBag,
-    'mdi-glass-mug-variant': mdiGlassMugVariant,
-    'mdi-gate': mdiGate,
-    'mdi-help-circle-outline': mdiHelpCircleOutline,
-    'mdi-city': mdiCity
-}
+export const POI_TYPE_COLOR_MAP = {
+    // success/green
+    'mdi-tent': 'success',
+    'mdi-campfire': 'success',
+    'mdi-map-marker-check': 'success',
 
-/**
- * Color mapping for different point types
- */
-const POINT_TYPE_COLORS = {
-    // Warning/Danger points
-    'mdi-alert': '#FF5252',
-    'mdi-alert-octagon': '#D32F2F',
-    'mdi-dam': '#FF6F00',
-    'mdi-gate': '#F57C00',
+    // error/red
+    'mdi-alert': 'error',
+    'mdi-alert-octagon': 'error',
+    'mdi-alert-circle': 'error',
+    'mdi-map-marker-alert': 'error',
+    'mdi-map-marker-remove': 'error',
 
-    // Water/Kayaking points
-    'mdi-water': '#2196F3',
-    'mdi-water-outline': '#42A5F5',
-    'mdi-kayaking': '#00BCD4',
-    'mdi-bridge': '#607D8B',
+    // primary/blue
+    'mdi-water': 'primary',
+    'mdi-water-outline': 'primary',
+    'mdi-map-marker': 'primary',
+    'mdi-kayaking': 'primary',
 
-    // Service/Facility points
-    'mdi-tent': '#4CAF50',
-    'mdi-store': '#9C27B0',
-    'mdi-home-group': '#795548',
-    'mdi-glass-mug-variant': '#FF9800',
-    'mdi-medical-bag': '#E91E63',
+    // warning/orange
+    'mdi-arrow-up-down': 'warning', // Portage
+    'mdi-call-split': 'warning', // Rozwidlenie
+    'mdi-glass-mug-variant': 'warning', // Punkt gastronomiczny
+
+    // neutral/brown/grey
+    'mdi-bridge': 'brown',
+    'mdi-gate': 'brown',
+    'mdi-home-group': 'brown',
+    'mdi-city': 'grey',
 
     // Info/Navigation points
-    'mdi-hand-pointing-right': '#3F51B5',
-    'mdi-help-circle-outline': '#00BCD4',
-    'mdi-city': '#9E9E9E',
-
-    // Default
-    'default': '#757575'
+    'mdi-hand-pointing-right': 'info',
+    'mdi-help-circle-outline': 'info',
+    'mdi-map-marker-plus': 'secondary', // Domyślny kolor dla dodawanych POI
 }
 
 /**
- * Creates a Leaflet Icon from MDI icon name
- * @param {string} mdiIconName - MDI icon name (e.g., 'mdi-tent')
- * @param {Object} options - Icon options
- * @param {string} options.color - Icon fill color (overrides default)
- * @param {string} options.backgroundColor - Background circle color
- * @param {number} options.size - Icon size in pixels
- * @param {boolean} options.isActive - Whether the marker is active/selected
- * @param {boolean} options.isHighlighted - Whether the marker is highlighted
- * @returns {Icon} Leaflet Icon instance
- */
-export function createMdiMarkerIcon(mdiIconName, options = {}) {
-    const {
-        color = POINT_TYPE_COLORS[mdiIconName] || POINT_TYPE_COLORS.default,
-        backgroundColor = '#FFFFFF',
-        size = 32,
-        isActive = false,
-        isHighlighted = false
-    } = options
-
-    const iconPath = MDI_ICONS[mdiIconName]
-
-    if (!iconPath) {
-        console.warn(`MDI icon "${mdiIconName}" not found, using default`)
-        return createDefaultMarkerIcon(options)
-    }
-
-    // Adjust colors based on state
-    let finalColor = color
-    let strokeColor = '#FFFFFF'
-    let strokeWidth = 2
-
-    if (isActive) {
-        strokeColor = '#FF9800' // Orange for active
-        strokeWidth = 3
-    } else if (isHighlighted) {
-        strokeColor = '#FFC107' // Amber for highlighted
-        strokeWidth = 2.5
-    }
-
-    const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-            <!-- Background circle -->
-            <circle
-                cx="${size / 2}"
-                cy="${size / 2}"
-                r="${size / 2 - strokeWidth}"
-                fill="${backgroundColor}"
-                stroke="${strokeColor}"
-                stroke-width="${strokeWidth}"
-                opacity="0.95"
-            />
-
-            <!-- MDI Icon -->
-            <g transform="translate(${size * 0.2}, ${size * 0.2}) scale(${size * 0.025})">
-                <path d="${iconPath}" fill="${finalColor}"/>
-            </g>
-        </svg>
-    `
-
-    return new Icon({
-        iconUrl: 'data:image/svg+xml;base64,' + btoa(svg),
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-        popupAnchor: [0, -size / 2],
-        className: 'mdi-marker-icon'
-    })
-}
-
-/**
- * Creates a default marker icon (pin style) for when MDI icon is not available
- */
-function createDefaultMarkerIcon(options = {}) {
-    const {
-        color = '#757575',
-        size = 32,
-        isActive = false,
-        isHighlighted = false
-    } = options
-
-    let strokeColor = '#FFFFFF'
-    let strokeWidth = 2
-
-    if (isActive) {
-        strokeColor = '#FF9800'
-        strokeWidth = 3
-    } else if (isHighlighted) {
-        strokeColor = '#FFC107'
-        strokeWidth = 2.5
-    }
-
-    const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="${size}" height="${size * 1.5}">
-            <path
-                d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"
-                fill="${color}"
-                stroke="${strokeColor}"
-                stroke-width="${strokeWidth}"
-            />
-        </svg>
-    `
-
-    return new Icon({
-        iconUrl: 'data:image/svg+xml;base64,' + btoa(svg),
-        iconSize: [size, size * 1.5],
-        iconAnchor: [size / 2, size * 1.5],
-        popupAnchor: [0, -size * 1.5],
-        className: 'default-marker-icon'
-    })
-}
-
-/**
- * Creates a trail start/end marker icon
- */
-export function createTrailMarkerIcon(type = 'start', options = {}) {
-    const {
-        size = 32,
-        isActive = false,
-        isHighlighted = false
-    } = options
-
-    const color = type === 'start' ? '#4CAF50' : '#F44336' // Green for start, Red for end
-    let strokeColor = '#FFFFFF'
-    let strokeWidth = 2
-
-    if (isActive) {
-        strokeColor = '#FF9800'
-        strokeWidth = 3
-    } else if (isHighlighted) {
-        strokeColor = '#FFC107'
-        strokeWidth = 2.5
-    }
-
-    const label = type === 'start' ? 'S' : 'E'
-
-    const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="${size}" height="${size * 1.5}">
-            <!-- Pin shape -->
-            <path
-                d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7z"
-                fill="${color}"
-                stroke="${strokeColor}"
-                stroke-width="${strokeWidth}"
-            />
-
-            <!-- Label circle -->
-            <circle cx="12" cy="9" r="5" fill="${strokeColor}" opacity="0.9"/>
-
-            <!-- Label text -->
-            <text
-                x="12"
-                y="9"
-                text-anchor="middle"
-                dominant-baseline="central"
-                font-family="Arial, sans-serif"
-                font-size="8"
-                font-weight="bold"
-                fill="${color}"
-            >${label}</text>
-        </svg>
-    `
-
-    return new Icon({
-        iconUrl: 'data:image/svg+xml;base64,' + btoa(svg),
-        iconSize: [size, size * 1.5],
-        iconAnchor: [size / 2, size * 1.5],
-        popupAnchor: [0, -size * 1.5],
-        className: `trail-${type}-marker-icon`
-    })
-}
-
-/**
- * Get color for a point type icon
+ * Funkcja pomocnicza do pobierania nazwy koloru Vuetify na podstawie nazwy ikony MDI.
+ * Używana w PoiMapMarker.vue i PoiEditorDialog.vue.
+ * @param {string} mdiIconName - Nazwa ikony MDI (np. 'mdi-tent').
+ * @returns {string} Klucz koloru Vuetify (np. 'success', 'primary').
  */
 export function getPointTypeColor(mdiIconName) {
-    return POINT_TYPE_COLORS[mdiIconName] || POINT_TYPE_COLORS.default
+    // Zwraca klucz koloru z mapy, domyślnie 'secondary'
+    return POI_TYPE_COLOR_MAP[mdiIconName] || 'secondary'
 }
 
 /**
- * Check if MDI icon exists in our map
+ * Funkcja do mapowania ikon MDI na ich kody Unicode.
+ * Jest to niezbędne, jeśli chcemy osadzić symbole MDI bezpośrednio w SVG/Canvas.
+ * @param {string} mdiIconName - Nazwa ikony MDI (np. 'mdi-map-marker-check').
+ * @returns {string} Kod Unicode dla ikony.
  */
-export function hasMdiIcon(mdiIconName) {
-    return !!MDI_ICONS[mdiIconName]
+export function getMdiSymbol(mdiIconName) {
+    const mdiUnicodeMap = {
+        // Skrócona lista najczęściej używanych kodów Unicode dla ikon MDI
+        'mdi-map-marker': '\uF34E',
+        'mdi-map-marker-check': '\uF34F',
+        'mdi-map-marker-alert': '\uF1552',
+        'mdi-map-marker-plus': '\uF350',
+        'mdi-map-marker-remove': '\uF1554',
+        'mdi-tent': '\uF1555',
+        'mdi-store': '\uF1DA',
+        'mdi-home-group': '\uF1556',
+        'mdi-water': '\uF1E0',
+        'mdi-water-outline': '\uF1557',
+        'mdi-kayaking': '\uF0C8C',
+        'mdi-alert': '\uF02D',
+        'mdi-alert-octagon': '\uF02E',
+        'mdi-alert-circle': '\uF02C',
+        'mdi-bridge': '\uF03B9',
+        'mdi-gate': '\uF0635',
+        'mdi-glass-mug-variant': '\uF1116',
+        'mdi-hand-pointing-right': '\uF066E',
+        'mdi-help-circle-outline': '\uF069B',
+        'mdi-city': '\uF0433',
+        'mdi-campfire': '\uF05CC',
+        'mdi-arrow-up-down': '\uF022B',
+        'mdi-call-split': '\uF03DA',
+
+        // Domyślny symbol dla nieznanych ikon
+        'default': '\uF34E', // mdi-map-marker
+    }
+
+    return mdiUnicodeMap[mdiIconName] || mdiUnicodeMap.default
+}
+
+/**
+ * Tworzy ikonę POI używając Vuetify colorsystem i MDI icons.
+ * @param {string} mdiIconName - Nazwa ikony MDI (np. 'mdi-tent').
+ * @param {Object} vuetifyTheme - Obiekt motywu Vuetify ($vuetify.theme).
+ * @param {Object} options - Opcje ikony.
+ * @returns {L.DivIcon} Obiekt ikony Leaflet DivIcon.
+ */
+export function createPoiIcon(mdiIconName, vuetifyTheme, options = {}) {
+    const { size = 32, isActive = false } = options
+
+    // Get color key from map
+    const colorKey = getPointTypeColor(mdiIconName)
+
+    // Get actual color from Vuetify theme
+    const color = vuetifyTheme.current.colors[colorKey] || vuetifyTheme.current.colors.primary
+
+    // Convert mdi-icon-name to mdi-icon-name class format
+    // Material Design Icons uses class format: mdi mdi-icon-name
+    const iconClass = mdiIconName.replace('mdi-', '')
+
+    const html = `
+        <div class="poi-marker-wrapper" style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: ${size}px;
+            height: ${size}px;
+        ">
+            <i class="mdi mdi-${iconClass}"
+               style="
+                    color: ${color};
+                    font-size: ${size}px;
+                    ${isActive ? 'filter: drop-shadow(0 0 4px ' + color + ');' : ''}
+                "
+            ></i>
+        </div>
+    `
+
+    return L.divIcon({
+        className: 'poi-marker-icon',
+        html: html,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+        popupAnchor: [0, -size / 2]
+    })
+}
+
+/**
+ * Tworzy ikonę markera dla punktu startowego lub końcowego trasy.
+ * Używa prostego znacznika z tekstem "S" lub "E".
+ * @param {'start' | 'end'} type - Typ markera ('start' lub 'end').
+ * @returns {L.DivIcon} Obiekt ikony Leaflet DivIcon.
+ */
+export function createTrailMarkerIcon(type) {
+    const size = 30
+    const color = type === 'start' ? '#4CAF50' : '#F44336' // Zielony dla Start, Czerwony dla End
+    const text = type === 'start' ? 'S' : 'E'
+
+    const html = `
+        <div style="
+            background-color: ${color};
+            color: white;
+            width: ${size}px;
+            height: ${size}px;
+            line-height: ${size}px;
+            text-align: center;
+            border-radius: 50%;
+            border: 3px solid white;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+            ${text}
+        </div>
+    `
+
+    return L.divIcon({
+        className: type === 'start' ? 'start-marker' : 'end-marker',
+        html: html,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size], // Kotwica na dół znacznika
+        popupAnchor: [0, -size] // Popup nad znacznikiem
+    })
 }

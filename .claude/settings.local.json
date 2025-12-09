@@ -3,7 +3,8 @@
     "allow": [
       "Bash(docker exec:*)",
       "Bash(curl:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

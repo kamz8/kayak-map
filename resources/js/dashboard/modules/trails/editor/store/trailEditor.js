@@ -3,8 +3,8 @@
  * Manages track coordinates, start/end points, zoom level, and undo/redo history
  */
 
-import axios from 'axios'
 import { calculateTrackLength } from '../utils/coordinateUtils.js'
+import apiClient from "@dashboard/plugins/axios.js";
 
 // Constants
 export const MAP_LAYERS = {
@@ -48,7 +48,9 @@ const state = () => ({
     maxHistorySize: 20,
 
     // POI data
-    poiPoints: []
+    poiPoints: [],
+    availablePointTypes: [], // Fetched from API
+    pointTypesLoaded: false
 })
 
 // Getter names as constants for better maintenance
@@ -76,7 +78,10 @@ export const GETTERS = {
     TRACK_LENGTH: 'trackLength',
     POI_POINTS: 'poiPoints',
     POI_COUNT: 'poiCount',
-    HAS_POI: 'hasPoi'
+    HAS_POI: 'hasPoi',
+    AVAILABLE_POINT_TYPES: 'availablePointTypes',
+    POINT_TYPES_LOADED: 'pointTypesLoaded',
+    MAP_LAYERS: 'mapLayers'
 }
 
 const getters = {
@@ -95,6 +100,24 @@ const getters = {
     [GETTERS.CENTER_POINT]: (state) => state.centerPoint,
     [GETTERS.TRAIL_ID]: (state) => state.trailId,
     [GETTERS.POI_POINTS]: (state) => state.poiPoints,
+    [GETTERS.AVAILABLE_POINT_TYPES]: (state) => state.availablePointTypes,
+    [GETTERS.POINT_TYPES_LOADED]: (state) => state.pointTypesLoaded,
+
+    // Map layers configuration
+    [GETTERS.MAP_LAYERS]: () => ({
+        default: {
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        },
+        terrain: {
+            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+        },
+        satellite: {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }
+    }),
 
     [GETTERS.HAS_TRACK]: (state) => state.trackCoordinates.length > 0,
     [GETTERS.IS_VALID]: (state) => state.trackCoordinates.length >= 2,
@@ -125,6 +148,8 @@ export const MUTATIONS = {
     ADD_POI: 'ADD_POI',
     REMOVE_POI: 'REMOVE_POI',
     UPDATE_POI: 'UPDATE_POI',
+    SET_POINT_TYPES: 'SET_POINT_TYPES',
+    SET_POI_POINTS: 'SET_POI_POINTS',
     RESET_UNSAVED_CHANGES: 'RESET_UNSAVED_CHANGES',
     SET_LOADING: 'SET_LOADING',
     SET_SAVING: 'SET_SAVING',
@@ -229,6 +254,15 @@ const mutations = {
         }
     },
 
+    [MUTATIONS.SET_POINT_TYPES](state, pointTypes) {
+        state.availablePointTypes = pointTypes
+        state.pointTypesLoaded = true
+    },
+
+    [MUTATIONS.SET_POI_POINTS](state, poiPoints) {
+        state.poiPoints = poiPoints
+    },
+
     [MUTATIONS.RESET_UNSAVED_CHANGES](state) {
         state.unsavedChanges = false
     },
@@ -275,6 +309,7 @@ const mutations = {
 export const ACTIONS = {
     LOAD_TRAIL: 'loadTrail',
     SAVE_TRACK: 'saveTrack',
+    FETCH_POINT_TYPES: 'fetchPointTypes',
     ZOOM_IN: 'zoomIn',
     ZOOM_OUT: 'zoomOut',
     SET_ZOOM: 'setZoom',
@@ -290,23 +325,59 @@ const actions = {
         commit(MUTATIONS.SET_LOADING, true)
 
         try {
-            const response = await axios.get(`/api/v1/dashboard/trails/${trailId}`)
+            const response = await apiClient.get(`/dashboard/trails/${trailId}?with=riverTrack,points.pointType`)
             const trail = response.data.data
 
             commit(MUTATIONS.SET_TRAIL_ID, trailId)
 
             if (trail.river_track?.track_points) {
-                const coordinates = trail.river_track.track_points.map(point =>
-                    Array.isArray(point)
-                        ? [parseFloat(point[0]), parseFloat(point[1])]
-                        : [parseFloat(point.lat), parseFloat(point.lng)]
-                )
+                // Parse track_points if it's a JSON string
+                let trackPoints = trail.river_track.track_points
 
-                commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
+                console.log('🔍 Raw track_points type:', typeof trackPoints)
+                console.log('🔍 Raw track_points:', trackPoints)
 
-                if (coordinates.length > 0) {
-                    commit(MUTATIONS.SET_START_POINT, coordinates[0])
-                    commit(MUTATIONS.SET_END_POINT, coordinates[coordinates.length - 1])
+                if (typeof trackPoints === 'string') {
+                    try {
+                        trackPoints = JSON.parse(trackPoints)
+                    } catch (e) {
+                        console.error('❌ Failed to parse track_points JSON:', e)
+                        trackPoints = null
+                    }
+                }
+
+                // Handle GeoJSON format: { type: "LineString", coordinates: [[lng, lat], ...] }
+                if (trackPoints && typeof trackPoints === 'object' && trackPoints.type === 'LineString') {
+                    console.log('✅ Processing GeoJSON LineString format')
+                    const coordinates = trackPoints.coordinates.map(([lng, lat]) => [
+                        parseFloat(lat),
+                        parseFloat(lng)
+                    ])
+
+                    commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
+
+                    if (coordinates.length > 0) {
+                        commit(MUTATIONS.SET_START_POINT, coordinates[0])
+                        commit(MUTATIONS.SET_END_POINT, coordinates[coordinates.length - 1])
+                    }
+                }
+                // Handle array format: [{lat, lng}, ...] or [[lat, lng], ...]
+                else if (Array.isArray(trackPoints) && trackPoints.length > 0) {
+                    console.log('✅ Processing array format')
+                    const coordinates = trackPoints.map(point =>
+                        Array.isArray(point)
+                            ? [parseFloat(point[0]), parseFloat(point[1])]
+                            : [parseFloat(point.lat), parseFloat(point.lng)]
+                    )
+
+                    commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
+
+                    if (coordinates.length > 0) {
+                        commit(MUTATIONS.SET_START_POINT, coordinates[0])
+                        commit(MUTATIONS.SET_END_POINT, coordinates[coordinates.length - 1])
+                    }
+                } else {
+                    console.warn('⚠️ track_points format not recognized:', trackPoints)
                 }
             }
 
@@ -317,6 +388,27 @@ const actions = {
                 ])
             }
 
+            // Load POI points if available
+            if (trail.points && Array.isArray(trail.points)) {
+                const poiPoints = trail.points.map(point => ({
+                    id: point.id,
+                    point_type_id: point.point_type_id,
+                    name: point.name,
+                    description: point.description || '',
+                    lat: parseFloat(point.lat),
+                    lng: parseFloat(point.lng),
+                    icon: point.icon || 'mdi-map-marker',
+                    at_length: point.at_length || 0,
+                    order: point.order || 0
+                }))
+
+                commit(MUTATIONS.SET_POI_POINTS, poiPoints)
+                console.log('✅ Loaded POI points:', poiPoints.length)
+            } else {
+                // Clear POI if no points in response
+                commit(MUTATIONS.SET_POI_POINTS, [])
+            }
+
             commit(MUTATIONS.RESET_UNSAVED_CHANGES)
             commit(MUTATIONS.RESET_HISTORY)
 
@@ -325,6 +417,26 @@ const actions = {
             throw error
         } finally {
             commit(MUTATIONS.SET_LOADING, false)
+        }
+    },
+
+    async [ACTIONS.FETCH_POINT_TYPES]({ commit, state }) {
+        // Skip if already loaded
+        if (state.pointTypesLoaded) {
+            return state.availablePointTypes
+        }
+
+        try {
+            const response = await apiClient.get('/dashboard/points/types')
+            const pointTypes = response.data.data
+
+            commit(MUTATIONS.SET_POINT_TYPES, pointTypes)
+            console.log('✅ Point types loaded:', pointTypes.length)
+
+            return pointTypes
+        } catch (error) {
+            console.error('❌ Failed to fetch point types:', error)
+            throw error
         }
     },
 
@@ -346,9 +458,22 @@ const actions = {
                 end_lat: state.endPoint[0],
                 end_lng: state.endPoint[1],
                 track_length: getters[GETTERS.TRACK_LENGTH],
+                // Include POI points in save payload
+                poi_points: state.poiPoints.map(poi => ({
+                    id: poi.id,
+                    point_type_id: poi.point_type_id,
+                    name: poi.name,
+                    description: poi.description,
+                    lat: poi.lat,
+                    lng: poi.lng,
+                    icon: poi.icon,
+                    at_length: poi.at_length,
+                    order: poi.order
+                })),
                 saved_at: new Date().toISOString()
             }
 
+            console.log('💾 Saving track with POI points:', payload.poi_points.length)
             localStorage.setItem(`trail_track_${state.trailId}`, JSON.stringify(payload))
             commit(MUTATIONS.RESET_UNSAVED_CHANGES)
 

@@ -93,8 +93,19 @@ class TrailResource extends JsonResource
                         'description' => $point->description,
                         'point_type_id' => $point->point_type_id,
                         'at_length' => $point->at_length,
+                        'lat' => $point->lat,
+                        'lng' => $point->lng,
+                        'order' => $point->order,
+                        'icon' => $point->pointType ? $point->pointType->icon : 'mdi-map-marker',
                     ];
                 });
+            }),
+
+            'river_track' => $this->whenLoaded('riverTrack', function () {
+                return [
+                    'id' => $this->riverTrack->id,
+                    'track_points' => $this->riverTrack->track_points,
+                ];
             }),
 
             // Timestamps

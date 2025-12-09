@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\Api\V1\Dashboard\LinkController;
 use App\Http\Controllers\Api\V1\Dashboard\PermissionController;
-use App\Http\Controllers\Api\V1\Dashboard\RoleController;
+  use App\Http\Controllers\Api\V1\Dashboard\PointController;
+  use App\Http\Controllers\Api\V1\Dashboard\RoleController;
 use App\Http\Controllers\Api\V1\Dashboard\SystemSecurityController;
 use App\Http\Controllers\Api\V1\Dashboard\TrailController;
 use App\Http\Controllers\Api\V1\Dashboard\UserController;
@@ -23,7 +24,7 @@ Route::prefix('/dashboard')
         Route::get('trails/batch-status/{batchId}', [TrailController::class, 'getBatchStatus'])
             ->name('dashboard.trails.batch-status');
 
-        // SPECYFICZNE TRASY Z {trail} PRZED apiResource
+
         Route::patch('trails/{trail}/status', [TrailController::class, 'changeStatus'])
             ->name('dashboard.trails.change-status');
         Route::get('trails/{trail}', [TrailController::class, 'show'])
@@ -62,6 +63,8 @@ Route::prefix('/dashboard')
             Route::delete('links/{linkId}', [LinkController::class, 'destroyForSection'])
                 ->name('dashboard.trails.sections.links.destroy');
         });
+
+      Route::get('points/types', [PointController::class, 'getPointTypes']);
 
         // Users Management
         Route::apiResource('users', UserController::class);

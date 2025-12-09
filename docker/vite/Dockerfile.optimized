@@ -1,43 +1,39 @@
-# Multi-stage optimized Vite container for Docker development
-FROM node:18-alpine AS base
+# docker/vite/Dockerfile.optimized
+FROM node:18-alpine AS development
 
-# Install essential tools only
-RUN apk add --no-cache \
-    git \
-    ca-certificates \
-    && rm -rf /var/cache/apk/*
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Zainstaluj zależności systemowe
+RUN apk add --no-cache \
+    curl \
+    git \
+    python3 \
+    make \
+    g++
+
+# Skopiuj package.json i package-lock.json
 COPY package*.json ./
-RUN npm install && \
+
+# ✅ Użyj --legacy-peer-deps i --force
+RUN npm install --legacy-peer-deps --force && \
     npm cache clean --force
 
-# Development stage
-FROM base AS development
+# Skopiuj resztę aplikacji
+COPY . .
 
-# Create optimized directories
-RUN mkdir -p node_modules/.vite
+# Ustaw zmienne środowiskowe
+ENV DOCKER_ENV=true
+ENV NODE_ENV=development
+ENV HOST=0.0.0.0
+ENV PORT=5173
 
-# Expose ports for Vite dev server and HMR WebSocket
-EXPOSE 5173 24678
+# Expose porty
+EXPOSE 5173
+EXPOSE 24678
 
-# Set environment variables optimized for Docker
-ENV NODE_ENV=development \
-    DOCKER_ENV=true \
-    CHOKIDAR_USEPOLLING=true \
-    VITE_DEV_SERVER_HOST=0.0.0.0 \
-    VITE_DEV_SERVER_PORT=5173 \
-    VITE_HMR_PORT=24678
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5173 || exit 1
 
-# Health check for container monitoring
-HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
-    CMD pgrep node || exit 1
-
-# Optimized command with performance flags
-CMD ["npm", "run", "dev", "--", \
-     "--host", "0.0.0.0", \
-     "--port", "5173", \
-     "--config", "vite.config.optimized.js"]
+# Uruchom Vite
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173", "--config", "vite.config.js"]
