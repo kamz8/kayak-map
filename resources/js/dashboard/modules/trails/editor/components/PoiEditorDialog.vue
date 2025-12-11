@@ -15,7 +15,7 @@
 
       <div class="dialog-content">
         <!-- Nazwa punktu -->
-        <UiInput
+        <FormField
             v-model="formData.name"
             label="Nazwa punktu"
             placeholder="np. Przystań kajakowa"
@@ -24,39 +24,28 @@
         />
 
         <!-- Typ punktu -->
-        <v-select
+        <UiSelect
             v-model="formData.point_type_id"
-            :items="pointTypeItems"
-            item-title="name"
-            item-value="id"
             label="Typ punktu"
-            variant="outlined"
-            density="comfortable"
+            :items="pointTypeSelectOptions"
+            item-title="title"
+            item-value="value"
             class="mt-4"
-            :error-messages="errors.point_type_id"
+            :error-message="errors.point_type_id ? errors.point_type_id[0] : ''"
         >
-          <template #prepend-inner>
-            <v-icon :icon="selectedPointTypeIcon" :color="selectedPointTypeColor" size="small" />
-          </template>
           <template #item="{ props, item }">
-            <v-list-item v-bind="props">
-              <template #prepend>
-                <v-icon :icon="item.raw.icon" :color="getPointTypeColor(item.raw.icon)" />
-              </template>
-            </v-list-item>
+            <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :title="item.raw.title"></v-list-item>
           </template>
-        </v-select>
+        </UiSelect>
 
         <!-- Opis -->
-        <v-textarea
+        <FormField
             v-model="formData.description"
+            type="textarea"
             label="Opis (opcjonalnie)"
             placeholder="Dodatkowe informacje o punkcie..."
-            variant="outlined"
-            density="comfortable"
-            rows="3"
+            :rows="3"
             class="mt-4"
-            :error-messages="errors.description"
         />
 
         <!-- Współrzędne -->
@@ -94,7 +83,8 @@
           <!-- Przycisk usuwania (tylko dla istniejących POI) -->
           <UiButton
               v-if="!isNewPoi"
-              variant="destructive"
+              variant="outline"
+              color="red"
               @click="handleDelete"
               class="mr-auto"
           >
@@ -124,19 +114,23 @@
 </template>
 
 <script>
-import { UiCard, UiButton, UiInput } from '@/dashboard/components/ui'
-import { mapState } from 'vuex'
+import { UiCard, UiButton, UiInput, FormField } from '@/dashboard/components/ui'
+import { mapState, mapActions } from 'vuex'
 import { getPointTypeColor } from '../utils/leafletIconUtils'
+import { trailEditorActions } from '../store/trailEditor'
 import UiDialog from "@ui/UiDialog.vue";
+import UiSelect from "@ui/UiSelect.vue";
 
 export default {
   name: 'PoiEditorDialog',
 
   components: {
+    UiSelect,
     UiDialog,
     UiCard,
     UiButton,
-    UiInput
+    UiInput,
+    FormField
   },
 
   props: {
@@ -169,6 +163,11 @@ export default {
     }
   },
 
+  mounted() {
+    // Załaduj typy punktów z API
+    this.fetchPointTypes()
+  },
+
   computed: {
     ...mapState('trailEditor', {
       availablePointTypes: 'availablePointTypes'
@@ -182,6 +181,15 @@ export default {
     /** Lista typów punktów dla v-select */
     pointTypeItems() {
       return this.availablePointTypes || []
+    },
+
+    /** Opcje dla FormField select - format {title, value} */
+    pointTypeSelectOptions() {
+      return this.pointTypeItems.map(type => ({
+        title: type.type,  // API zwraca "type" nie "name"
+        value: type.id,
+        icon: type.icon
+      }))
     },
 
     /** Ikona wybranego typu punktu */
@@ -237,6 +245,10 @@ export default {
   },
 
   methods: {
+    ...mapActions('trailEditor', {
+      fetchPointTypes: trailEditorActions.FETCH_POINT_TYPES
+    }),
+
     // Helper function dostępna w template
     getPointTypeColor,
 

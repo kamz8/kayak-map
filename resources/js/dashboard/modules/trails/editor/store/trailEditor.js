@@ -325,7 +325,7 @@ const actions = {
         commit(MUTATIONS.SET_LOADING, true)
 
         try {
-            const response = await apiClient.get(`/dashboard/trails/${trailId}?with=riverTrack,points.pointType`)
+            const response = await apiClient.get(`/dashboard/trails/${trailId}?with=riverTrack,points.pointType,points.images`)
             const trail = response.data.data
 
             commit(MUTATIONS.SET_TRAIL_ID, trailId)
@@ -333,9 +333,6 @@ const actions = {
             if (trail.river_track?.track_points) {
                 // Parse track_points if it's a JSON string
                 let trackPoints = trail.river_track.track_points
-
-                console.log('🔍 Raw track_points type:', typeof trackPoints)
-                console.log('🔍 Raw track_points:', trackPoints)
 
                 if (typeof trackPoints === 'string') {
                     try {
@@ -348,18 +345,15 @@ const actions = {
 
                 // Handle GeoJSON format: { type: "LineString", coordinates: [[lng, lat], ...] }
                 if (trackPoints && typeof trackPoints === 'object' && trackPoints.type === 'LineString') {
-                    console.log('✅ Processing GeoJSON LineString format')
                     const coordinates = trackPoints.coordinates.map(([lng, lat]) => [
                         parseFloat(lat),
                         parseFloat(lng)
                     ])
 
                     commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
-                    console.log('✅ Loaded track coordinates:', coordinates.length, 'points')
                 }
                 // Handle array format: [{lat, lng}, ...] or [[lat, lng], ...]
                 else if (Array.isArray(trackPoints) && trackPoints.length > 0) {
-                    console.log('✅ Processing array format')
                     const coordinates = trackPoints.map(point =>
                         Array.isArray(point)
                             ? [parseFloat(point[0]), parseFloat(point[1])]
@@ -367,7 +361,6 @@ const actions = {
                     )
 
                     commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
-                    console.log('✅ Loaded track coordinates:', coordinates.length, 'points')
                 } else {
                     console.warn('⚠️ track_points format not recognized:', trackPoints)
                 }
@@ -394,20 +387,25 @@ const actions = {
 
             // Load POI points if available
             if (trail.points && Array.isArray(trail.points)) {
-                const poiPoints = trail.points.map(point => ({
-                    id: point.id,
-                    point_type_id: point.point_type_id,
-                    name: point.name,
-                    description: point.description || '',
-                    lat: parseFloat(point.lat),
-                    lng: parseFloat(point.lng),
-                    icon: point.icon || 'mdi-map-marker',
-                    at_length: point.at_length || 0,
-                    order: point.order || 0
-                }))
+                const poiPoints = trail.points.map(point => {
+                    const mainImage = point.images?.find(img => img.pivot.is_main) || point.images?.[0] || null;
+                    return {
+                        id: point.id,
+                        point_type_id: point.point_type_id,
+                        point_type: point.point_type,
+                        name: point.name,
+                        description: point.description || '',
+                        lat: parseFloat(point.lat),
+                        lng: parseFloat(point.lng),
+                        icon: point.icon || 'mdi-map-marker',
+                        at_length: point.at_length || 0,
+                        order: point.order || 0,
+                        main_image: mainImage,
+                        images: point.images || []
+                    }
+                })
 
                 commit(MUTATIONS.SET_POI_POINTS, poiPoints)
-                console.log('✅ Loaded POI points:', poiPoints.length)
             } else {
                 // Clear POI if no points in response
                 commit(MUTATIONS.SET_POI_POINTS, [])
@@ -435,7 +433,6 @@ const actions = {
             const pointTypes = response.data.data
 
             commit(MUTATIONS.SET_POINT_TYPES, pointTypes)
-            console.log('✅ Point types loaded:', pointTypes.length)
 
             return pointTypes
         } catch (error) {
@@ -477,7 +474,6 @@ const actions = {
                 saved_at: new Date().toISOString()
             }
 
-            console.log('💾 Saving track with POI points:', payload.poi_points.length)
             localStorage.setItem(`trail_track_${state.trailId}`, JSON.stringify(payload))
             commit(MUTATIONS.RESET_UNSAVED_CHANGES)
 
@@ -520,11 +516,11 @@ const actions = {
     },
 
     async [ACTIONS.HANDLE_MAP_CLICK]({ commit }, event) {
-        console.log('🗺️ Map click at:', event.latlng)
+        // Handle map click event
     },
 
     async [ACTIONS.ADD_FEATURE]({ commit }, feature) {
-        console.log('➕ Feature added:', feature)
+        // Handle feature addition
     },
 
     async [ACTIONS.CLEAR_ALL_FEATURES]({ commit }) {

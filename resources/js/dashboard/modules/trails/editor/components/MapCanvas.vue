@@ -47,6 +47,7 @@
           :poi="poi"
           :point-types="availablePointTypes"
           @edit-poi="handleEditPoi"
+          @marker-click="handlePoiMarkerClick"
       />
 
       <!-- Trail Track Layer -->
@@ -219,6 +220,20 @@ export default {
       this.setupDrawControl()
       this.setupMapListeners()
 
+      // Fix tile loading issue - invalidate size after DOM is fully rendered
+      this.$nextTick(() => {
+        if (this.map) {
+          this.map.invalidateSize()
+        }
+      })
+
+      // Additional fix - invalidate again after a short delay for dynamic containers
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize()
+        }
+      }, 100)
+
       // Emit ready event for TrailMapEditorComponent
       this.$emit('map-ready', mapObject)
     },
@@ -240,6 +255,12 @@ export default {
         // Use try-catch in case bounds are invalid (e.g., single point)
         try {
           this.map.fitBounds(bounds, { padding: [20, 20] })
+          // Invalidate size after fitting bounds to ensure tiles load correctly
+          this.$nextTick(() => {
+            if (this.map) {
+              this.map.invalidateSize()
+            }
+          })
         } catch (e) {
           console.error('Error fitting map bounds:', e)
         }
@@ -481,6 +502,10 @@ export default {
           this.showMessage({ type: 'error', message: 'Nie udało się ustalić lokalizacji: ' + e.message })
         })
       }
+    },
+
+    handlePoiMarkerClick({ lat, lng }) {
+        this.$store.commit(`trailEditor/${trailEditorMutations.SET_CENTER_POINT}`, [lat, lng]);
     },
 
     // --- Cleanup ---

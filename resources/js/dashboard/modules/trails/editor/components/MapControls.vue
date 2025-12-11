@@ -129,23 +129,19 @@ export default {
     methods: {
         handleZoomIn() {
             this.$store.commit('trailEditor/REQUEST_ZOOM_IN')
-            console.log('➕ Zoom in requested via Vuex')
         },
 
         handleZoomOut() {
             this.$store.commit('trailEditor/REQUEST_ZOOM_OUT')
-            console.log('➖ Zoom out requested via Vuex')
         },
 
         handleChangeLayer(layerType) {
             this.$store.commit('trailEditor/SET_CURRENT_LAYER', layerType)
             this.showLayerOptions = false
-            console.log('🗺️ Layer change requested via Vuex:', layerType)
         },
 
         handleLocate() {
             this.$store.commit('trailEditor/REQUEST_LOCATE')
-            console.log('📍 Locate requested via Vuex')
         }
     }
 }
