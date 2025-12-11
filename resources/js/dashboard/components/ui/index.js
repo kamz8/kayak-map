@@ -9,6 +9,7 @@ import UiDraggableCard from "@ui/UiDraggableCard.vue";
 export { default as UiButton } from './UiButton.vue'
 export { default as UiCard } from './UiCard.vue'
 export { default as UiInput } from './UiInput.vue'
+export { default as UiSelect } from './UiSelect.vue'
 export { default as UiBadge } from './UiBadge.vue'
 export { default as UiBreadcrumb } from './UiBreadcrumb.vue'
 export { default as UiDataTable } from './UiDataTable.vue'
@@ -29,6 +30,7 @@ export { default as StatsCard } from './StatsCard.vue'
 import UiButton from './UiButton.vue'
 import UiCard from './UiCard.vue'
 import UiInput from './UiInput.vue'
+import UiSelect from './UiSelect.vue'
 import UiBadge from './UiBadge.vue'
 import UiBreadcrumb from './UiBreadcrumb.vue'
 import UiDataTable from './UiDataTable.vue'
@@ -48,6 +50,7 @@ export function registerUiComponents(app) {
   app.component('UiButton', UiButton)
   app.component('UiCard', UiCard)
   app.component('UiInput', UiInput)
+  app.component('UiSelect', UiSelect)
   app.component('UiBadge', UiBadge)
   app.component('UiBreadcrumb', UiBreadcrumb)
   app.component('UiDataTable', UiDataTable)
@@ -55,7 +58,7 @@ export function registerUiComponents(app) {
   app.component('UiDialog', UiDialog)
   app.component('PermissionSelector', PermissionSelector)
   app.component('UserSelector', UserSelector)
-    app.component('UIDraggableCard', UiDraggableCard)
+  app.component('UIDraggableCard', UiDraggableCard)
 
   // Legacy components (keep for compatibility)
   app.component('ConfirmDialog', ConfirmDialog)
