@@ -27,7 +27,7 @@
                 variant="tonal"
                 class="ml-2 flex-shrink-0"
             >
-              {{ poi.point_type.type }}
+              {{ poi.point_type.type ?? 'Inny' }}
             </v-chip>
           </div>
 
