@@ -21,19 +21,20 @@ export const POI_TYPE_COLOR_MAP = {
     // primary/blue
     'mdi-water': 'primary',
     'mdi-water-outline': 'primary',
-    'mdi-map-marker': 'primary',
+    'mdi-map-marker': 'teal',
     'mdi-kayaking': 'primary',
 
     // warning/orange
     'mdi-arrow-up-down': 'warning', // Portage
     'mdi-call-split': 'warning', // Rozwidlenie
-    'mdi-glass-mug-variant': 'warning', // Punkt gastronomiczny
+    'mdi-glass-mug-variant': 'amber-darken-4', // Punkt bar
 
     // neutral/brown/grey
     'mdi-bridge': 'brown',
     'mdi-gate': 'brown',
     'mdi-home-group': 'brown',
     'mdi-city': 'grey',
+    'mdi-medical-bag': 'red-darken-1',
 
     // Info/Navigation points
     'mdi-hand-pointing-right': 'info',
