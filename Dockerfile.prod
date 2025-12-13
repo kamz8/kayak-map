@@ -1,5 +1,5 @@
 # Etap budowania
-FROM node:23-alpine as node-builder
+FROM node:23 as node-builder
 WORKDIR /app
 COPY package*.json ./
 COPY vite.config.js ./
@@ -15,7 +15,7 @@ COPY packages ./packages
 RUN composer install --no-dev
 
 # Etap produkcyjny
-FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm
 
 # Instalacja zależności produkcyjnych
 RUN apk add --no-cache \
