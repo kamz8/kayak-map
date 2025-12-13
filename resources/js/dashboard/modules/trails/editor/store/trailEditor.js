@@ -50,7 +50,11 @@ const state = () => ({
     // POI data
     poiPoints: [],
     availablePointTypes: [], // Fetched from API
-    pointTypesLoaded: false
+    pointTypesLoaded: false,
+
+    // POI editor mode
+    poiEditMode: false,
+    poiInEditMode: null // ID POI będącego w trybie edycji
 })
 
 // Getter names as constants for better maintenance
@@ -81,7 +85,9 @@ export const GETTERS = {
     HAS_POI: 'hasPoi',
     AVAILABLE_POINT_TYPES: 'availablePointTypes',
     POINT_TYPES_LOADED: 'pointTypesLoaded',
-    MAP_LAYERS: 'mapLayers'
+    MAP_LAYERS: 'mapLayers',
+    POI_EDIT_MODE: 'poiEditMode',
+    POI_IN_EDIT_MODE: 'poiInEditMode'
 }
 
 const getters = {
@@ -102,6 +108,8 @@ const getters = {
     [GETTERS.POI_POINTS]: (state) => state.poiPoints,
     [GETTERS.AVAILABLE_POINT_TYPES]: (state) => state.availablePointTypes,
     [GETTERS.POINT_TYPES_LOADED]: (state) => state.pointTypesLoaded,
+    [GETTERS.POI_EDIT_MODE]: (state) => state.poiEditMode,
+    [GETTERS.POI_IN_EDIT_MODE]: (state) => state.poiInEditMode,
 
     // Map layers configuration
     [GETTERS.MAP_LAYERS]: () => ({
@@ -155,7 +163,9 @@ export const MUTATIONS = {
     SET_SAVING: 'SET_SAVING',
     UNDO: 'UNDO',
     REDO: 'REDO',
-    RESET_HISTORY: 'RESET_HISTORY'
+    RESET_HISTORY: 'RESET_HISTORY',
+    SET_POI_EDIT_MODE: 'SET_POI_EDIT_MODE',
+    SET_POI_IN_EDIT_MODE: 'SET_POI_IN_EDIT_MODE'
 }
 
 const mutations = {
@@ -239,7 +249,7 @@ const mutations = {
     },
 
     [MUTATIONS.REMOVE_POI](state, poiId) {
-        const index = state.poiPoints.findIndex(p => p.id === poiId)
+        const index = state.poiPoints.findIndex(p => String(p.id) === String(poiId))
         if (index !== -1) {
             state.poiPoints.splice(index, 1)
             state.unsavedChanges = true
@@ -302,8 +312,18 @@ const mutations = {
     [MUTATIONS.RESET_HISTORY](state) {
         state.history = []
         state.historyIndex = -1
+    },
+
+    [MUTATIONS.SET_POI_EDIT_MODE](state, isEditMode) {
+        state.poiEditMode = isEditMode
+    },
+
+    [MUTATIONS.SET_POI_IN_EDIT_MODE](state, poiId) {
+        state.poiInEditMode = poiId
     }
 }
+
+// ======== POI Edit Mode ========
 
 // Action types as constants
 export const ACTIONS = {
@@ -317,7 +337,12 @@ export const ACTIONS = {
     HANDLE_MAP_CLICK: 'handleMapClick',
     ADD_FEATURE: 'addFeature',
     CLEAR_ALL_FEATURES: 'clearAllFeatures',
-    CLEAR_EDITOR: 'clearEditor'
+    CLEAR_EDITOR: 'clearEditor',
+    TOGGLE_POI_EDIT_MODE: 'togglePoiEditMode',
+    START_POI_EDIT: 'startPoiEdit',
+    STOP_POI_EDIT: 'stopPoiEdit',
+    UPDATE_POI_POSITION: 'updatePoiPosition',
+    DELETE_POI: 'deletePoi'
 }
 
 const actions = {
@@ -355,9 +380,9 @@ const actions = {
                 // Handle array format: [{lat, lng}, ...] or [[lat, lng], ...]
                 else if (Array.isArray(trackPoints) && trackPoints.length > 0) {
                     const coordinates = trackPoints.map(point =>
-                        Array.isArray(point)
-                            ? [parseFloat(point[0]), parseFloat(point[1])]
-                            : [parseFloat(point.lat), parseFloat(point.lng)]
+                      Array.isArray(point)
+                        ? [parseFloat(point[0]), parseFloat(point[1])]
+                        : [parseFloat(point.lat), parseFloat(point.lng)]
                     )
 
                     commit(MUTATIONS.UPDATE_TRACK_COORDINATES, coordinates)
@@ -534,6 +559,33 @@ const actions = {
         commit(MUTATIONS.RESET_HISTORY)
         commit(MUTATIONS.SET_ZOOM_LEVEL, ZOOM_LIMITS.DEFAULT)
         commit(MUTATIONS.SET_CURRENT_LAYER, MAP_LAYERS.DEFAULT)
+    },
+
+    async [ACTIONS.TOGGLE_POI_EDIT_MODE]({ commit, state }) {
+        commit(MUTATIONS.SET_POI_EDIT_MODE, !state.poiEditMode)
+    },
+
+    async [ACTIONS.START_POI_EDIT]({ commit }, poiId) {
+        commit(MUTATIONS.SET_POI_EDIT_MODE, true)
+        commit(MUTATIONS.SET_POI_IN_EDIT_MODE, poiId)
+    },
+
+    async [ACTIONS.STOP_POI_EDIT]({ commit }) {
+        commit(MUTATIONS.SET_POI_EDIT_MODE, false)
+        commit(MUTATIONS.SET_POI_IN_EDIT_MODE, null)
+    },
+
+    async [ACTIONS.UPDATE_POI_POSITION]({ commit, state }, { poiId, lat, lng }) {
+        const updatedPoi = {
+            ...state.poiPoints.find(p => p.id === poiId),
+            lat,
+            lng
+        }
+        commit(MUTATIONS.UPDATE_POI, updatedPoi)
+    },
+
+    async [ACTIONS.DELETE_POI]({ commit }, poiId) {
+        commit(MUTATIONS.REMOVE_POI, poiId)
     }
 }
 

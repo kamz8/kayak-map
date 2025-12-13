@@ -173,9 +173,11 @@ export default {
       availablePointTypes: 'availablePointTypes'
     }),
 
-    /** Czy to nowy POI (id === null) */
+    /** Czy to nowy POI (ma tymczasowy ID) */
     isNewPoi() {
-      return !this.formData.id
+      // Nowy punkt ma ID zaczynające się na 'temp-'
+      // Istniejący punkt ma rzeczywiste ID (liczba lub liczba jako string)
+      return this.formData.id && this.formData.id.toString().startsWith('temp-')
     },
 
     /** Lista typów punktów dla v-select */
@@ -222,9 +224,9 @@ export default {
     poi: {
       immediate: true,
       handler(newPoi) {
-        if (newPoi) {
+        if (newPoi && Object.keys(newPoi).length > 0) {
           this.formData = {
-            id: newPoi.id || null,
+            id: newPoi.id !== undefined ? newPoi.id : null,
             name: newPoi.name || 'Nowy Punkt',
             description: newPoi.description || '',
             lat: newPoi.lat || newPoi.latitude || 0,
@@ -232,21 +234,38 @@ export default {
             point_type_id: newPoi.point_type_id || (this.pointTypeItems[0]?.id || 1),
             at_length: newPoi.at_length || null
           }
+        } else {
+          this.formData = {
+            id: null,
+            name: '',
+            description: '',
+            lat: 0,
+            lng: 0,
+            point_type_id: this.pointTypeItems[0]?.id || 1,
+            at_length: null
+          }
         }
-      }
+      },
+      deep: true
     },
 
     /** Reset błędów gdy dialog jest zamykany */
     show(newVal) {
       if (!newVal) {
         this.errors = {}
+      } else if (newVal && this.poi) {
+        // Wymuś update watchers gdy dialog się otwiera
+        this.$nextTick(() => {
+          this.poi.id
+        })
       }
     }
   },
 
   methods: {
     ...mapActions('trailEditor', {
-      fetchPointTypes: trailEditorActions.FETCH_POINT_TYPES
+      fetchPointTypes: trailEditorActions.FETCH_POINT_TYPES,
+      deletePoi: 'deletePoi'
     }),
 
     // Helper function dostępna w template
@@ -287,11 +306,10 @@ export default {
     },
 
     /** Usuń POI */
-    handleDelete() {
-      if (confirm(`Czy na pewno chcesz usunąć punkt "${this.formData.name}"?`)) {
-        this.$emit('delete-poi', this.formData)
-        this.$emit('update:show', false)
-      }
+    async handleDelete() {
+      await this.deletePoi(this.formData.id)
+      this.$emit('update:show', false)
+
     }
   }
 }

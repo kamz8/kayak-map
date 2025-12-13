@@ -97,6 +97,7 @@ class TrailResource extends JsonResource
                         'lng' => $point->lng,
                         'order' => $point->order,
                         'icon' => $point->pointType ? $point->pointType->icon : 'mdi-map-marker',
+                        'point_type' => $point->pointType ?? null
                     ];
                 });
             }),

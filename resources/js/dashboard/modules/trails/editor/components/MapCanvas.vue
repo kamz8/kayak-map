@@ -1,5 +1,5 @@
 <template>
-  <div class="map-container">
+  <div class="map-container" :class="{ 'map-cursor-poi-mode': activeTool === 'poi' }">
     <l-map
         ref="map"
         :use-global-leaflet="true"
@@ -12,34 +12,6 @@
     >
       <l-tile-layer :url="tileLayerUrl" :attribution="attribution" />
 
-      <!-- Start Point Marker -->
-      <l-marker
-          v-if="startPoint"
-          :lat-lng="startPoint"
-          :icon="createTrailMarkerIcon('start')"
-      >
-        <l-popup>
-          <div class="marker-popup">
-            <strong>Punkt Startowy</strong>
-            <p class="text-caption">{{ startPoint[0].toFixed(6) }}, {{ startPoint[1].toFixed(6) }}</p>
-          </div>
-        </l-popup>
-      </l-marker>
-
-      <!-- End Point Marker -->
-      <l-marker
-          v-if="endPoint"
-          :lat-lng="endPoint"
-          :icon="createTrailMarkerIcon('end')"
-      >
-        <l-popup>
-          <div class="marker-popup">
-            <strong>Punkt Końcowy</strong>
-            <p class="text-caption">{{ endPoint[0].toFixed(6) }}, {{ endPoint[1].toFixed(6) }}</p>
-          </div>
-        </l-popup>
-      </l-marker>
-
       <!-- POI Markers - Using the new PoiMapMarker component -->
       <PoiMapMarker
           v-for="poi in poiPoints"
@@ -48,15 +20,6 @@
           :point-types="availablePointTypes"
           @edit-poi="handleEditPoi"
           @marker-click="handlePoiMarkerClick"
-      />
-
-      <!-- Trail Track Layer -->
-      <l-polyline
-          v-if="trackCoordinates.length"
-          :lat-lngs="trackCoordinates"
-          :color="'#1976D2'"
-          :weight="5"
-          :opacity="0.8"
       />
 
       <!-- Draw/Edit Control Layer (drawnItems) -->
@@ -73,51 +36,47 @@
     <!-- POI Editor Dialog -->
     <PoiEditorDialog
         :show="showPoiEditor"
+        @update:show="showPoiEditor = $event"
         :poi="selectedPoi"
         @saved="handlePoiSaved"
         @cancelled="handlePoiCancelled"
-        @delete-poi="handlePoiDelete"
     />
 
   </div>
 </template>
 
 <script>
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import 'leaflet-draw/dist/leaflet.draw.css'
-import 'leaflet-draw'
-import { LMap, LTileLayer, LMarker, LPolyline, LPopup, LFeatureGroup } from '@vue-leaflet/vue-leaflet'
-import { mapState, mapGetters, mapActions } from 'vuex'
-import { trailEditorGetters, trailEditorActions } from '../store/trailEditor'
-import { trailEditorMutations } from '../store/trailEditor'
-import { createTrailMarkerIcon } from '../utils/leafletIconUtils'
-import PoiEditorDialog from './PoiEditorDialog.vue'
-import PoiMapMarker from './PoiMapMarker.vue' // Import new component
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import 'leaflet-draw/dist/leaflet.draw.css';
+import 'leaflet-draw';
+import { LMap, LTileLayer, LFeatureGroup } from '@vue-leaflet/vue-leaflet';
+import { mapState, mapGetters, mapActions } from 'vuex';
+import { trailEditorGetters, trailEditorActions, trailEditorMutations } from '../store/trailEditor';
+import { createTrailMarkerIcon } from '../utils/leafletIconUtils';
+import PoiEditorDialog from './PoiEditorDialog.vue';
+import PoiMapMarker from './PoiMapMarker.vue';
 
-// Leaflet icon configuration (fixes missing icon issue)
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+// Leaflet icon configuration
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-delete L.Icon.Default.prototype._getIconUrl
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
-})
+});
 
 export default {
   name: 'MapCanvas',
   components: {
     LMap,
     LTileLayer,
-    LMarker,
-    LPolyline,
-    LPopup,
     LFeatureGroup,
     PoiEditorDialog,
-    PoiMapMarker, // Register new component
+    PoiMapMarker,
   },
   data() {
     return {
@@ -129,9 +88,12 @@ export default {
       },
       showPoiEditor: false,
       selectedPoi: null,
-      // Local state for Draw/Edit operations that are not yet in Vuex
       isDrawing: false,
-    }
+      startMarkerLayer: null,
+      endMarkerLayer: null,
+      trackLayer: null,
+      tempPoiMarker: null, // New: To store a temporary POI marker for placement
+    };
   },
   computed: {
     ...mapState('trailEditor', {
@@ -142,7 +104,7 @@ export default {
       startPoint: 'startPoint',
       endPoint: 'endPoint',
       poiPoints: 'poiPoints',
-      availablePointTypes: 'availablePointTypes', // Required to pass to POI marker
+      availablePointTypes: 'availablePointTypes',
       requestLocate: 'requestLocate',
       requestZoomIn: 'requestZoomIn',
       requestZoomOut: 'requestZoomOut',
@@ -152,355 +114,272 @@ export default {
       mapLayers: trailEditorGetters.MAP_LAYERS,
     }),
     isLoading() {
-      // Assume map loading is part of the overall editor loading state
-      return this.$store.state.trailEditor.isLoading || !this.map
+      return this.$store.state.trailEditor.isLoading || !this.map;
     },
     tileLayerUrl() {
-      return this.mapLayers[this.currentLayer]?.url || this.mapLayers.default.url
+      return this.mapLayers[this.currentLayer]?.url || this.mapLayers.default.url;
     },
     attribution() {
-      return this.mapLayers[this.currentLayer]?.attribution || this.mapLayers.default.attribution
+      return this.mapLayers[this.currentLayer]?.attribution || this.mapLayers.default.attribution;
+    },
+    editableLayers() {
+        return this.$refs.editableFeatures?.leafletObject;
     }
   },
   watch: {
-    requestLocate() {
-      this.locateUser()
-    },
+    requestLocate() { this.locateUser(); },
     requestZoomIn() {
-      // React to zoom in request
       if (this.map) {
-        this.map.zoomIn()
-        // Update store with new zoom level
-        this.$nextTick(() => {
-          this.setZoom(this.map.getZoom())
-        })
+        this.map.zoomIn();
+        this.$nextTick(() => this.setZoom(this.map.getZoom()));
       }
     },
     requestZoomOut() {
-      // React to zoom out request
       if (this.map) {
-        this.map.zoomOut()
-        // Update store with new zoom level
-        this.$nextTick(() => {
-          this.setZoom(this.map.getZoom())
-        })
+        this.map.zoomOut();
+        this.$nextTick(() => this.setZoom(this.map.getZoom()));
       }
     },
-    activeTool: {
-      immediate: true,
-      handler(newTool) {
-        if (this.map) {
-          this.updateDrawControl(newTool)
-        }
-      }
+    trackCoordinates() {
+      this.rebuildEditableLayers();
     },
-    trackCoordinates(newCoords) {
-      // Use this watcher to update map bounds
-      if (this.map && newCoords.length > 0) {
-        this.fitMapToTrack()
-      }
+    startPoint() {
+      this.rebuildEditableLayers();
+    },
+    endPoint() {
+      this.rebuildEditableLayers();
     }
   },
   methods: {
     ...mapActions('trailEditor', {
       addFeature: trailEditorActions.ADD_FEATURE,
       setZoom: trailEditorActions.SET_ZOOM,
-      // ... other actions
     }),
     ...mapActions('ui', ['showMessage']),
 
-    createTrailMarkerIcon, // Make helper function available in components
+    createTrailMarkerIcon,
 
-    /**
-     * Initializes the map when it is ready.
-     * @param {L.Map} mapObject - The Leaflet map object.
-     */
     onMapReady(mapObject) {
-      this.map = mapObject
-      this.setupDrawControl()
-      this.setupMapListeners()
-
-      // Fix tile loading issue - invalidate size after DOM is fully rendered
+      this.map = mapObject;
+      this.setupDrawControl();
+      this.setupMapListeners();
       this.$nextTick(() => {
-        if (this.map) {
-          this.map.invalidateSize()
-        }
-      })
-
-      // Additional fix - invalidate again after a short delay for dynamic containers
-      setTimeout(() => {
-        if (this.map) {
-          this.map.invalidateSize()
-        }
-      }, 100)
-
-      // Emit ready event for TrailMapEditorComponent
-      this.$emit('map-ready', mapObject)
+        this.map.invalidateSize();
+        this.rebuildEditableLayers();
+        this.fitMapToTrack();
+      });
+      setTimeout(() => this.map.invalidateSize(), 100);
+      this.$emit('map-ready', mapObject);
     },
 
-    /**
-     * Updates the zoom level in Vuex.
-     * @param {number} zoom - The current zoom level.
-     */
     updateZoom(zoom) {
-      this.setZoom(zoom)
+      this.setZoom(zoom);
     },
 
-    /**
-     * Fits the map view to the bounds of the drawn track.
-     */
     fitMapToTrack() {
       if (this.map && this.trackCoordinates.length > 0) {
-        const bounds = L.latLngBounds(this.trackCoordinates)
-        // Use try-catch in case bounds are invalid (e.g., single point)
+        const bounds = L.latLngBounds(this.trackCoordinates);
         try {
-          this.map.fitBounds(bounds, { padding: [20, 20] })
-          // Invalidate size after fitting bounds to ensure tiles load correctly
-          this.$nextTick(() => {
-            if (this.map) {
-              this.map.invalidateSize()
-            }
-          })
+          this.map.fitBounds(bounds, { padding: [20, 20] });
         } catch (e) {
-          console.error('Error fitting map bounds:', e)
+          console.error('Error fitting map bounds:', e);
         }
       }
     },
 
-    /**
-     * Sets up the Leaflet.draw control for drawing/editing.
-     */
+    rebuildEditableLayers() {
+        if (!this.editableLayers) return;
+        this.editableLayers.clearLayers();
+
+        // Re-create track polyline
+        if (this.trackCoordinates.length > 0) {
+            this.trackLayer = L.polyline(this.trackCoordinates, {
+                color: '#1976D2',
+                weight: 5,
+                opacity: 0.8,
+            }).addTo(this.editableLayers);
+        }
+
+        // Re-create start marker
+        if (this.startPoint) {
+            this.startMarkerLayer = L.marker(this.startPoint, {
+                icon: this.createTrailMarkerIcon('start'),
+                draggable: true, // Make it draggable
+            })
+            .bindPopup('<strong>Punkt Startowy</strong>')
+            .addTo(this.editableLayers);
+        }
+
+        // Re-create end marker
+        if (this.endPoint) {
+            this.endMarkerLayer = L.marker(this.endPoint, {
+                icon: this.createTrailMarkerIcon('end'),
+                draggable: true, // Make it draggable
+            })
+            .bindPopup('<strong>Punkt Końcowy</strong>')
+            .addTo(this.editableLayers);
+        }
+    },
+
     setupDrawControl() {
-      // Validate that editableFeatures ref exists
-      if (!this.$refs.editableFeatures) {
-        console.warn('⚠️ editableFeatures ref not ready yet')
-        return
+      if (!this.editableLayers) {
+        console.warn('⚠️ editableFeatures ref not ready yet');
+        return;
       }
-
-      // Feature group for editable items (track and POIs)
-      const editableFeatures = this.$refs.editableFeatures.leafletObject
-
-      // Initialize Draw control
       this.drawControl = new L.Control.Draw({
         edit: {
-          featureGroup: editableFeatures,
+          featureGroup: this.editableLayers,
           remove: true,
         },
         draw: {
           polyline: {
-            shapeOptions: {
-              color: '#1976D2',
-              weight: 5,
-              opacity: 0.8,
-            },
+            shapeOptions: { color: '#1976D2', weight: 5, opacity: 0.8 },
             allowIntersection: false,
           },
-          marker: {
-            icon: this.createTrailMarkerIcon('poi'),
-          },
+          marker: { icon: this.createTrailMarkerIcon('poi') },
           polygon: false,
           circle: false,
           rectangle: false,
           circlemarker: false,
         },
-      })
-
-      // Initially hide the control
-      this.map.addControl(this.drawControl)
-      this.drawControl._container.style.display = 'none'
-
-      // Add existing track to the editable features group
-      if (this.trackCoordinates.length) {
-        const polyline = L.polyline(this.trackCoordinates, { color: '#1976D2' })
-        editableFeatures.addLayer(polyline)
-      }
+      });
+      // this.map.addControl(this.drawControl); // Disabled: Do not add the control to the map
     },
-
-    /**
-     * Sets up map event listeners (clicks, drawing).
-     */
+    
     setupMapListeners() {
-      // Draw Events
-      this.map.on(L.Draw.Event.CREATED, this.handleDrawCreated)
-      this.map.on(L.Draw.Event.EDITED, this.handleDrawEdited)
-      this.map.on(L.Draw.Event.DELETED, this.handleDrawDeleted)
-      this.map.on(L.Draw.Event.DRAWSTART, this.handleDrawStart)
-      this.map.on(L.Draw.Event.DRAWSTOP, this.handleDrawStop)
-
-      // Map click event (for adding POI)
-      this.map.on('click', this.handleMapClick)
-    },
-
-    /**
-     * Updates the visibility and mode of the Draw control based on activeTool.
-     * @param {string} tool - The active tool ('draw', 'edit', 'poi', 'select', null).
-     */
-    updateDrawControl(tool) {
-      if (!this.drawControl) {
-        return
-      }
-
-      // Show/hide the Draw control based on active tool
-      const shouldShow = ['draw', 'edit', 'poi'].includes(tool)
-      this.drawControl._container.style.display = shouldShow ? 'block' : 'none'
-
-      // Note: We let users manually click the Leaflet.draw toolbar buttons
-      // This is simpler and more reliable than programmatically triggering modes
-    },
-
-    // --- Draw Event Handlers ---
-
-    handleDrawStart(e) {
-      this.isDrawing = true
-    },
-
-    handleDrawStop(e) {
-      this.isDrawing = false
+      this.map.on(L.Draw.Event.CREATED, this.handleDrawCreated);
+      this.map.on(L.Draw.Event.EDITED, this.handleDrawEdited);
+      this.map.on(L.Draw.Event.DELETED, this.handleDrawDeleted);
+      this.map.on(L.Draw.Event.DRAWSTART, () => this.isDrawing = true);
+      this.map.on(L.Draw.Event.DRAWSTOP, () => this.isDrawing = false);
+      this.map.on('click', this.handleMapClick);
     },
 
     handleDrawCreated(e) {
-      const type = e.layerType
-      const layer = e.layer
-      const editableFeatures = this.$refs.editableFeatures.leafletObject
-
-      // Add new layer to the group
-      editableFeatures.addLayer(layer)
-
-      if (type === 'polyline') {
-        const coords = layer.getLatLngs().map(latlng => [latlng.lat, latlng.lng])
-        this.$store.commit(`trailEditor/${trailEditorMutations.SET_TRACK_COORDINATES}`, coords)
-        this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_END_POINTS}`, {
-          start: coords[0],
-          end: coords[coords.length - 1],
-        })
-        this.$store.commit(`trailEditor/${trailEditorMutations.SET_UNSAVED_CHANGES}`, true)
-      } else if (type === 'marker') {
-        // Drawing a new POI
-        const latlng = layer.getLatLng()
-        this.openPoiEditorForNew(latlng.lat, latlng.lng)
-        // Remove temporary marker added by Leaflet.draw
-        editableFeatures.removeLayer(layer)
+      const { layerType, layer } = e;
+      if (layerType === 'polyline') {
+        const coords = layer.getLatLngs().map(latlng => [latlng.lat, latlng.lng]);
+        this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, coords);
+        this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, coords[0]);
+        this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, coords[coords.length - 1]);
+      } else if (layerType === 'marker') {
+        const { lat, lng } = layer.getLatLng();
+        this.openPoiEditorForNew(lat, lng);
       }
-
-      // Disable drawing mode after completion
-      this.updateDrawControl(this.activeTool)
     },
-
+    
     handleDrawEdited(e) {
-      e.layers.eachLayer(layer => {
-        if (layer instanceof L.Polyline) {
-          const coords = layer.getLatLngs().map(latlng => [latlng.lat, latlng.lng])
-          this.$store.commit(`trailEditor/${trailEditorMutations.SET_TRACK_COORDINATES}`, coords)
-          this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_END_POINTS}`, {
-            start: coords[0],
-            end: coords[coords.length - 1],
-          })
-          this.$store.commit(`trailEditor/${trailEditorMutations.SET_UNSAVED_CHANGES}`, true)
-        }
-      })
-      this.showMessage({ type: 'info', message: 'Trasa została zaktualizowana' })
+        e.layers.eachLayer(layer => {
+            if (layer instanceof L.Polyline) {
+                const coords = layer.getLatLngs().map(latlng => [latlng.lat, latlng.lng]);
+                this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, coords);
+                this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, coords[0]);
+                this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, coords[coords.length - 1]);
+            } else if (layer instanceof L.Marker) {
+                const newLatLng = layer.getLatLng();
+                const newCoords = [...this.trackCoordinates];
+
+                if (layer === this.startMarkerLayer && newCoords.length > 0) {
+                    newCoords[0] = [newLatLng.lat, newLatLng.lng];
+                    this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, newCoords[0]);
+                } else if (layer === this.endMarkerLayer && newCoords.length > 0) {
+                    newCoords[newCoords.length - 1] = [newLatLng.lat, newLatLng.lng];
+                    this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, newCoords[newCoords.length - 1]);
+                }
+                this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, newCoords);
+            }
+        });
+        this.showMessage({ type: 'info', message: 'Trasa została zaktualizowana' });
     },
 
     handleDrawDeleted(e) {
-      e.layers.eachLayer(layer => {
-        if (layer instanceof L.Polyline) {
-          this.$store.commit(`trailEditor/${trailEditorMutations.CLEAR_TRACK}`)
-          this.$store.commit(`trailEditor/${trailEditorMutations.SET_UNSAVED_CHANGES}`, true)
-          this.showMessage({ type: 'info', message: 'Trasa została usunięta' })
+        let trackCleared = false;
+        e.layers.eachLayer(layer => {
+            if (layer instanceof L.Polyline) {
+                trackCleared = true;
+            } else if (layer === this.startMarkerLayer) {
+                this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, null);
+            } else if (layer === this.endMarkerLayer) {
+                this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, null);
+            }
+        });
+
+        if (trackCleared) {
+            this.$store.commit(`trailEditor/${trailEditorMutations.CLEAR_TRACK}`);
+            this.showMessage({ type: 'info', message: 'Trasa została usunięta' });
         }
-      })
     },
 
-    /**
-     * Handles map click in POI mode.
-     */
     handleMapClick(e) {
       if (this.activeTool === 'poi' && !this.isDrawing) {
-        // Add new POI
-        this.openPoiEditorForNew(e.latlng.lat, e.latlng.lng)
+        this.openPoiEditorForNew(e.latlng.lat, e.latlng.lng);
       }
     },
 
-
-    // --- POI Editor Handlers ---
-
-    /**
-     * Opens the editor for a new POI.
-     * @param {number} lat - Latitude.
-     * @param {number} lng - Longitude.
-     */
     openPoiEditorForNew(lat, lng) {
-      // Default values for new POI
       this.selectedPoi = {
-        id: null,
+        id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Tymczasowy ID
         name: 'Nowy Punkt',
         description: '',
         latitude: lat,
         longitude: lng,
-        point_type_id: this.availablePointTypes.length > 0 ? this.availablePointTypes[0].id : 1, // Default to first type or 1
-      }
-      this.showPoiEditor = true
+        point_type_id: this.availablePointTypes[0]?.id || 1,
+      };
+      this.showPoiEditor = true;
     },
-
-    /**
-     * Opens the editor for an existing POI.
-     * This is called by the new PoiMapMarker component.
-     * @param {Object} poi - The POI object.
-     */
+    
     handleEditPoi(poi) {
-      // Clone to avoid direct Vuex state modification before saving
-      this.selectedPoi = { ...poi }
-      this.showPoiEditor = true
+      this.selectedPoi = { ...poi };
+      this.showPoiEditor = true;
     },
-
-    /**
-     * Called after POI editor changes are saved.
-     */
+    
     handlePoiSaved(poiData) {
-      this.showPoiEditor = false
-      this.selectedPoi = null
-      this.$store.commit(`trailEditor/${trailEditorMutations.SET_UNSAVED_CHANGES}`, true)
-      // Marker update will happen automatically due to poiPoints reactivity
-    },
+      // Sprawdź czy to nowy punkt (ma tymczasowy ID)
+      const idStr = String(poiData.id || '')
+      const isNewPoi = idStr.startsWith('temp-')
 
-    /**
-     * Called after POI editor is cancelled.
-     */
-    handlePoiCancelled() {
-      this.showPoiEditor = false
-      this.selectedPoi = null
-    },
-
-    /**
-     * Called after a POI deletion request from the dialog.
-     */
-    handlePoiDelete(poi) {
-      if (poi && poi.id) {
-        this.$store.commit(`trailEditor/${trailEditorMutations.DELETE_POI}`, poi.id)
-        this.$store.commit(`trailEditor/${trailEditorMutations.SET_UNSAVED_CHANGES}`, true)
-        this.showMessage({ type: 'success', message: 'Punkt został usunięty' })
+      // Wzbogać dane POI o brakujące pola (icon, point_type, images)
+      const enrichedPoiData = {
+        ...poiData,
+        // Dla nowych punktów ustaw id na null (będzie nadane przez serwer)
+        id: isNewPoi ? null : poiData.id,
+        // Znajdź typ punktu
+        point_type: this.availablePointTypes.find(pt => pt.id === poiData.point_type_id),
+        // Ustaw domyślną ikonę
+        icon: this.availablePointTypes.find(pt => pt.id === poiData.point_type_id)?.icon || 'mdi-map-marker',
+        // Dodaj puste tablice dla obrazów jeśli to nowy punkt
+        main_image: poiData.main_image || null,
+        images: poiData.images || [],
+        // Dodaj domyślne wartości dla nowych punktów
+        at_length: poiData.at_length || 0,
+        order: poiData.order || 0
       }
+
+      // Wybierz mutation type - dla nowych punktów ADD, dla edycji UPDATE
+      const mutationType = isNewPoi ? 'ADD_POI' : 'UPDATE_POI'
+
+      // Commit the POI mutation (ADD_POI and UPDATE_POI already set unsavedChanges internally)
+      this.$store.commit(`trailEditor/${mutationType}`, enrichedPoiData)
+
       this.showPoiEditor = false
       this.selectedPoi = null
     },
 
-    // --- Geolocation Handler ---
+    handlePoiCancelled() {
+      this.showPoiEditor = false;
+      this.selectedPoi = null;
+    },
 
     locateUser() {
       if (this.map) {
-        this.map.locate({
-          setView: true,
-          maxZoom: 16,
-          enableHighAccuracy: true,
-        })
+        this.map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true });
         this.map.once('locationfound', (e) => {
-          this.showMessage({ type: 'success', message: 'Lokalizacja znaleziona' })
-          // Optionally: add location marker
-          L.circle(e.latlng, e.accuracy).addTo(this.map)
-        })
+          this.showMessage({ type: 'success', message: 'Lokalizacja znaleziona' });
+          L.circle(e.latlng, e.accuracy).addTo(this.map);
+        });
         this.map.once('locationerror', (e) => {
-          this.showMessage({ type: 'error', message: 'Nie udało się ustalić lokalizacji: ' + e.message })
-        })
+          this.showMessage({ type: 'error', message: 'Nie udało się ustalić lokalizacji: ' + e.message });
+        });
       }
     },
 
@@ -508,24 +387,14 @@ export default {
         this.$store.commit(`trailEditor/${trailEditorMutations.SET_CENTER_POINT}`, [lat, lng]);
     },
 
-    // --- Cleanup ---
-
     beforeUnmount() {
       if (this.map) {
-        // Remove Draw control
         if (this.drawControl) {
-          this.map.removeControl(this.drawControl)
+          this.map.removeControl(this.drawControl);
         }
-
-        // Remove event listeners
-        this.map.off(L.Draw.Event.CREATED, this.handleDrawCreated)
-        this.map.off(L.Draw.Event.EDITED, this.handleDrawEdited)
-        this.map.off(L.Draw.Event.DELETED, this.handleDrawDeleted)
-        this.map.off('click', this.handleMapClick)
-
-        // Remove map instance (optional but recommended)
-        this.map.remove()
-        this.map = null
+        this.map.off();
+        this.map.remove();
+        this.map = null;
       }
     },
   }

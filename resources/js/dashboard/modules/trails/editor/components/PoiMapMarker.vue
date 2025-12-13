@@ -1,7 +1,9 @@
 <template>
   <l-marker
       :lat-lng="[poi.lat, poi.lng]"
+      :draggable="isDraggable"
       ref="marker"
+      @dragend="onMarkerDragEnd"
   >
     <l-icon class-name="point-icon">
       <v-icon
@@ -42,10 +44,14 @@ export default {
     pointTypes: {
       type: Array,
       default: () => []
+    },
+    isDraggable: {
+      type: Boolean,
+      default: false
     }
   },
 
-  emits: ['edit-poi', 'marker-click'],
+  emits: ['edit-poi', 'marker-click', 'marker-moved'],
 
   data() {
     return {
@@ -140,7 +146,34 @@ export default {
     getPoiIconColor(iconName) {
       const colorKey = POI_TYPE_COLOR_MAP[iconName] || 'primary';
       return colorKey;
-    }
+    },
+
+    onMarkerDragEnd(event) {
+      const newLatLng = event.target.getLatLng();
+      this.$emit('marker-moved', {
+        id: this.poi.id,
+        lat: newLatLng.lat,
+        lng: newLatLng.lng
+      });
+    },
   }
 }
 </script>
+<style scoped>
+/* Point icon styling */
+.point-icon {
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.icon-with-stroke {
+  filter: drop-shadow(0 0 2px rgba(19, 19, 19, 0.5));
+  -webkit-text-stroke: 4px white;
+  text-stroke: 4px white;
+  paint-order: stroke fill;
+}
+</style>

@@ -148,3 +148,34 @@ html, body {
 .gap-6 {
   gap: 24px !important;
 }
+/* Custom Leaflet Popup Overrides for Dashboard Map */
+
+/* Make the main popup pane transparent and remove default styling */
+.leaflet-popup.custom-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Set the content container to have no margin or intrinsic width */
+.leaflet-popup.custom-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+/* Hide the popup tip (the little arrow) */
+.leaflet-popup.custom-popup .leaflet-popup-tip-container {
+  display: none !important;
+}
+
+/* Hide the close button if it appears */
+.leaflet-popup.custom-popup .leaflet-popup-close-button {
+    display: none !important;
+}
+
+/* Cursor for POI placement mode */
+.map-container.map-cursor-poi-mode {
+  cursor: crosshair !important;
+}
