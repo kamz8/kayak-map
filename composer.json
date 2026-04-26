@@ -14,6 +14,7 @@
         "geocoder-php/nominatim-provider": "^5.7",
         "guzzlehttp/guzzle": "^7.8",
         "kamz8/laravel-overpass": "0.1.0-alpha",
+        "laravel/fortify": "^1.30",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.16",

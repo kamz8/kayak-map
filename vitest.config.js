@@ -18,7 +18,8 @@ export default defineConfig({
       include: [
         'resources/js/dashboard/store/**/*.js',
         'resources/js/dashboard/composables/**/*.js',
-        'resources/js/dashboard/components/**/*.vue'
+        'resources/js/dashboard/components/**/*.vue',
+        'resources/js/plugins/**/*.js',
       ],
       exclude: [
         'tests/**',
