@@ -1,12 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker exec:*)",
-      "Bash(curl:*)",
-      "Bash(tree:*)",
-      "Bash(cat:*)"
-    ],
-    "deny": [],
-    "ask": []
+      "Bash(node_modules/.bin/vitest run *)",
+      "Bash(git add *)",
+      "Bash(npm install *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git stash *)",
+      "Bash(git restore *)",
+      "Bash(git merge fix/cache-plugin --no-ff -m ' *)",
+      "Bash(git commit *)"
+    ]
   }
 }
