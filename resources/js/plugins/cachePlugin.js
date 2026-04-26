@@ -1,95 +1,73 @@
-// src/plugins/cachePlugin.js
-import { useStorage } from '@vueuse/core';
-
-// Plugin cache z obsługą TTL, tagów i podstawowych funkcji
 export default {
     install(app, options = {}) {
-        // Funkcja ustawiająca cache z TTL i opcjonalnymi tagami
         function setCacheWithTTL(key, data, ttlInSeconds, tags = []) {
             const expiryTime = Date.now() + ttlInSeconds * 1000;
-            const cacheData = {
-                value: data,
-                expiry: expiryTime,
-                tags: tags
-            };
+            const cacheData = { value: data, expiry: expiryTime, tags };
+            localStorage.setItem(key, JSON.stringify(cacheData));
 
-            useStorage(key, cacheData, localStorage);
-
-            // Zapisanie tagów w oddzielnej strukturze
             tags.forEach(tag => {
-                const taggedKeys = useStorage(`tag-${tag}`, [], localStorage).value;
+                const stored = localStorage.getItem(`tag-${tag}`);
+                const taggedKeys = stored ? JSON.parse(stored) : [];
                 if (!taggedKeys.includes(key)) {
                     taggedKeys.push(key);
+                    localStorage.setItem(`tag-${tag}`, JSON.stringify(taggedKeys));
                 }
-                useStorage(`tag-${tag}`, taggedKeys, localStorage);
             });
         }
 
-        // Funkcja pobierająca dane z cache, jeśli są ważne
         function getCacheWithTTL(key) {
-            const cache = useStorage(key, null, localStorage).value;
-
-            if (cache && cache.expiry > Date.now()) {
-                return cache.value;
-            } else {
-                return null;
-            }
+            const stored = localStorage.getItem(key);
+            if (!stored) return null;
+            const cache = JSON.parse(stored);
+            if (cache && cache.expiry > Date.now()) return cache.value;
+            return null;
         }
 
-        // Funkcja sprawdzająca, czy dany klucz istnieje w cache
         function hasCache(key) {
-            const cache = useStorage(key, null, localStorage).value;
+            const stored = localStorage.getItem(key);
+            if (!stored) return false;
+            const cache = JSON.parse(stored);
             return cache !== null && cache.expiry > Date.now();
         }
 
-        // Funkcja czyszcząca dane z cache dla danego klucza
         function removeCache(key) {
-            const cache = useStorage(key, null, localStorage).value;
-            if (cache && cache.tags) {
-                // Usuń powiązania z tagami
-                cache.tags.forEach(tag => {
-                    const taggedKeys = useStorage(`tag-${tag}`, [], localStorage).value;
-                    const index = taggedKeys.indexOf(key);
-                    if (index !== -1) taggedKeys.splice(index, 1);
-                    useStorage(`tag-${tag}`, taggedKeys, localStorage);
-                });
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                const cache = JSON.parse(stored);
+                if (cache && cache.tags) {
+                    cache.tags.forEach(tag => {
+                        const tagStored = localStorage.getItem(`tag-${tag}`);
+                        const taggedKeys = tagStored ? JSON.parse(tagStored) : [];
+                        const index = taggedKeys.indexOf(key);
+                        if (index !== -1) {
+                            taggedKeys.splice(index, 1);
+                            localStorage.setItem(`tag-${tag}`, JSON.stringify(taggedKeys));
+                        }
+                    });
+                }
             }
-            useStorage(key, null, localStorage).value = null;
+            localStorage.removeItem(key);
         }
 
-        // Funkcja do czyszczenia cache dla określonego tagu
         function removeCacheByTag(tag) {
-            const taggedKeys = useStorage(`tag-${tag}`, [], localStorage).value;
+            const stored = localStorage.getItem(`tag-${tag}`);
+            const taggedKeys = stored ? JSON.parse(stored) : [];
             taggedKeys.forEach(key => removeCache(key));
-            useStorage(`tag-${tag}`, [], localStorage).value = [];
+            localStorage.removeItem(`tag-${tag}`);
         }
 
-        // Funkcja do czyszczenia całego cache
         function clearAllCache() {
             localStorage.clear();
         }
 
-        // Funkcja obsługująca "remember", podobnie jak Laravel Cache::remember, z tagami
         async function remember(key, ttlInSeconds, fetchFunction, tags = []) {
-            let cachedData = getCacheWithTTL(key);
-
-            if (cachedData) {
-                console.log(`Returning cached data for ${key}`);
-                return cachedData;
-            }
-
-            try {
-                const freshData = await fetchFunction();
-                setCacheWithTTL(key, freshData, ttlInSeconds, tags);
-                console.log(`Setting new data in cache for ${key} with tags: ${tags}`);
-                return freshData;
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                throw error;
-            }
+            const cachedData = getCacheWithTTL(key);
+            if (cachedData !== null) return cachedData;
+            const freshData = await fetchFunction();
+            setCacheWithTTL(key, freshData, ttlInSeconds, tags);
+            return freshData;
         }
 
-        // Udostępnienie metod w całej aplikacji
         app.config.globalProperties.$cache = {
             remember,
             getCacheWithTTL,
