@@ -23,7 +23,7 @@ export default defineConfig({
         }),
     ],
     optimizeDeps: {
-        include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'leaflet-draw', 'axios', 'vue-leaflet-markercluster']
+        include: ['vue', 'vue-router', 'vuetify', 'leaflet', 'axios', 'vue-leaflet-markercluster']
     },
     resolve: {
         alias: {
@@ -45,8 +45,8 @@ export default defineConfig({
             output: {
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name.endsWith('.eot') ||
-                        assetInfo.name.endsWith('.woff') ||
-                        assetInfo.name.endsWith('.ttf')) {
+                      assetInfo.name.endsWith('.woff') ||
+                      assetInfo.name.endsWith('.ttf')) {
                         return 'fonts/[name][extname]';
                     }
                     return 'assets/[name]-[hash][extname]';
@@ -55,50 +55,49 @@ export default defineConfig({
         }
     },
     server: {
-        host: '0.0.0.0',
+        // Docker container binds to all interfaces but uses correct host for URLs
+        host: isDocker ? '0.0.0.0' : host,
         port: 5173,
-        strictPort: true,
+
+        // Override server origin for Docker to generate correct URLs
+        ...(isDocker ? {
+            origin: 'https://kayak-map.test:443'
+        } : {}),
+
         https: {
-            key: fs.readFileSync('./docker/ssl/cert.key'),
-            cert: fs.readFileSync('./docker/ssl/cert.crt'),
-        },
-        origin: 'https://kayak-map.test:5173',
-        hmr: {
-            protocol: 'wss',
-            host: 'kayak-map.test',
-            port: 5173,
-        },
-        cors: {
-            origin: 'https://kayak-map.test',
-            credentials: true,
+            key: fs.readFileSync(`./docker/ssl/cert.key`),
+            cert: fs.readFileSync(`./docker/ssl/cert.crt`),
         },
         headers: {
-            'Access-Control-Allow-Origin': 'https://kayak-map.test',
-            'Access-Control-Allow-Credentials': 'true',
-            'Cross-Origin-Resource-Policy': 'cross-origin',
-            'Cross-Origin-Embedder-Policy': 'unsafe-none',
-            'Cross-Origin-Opener-Policy': 'unsafe-none',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+        },
+        hmr: {
+            // Docker HMR configuration
+            ...(isDocker ? {
+                port: 24678,
+                host: '0.0.0.0', // Bind to all interfaces for container
+                clientPort: 443, // Client connects through nginx SSL
+                path: '/_vite/ws', // Custom WebSocket path for nginx proxy
+            } : {
+                host: 'kayak-map.test',
+                port: 5173,
+            }),
         },
         watch: {
-            usePolling: true,
-            interval: 300,
+            usePolling: isDocker,
+            ...(isDocker ? {
+                interval: 1000,
+                binaryInterval: 2000,
+            } : {}),
         },
         proxy: {
-            '^/api': {
-                target: isDocker ? 'http://nginx:80' : `http://kayak-map.test:80`,
-                changeOrigin: true,
-                secure: false,
-            },
-            '^/storage': {
-                target: isDocker ? 'http://nginx:80' : `http://kayak-map.test:80`,
+            '/api': {
+                target: isDocker ? 'https://nginx' : 'https://kayak-map.test',
                 changeOrigin: true,
                 secure: false,
             },
         },
-        allowedHosts: [
-            'kayak-map.test',
-            'localhost',
-            '.test',
-        ],
-    },
+    }
 });
