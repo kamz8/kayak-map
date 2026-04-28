@@ -74,12 +74,11 @@ export default defineConfig({
             'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
         },
         hmr: {
-            // Docker HMR configuration
             ...(isDocker ? {
+                host: 'kayak-map.test',
+                clientPort: 443,
                 port: 24678,
-                host: '0.0.0.0', // Bind to all interfaces for container
-                clientPort: 443, // Client connects through nginx SSL
-                path: '/_vite/ws', // Custom WebSocket path for nginx proxy
+                path: '/_vite/ws',
             } : {
                 host: 'kayak-map.test',
                 port: 5173,
