@@ -2,7 +2,10 @@
 
 namespace Database\Seeders\Dashboard;
 
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\PermissionRegistrar;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
@@ -12,11 +15,21 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        config(['permission.cache.store' => 'array']);
+        config(['cache.default' => 'array']);
+
+        $this->call(PermissionSeeder::class);
+        $permissionRegistrar = app(PermissionRegistrar::class);
+        $permissionRegistrar->initializeCache();
+        $permissionRegistrar->forgetCachedPermissions();
+
         // Create roles
         $superAdmin = Role::firstOrCreate([
             'name' => 'Super Admin',
             'guard_name' => 'web'
         ]);
+
+        $superAdmin->syncPermissions(Permission::all());
 
         $admin = Role::firstOrCreate([
             'name' => 'Admin',
@@ -36,60 +49,10 @@ class RoleSeeder extends Seeder
         // Super Admin doesn't need explicit permissions - they bypass all checks
         // This is handled by the Gate::before callback (see AppServiceProvider)
 
-        // Admin permissions - full dashboard access except system-level operations
-        $admin->givePermissionTo([
-            // Dashboard access
-            'dashboard.view',
-            'dashboard.analytics.view',
-            'dashboard.settings.view',
-            'dashboard.settings.update',
-
-            // Users management (except force delete)
-            'users.view',
-            'users.create',
-            'users.update',
-            'users.delete',
-            'users.restore',
-            'users.assign_roles',
-            'users.revoke_roles',
-
-            // Trails management
-            'trails.view',
-            'trails.create',
-            'trails.update',
-            'trails.delete',
-            'trails.restore',
-            'trails.publish',
-            'trails.unpublish',
-            'trails.approve',
-            'trails.reject',
-
-            // Regions management
-            'regions.view',
-            'regions.create',
-            'regions.update',
-            'regions.delete',
-            'regions.restore',
-
-            // Roles (view only)
-            'roles.view',
-            'permissions.view',
-
-            // Media management
-            'media.view',
-            'media.upload',
-            'media.delete',
-            'media.optimize',
-
-            // Limited system access
-            'system.logs.view',
-            'system.cache.clear',
-            'system.notifications.send',
-            'system.security.view',
-        ]);
+        $admin->syncPermissions(Permission::all());
 
         // Editor permissions - content management focused
-        $editor->givePermissionTo([
+        $editor->syncPermissions([
             // Dashboard access
             'dashboard.view',
             'dashboard.analytics.view',
@@ -115,7 +78,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // User permissions - minimal, for public API access and reading public resources
-        $user->givePermissionTo([
+        $user->syncPermissions([
             'trails.view',      // View trails (public API)
             'regions.view',     // View regions (public API)
             'api.access',       // General API access

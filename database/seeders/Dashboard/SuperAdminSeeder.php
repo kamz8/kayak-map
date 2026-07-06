@@ -13,6 +13,9 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
+        config(['permission.cache.store' => 'array']);
+        config(['cache.default' => 'array']);
+
         // Create Super Admin user
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@kayakmap.pl'],
@@ -21,16 +24,20 @@ class SuperAdminSeeder extends Seeder
                 'last_name' => 'Admin',
                 'email' => 'superadmin@kayakmap.pl',
                 'password' => Hash::make('SuperAdmin123!'),
+                'is_admin' => true,
+                'is_active' => true,
             ]
         );
 
         // Set additional fields that are not fillable
         $superAdmin->update([
             'email_verified_at' => now(),
+            'is_admin' => true,
+            'is_active' => true,
         ]);
 
         // Assign Super Admin role
-        $superAdmin->assignRole('Super Admin');
+        $superAdmin->syncRoles(['Super Admin']);
 
         $this->command->info('Super Admin user created:');
         $this->command->info('Email: superadmin@kayakmap.pl');

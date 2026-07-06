@@ -474,17 +474,13 @@ const actions = {
         commit(MUTATIONS.SET_SAVING, true)
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-
             const payload = {
-                trailId: state.trailId,
                 track_points: state.trackCoordinates.map(([lat, lng]) => [lng, lat]),
                 start_lat: state.startPoint[0],
                 start_lng: state.startPoint[1],
                 end_lat: state.endPoint[0],
                 end_lng: state.endPoint[1],
-                track_length: getters[GETTERS.TRACK_LENGTH],
-                // Include POI points in save payload
+                trail_length: Math.round(getters[GETTERS.TRACK_LENGTH] * 1000),
                 poi_points: state.poiPoints.map(poi => ({
                     id: poi.id,
                     point_type_id: poi.point_type_id,
@@ -499,7 +495,20 @@ const actions = {
                 saved_at: new Date().toISOString()
             }
 
-            localStorage.setItem(`trail_track_${state.trailId}`, JSON.stringify(payload))
+            localStorage.setItem(`trail_track_${state.trailId}`, JSON.stringify({
+                trailId: state.trailId,
+                ...payload
+            }))
+
+            await apiClient.put(`/dashboard/trails/${state.trailId}`, {
+                track_points: payload.track_points,
+                start_lat: payload.start_lat,
+                start_lng: payload.start_lng,
+                end_lat: payload.end_lat,
+                end_lng: payload.end_lng,
+                trail_length: payload.trail_length
+            })
+
             commit(MUTATIONS.RESET_UNSAVED_CHANGES)
 
             return true

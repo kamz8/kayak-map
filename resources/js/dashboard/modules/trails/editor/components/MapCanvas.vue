@@ -46,21 +46,31 @@
 </template>
 
 <script>
-import 'leaflet/dist/leaflet.css';
+import leafletCss from 'leaflet/dist/leaflet.css?inline';
+import leafletDrawCss from 'leaflet-draw/dist/leaflet.draw.css?inline';
 import L from 'leaflet';
-import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
+// leaflet-draw 1.0.4 calls L.LineUtil._flat which is deprecated in Leaflet 1.9+
+L.LineUtil._flat = L.LineUtil.isFlat;
 import { LMap, LTileLayer, LFeatureGroup } from '@vue-leaflet/vue-leaflet';
 import { mapState, mapGetters, mapActions } from 'vuex';
 import { trailEditorGetters, trailEditorActions, trailEditorMutations } from '../store/trailEditor';
 import { createTrailMarkerIcon } from '../utils/leafletIconUtils';
+import { createLeafletRouteEditor } from '../utils/leafletRouteEditor';
 import PoiEditorDialog from './PoiEditorDialog.vue';
 import PoiMapMarker from './PoiMapMarker.vue';
-
-// Leaflet icon configuration
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let leafletCssInjected = false;
+function injectLeafletCss() {
+  if (leafletCssInjected) return;
+  const style = document.createElement('style');
+  style.textContent = leafletCss + leafletDrawCss;
+  document.head.appendChild(style);
+  leafletCssInjected = true;
+}
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -68,6 +78,8 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+
+injectLeafletCss();
 
 export default {
   name: 'MapCanvas',
@@ -81,7 +93,7 @@ export default {
   data() {
     return {
       map: null,
-      drawControl: null,
+      routeEditor: null,
       mapOptions: {
         zoomControl: false,
         attributionControl: false,
@@ -92,7 +104,6 @@ export default {
       startMarkerLayer: null,
       endMarkerLayer: null,
       trackLayer: null,
-      tempPoiMarker: null, // New: To store a temporary POI marker for placement
     };
   },
   computed: {
@@ -148,7 +159,13 @@ export default {
     },
     endPoint() {
       this.rebuildEditableLayers();
+    },
+    activeTool() {
+      this.syncActiveTool();
     }
+  },
+  beforeUnmount() {
+    this.destroyMap();
   },
   methods: {
     ...mapActions('trailEditor', {
@@ -161,12 +178,23 @@ export default {
 
     onMapReady(mapObject) {
       this.map = mapObject;
-      this.setupDrawControl();
       this.setupMapListeners();
+      this.routeEditor = createLeafletRouteEditor({
+        L,
+        map: this.map,
+        featureGroup: this.editableLayers,
+        getTrackLayer: () => this.trackLayer,
+        onRouteCreated: this.syncRouteCoordinates,
+        onRouteEdited: this.syncRouteCoordinates,
+        onDrawStateChanged: (isDrawing) => {
+          this.isDrawing = isDrawing;
+        },
+      });
       this.$nextTick(() => {
         this.map.invalidateSize();
         this.rebuildEditableLayers();
         this.fitMapToTrack();
+        this.syncActiveTool();
       });
       setTimeout(() => this.map.invalidateSize(), 100);
       this.$emit('map-ready', mapObject);
@@ -189,6 +217,10 @@ export default {
 
     rebuildEditableLayers() {
         if (!this.editableLayers) return;
+        if (this.routeEditor) {
+            this.routeEditor.disable();
+        }
+
         this.editableLayers.clearLayers();
 
         // Re-create track polyline
@@ -197,7 +229,12 @@ export default {
                 color: '#1976D2',
                 weight: 5,
                 opacity: 0.8,
-            }).addTo(this.editableLayers);
+            })
+            .on('edit', () => {
+                const coords = this.trackLayer.getLatLngs().map(latlng => [latlng.lat, latlng.lng]);
+                this.syncRouteCoordinates(coords);
+            })
+            .addTo(this.editableLayers);
         }
 
         // Re-create start marker
@@ -206,6 +243,7 @@ export default {
                 icon: this.createTrailMarkerIcon('start'),
                 draggable: true, // Make it draggable
             })
+            .on('dragend', this.handleStartMarkerDragEnd)
             .bindPopup('<strong>Punkt Startowy</strong>')
             .addTo(this.editableLayers);
         }
@@ -216,36 +254,39 @@ export default {
                 icon: this.createTrailMarkerIcon('end'),
                 draggable: true, // Make it draggable
             })
+            .on('dragend', this.handleEndMarkerDragEnd)
             .bindPopup('<strong>Punkt Końcowy</strong>')
             .addTo(this.editableLayers);
         }
+
+        if (this.activeTool === 'draw') {
+            this.$nextTick(() => this.syncActiveTool());
+        }
     },
 
-    setupDrawControl() {
-      if (!this.editableLayers) {
-        console.warn('⚠️ editableFeatures ref not ready yet');
+    syncActiveTool() {
+      if (!this.routeEditor) {
         return;
       }
-      this.drawControl = new L.Control.Draw({
-        edit: {
-          featureGroup: this.editableLayers,
-          remove: true,
-        },
-        draw: {
-          polyline: {
-            shapeOptions: { color: '#1976D2', weight: 5, opacity: 0.8 },
-            allowIntersection: false,
-          },
-          marker: { icon: this.createTrailMarkerIcon('poi') },
-          polygon: false,
-          circle: false,
-          rectangle: false,
-          circlemarker: false,
-        },
-      });
-      // this.map.addControl(this.drawControl); // Disabled: Do not add the control to the map
+
+      if (this.activeTool === 'draw') {
+        this.routeEditor.enablePlanningMode(this.trackCoordinates.length > 0);
+        return;
+      }
+
+      this.routeEditor.disable();
     },
-    
+
+    syncRouteCoordinates(coords) {
+      if (!Array.isArray(coords) || coords.length < 2) {
+        return;
+      }
+
+      this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, coords);
+      this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, coords[0]);
+      this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, coords[coords.length - 1]);
+    },
+
     setupMapListeners() {
       this.map.on(L.Draw.Event.CREATED, this.handleDrawCreated);
       this.map.on(L.Draw.Event.EDITED, this.handleDrawEdited);
@@ -259,9 +300,7 @@ export default {
       const { layerType, layer } = e;
       if (layerType === 'polyline') {
         const coords = layer.getLatLngs().map(latlng => [latlng.lat, latlng.lng]);
-        this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, coords);
-        this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, coords[0]);
-        this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, coords[coords.length - 1]);
+        this.syncRouteCoordinates(coords);
       } else if (layerType === 'marker') {
         const { lat, lng } = layer.getLatLng();
         this.openPoiEditorForNew(lat, lng);
@@ -272,21 +311,17 @@ export default {
         e.layers.eachLayer(layer => {
             if (layer instanceof L.Polyline) {
                 const coords = layer.getLatLngs().map(latlng => [latlng.lat, latlng.lng]);
-                this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, coords);
-                this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, coords[0]);
-                this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, coords[coords.length - 1]);
+                this.syncRouteCoordinates(coords);
             } else if (layer instanceof L.Marker) {
                 const newLatLng = layer.getLatLng();
                 const newCoords = [...this.trackCoordinates];
 
                 if (layer === this.startMarkerLayer && newCoords.length > 0) {
                     newCoords[0] = [newLatLng.lat, newLatLng.lng];
-                    this.$store.commit(`trailEditor/${trailEditorMutations.SET_START_POINT}`, newCoords[0]);
                 } else if (layer === this.endMarkerLayer && newCoords.length > 0) {
                     newCoords[newCoords.length - 1] = [newLatLng.lat, newLatLng.lng];
-                    this.$store.commit(`trailEditor/${trailEditorMutations.SET_END_POINT}`, newCoords[newCoords.length - 1]);
                 }
-                this.$store.commit(`trailEditor/${trailEditorMutations.UPDATE_TRACK_COORDINATES}`, newCoords);
+                this.syncRouteCoordinates(newCoords);
             }
         });
         this.showMessage({ type: 'info', message: 'Trasa została zaktualizowana' });
@@ -314,6 +349,30 @@ export default {
       if (this.activeTool === 'poi' && !this.isDrawing) {
         this.openPoiEditorForNew(e.latlng.lat, e.latlng.lng);
       }
+    },
+
+    handleStartMarkerDragEnd(event) {
+      const latLng = event.target.getLatLng();
+      const newCoords = [...this.trackCoordinates];
+
+      if (newCoords.length === 0) {
+        return;
+      }
+
+      newCoords[0] = [latLng.lat, latLng.lng];
+      this.syncRouteCoordinates(newCoords);
+    },
+
+    handleEndMarkerDragEnd(event) {
+      const latLng = event.target.getLatLng();
+      const newCoords = [...this.trackCoordinates];
+
+      if (newCoords.length === 0) {
+        return;
+      }
+
+      newCoords[newCoords.length - 1] = [latLng.lat, latLng.lng];
+      this.syncRouteCoordinates(newCoords);
     },
 
     openPoiEditorForNew(lat, lng) {
@@ -387,10 +446,11 @@ export default {
         this.$store.commit(`trailEditor/${trailEditorMutations.SET_CENTER_POINT}`, [lat, lng]);
     },
 
-    beforeUnmount() {
+    destroyMap() {
       if (this.map) {
-        if (this.drawControl) {
-          this.map.removeControl(this.drawControl);
+        if (this.routeEditor) {
+          this.routeEditor.destroy();
+          this.routeEditor = null;
         }
         this.map.off();
         this.map.remove();
@@ -456,76 +516,4 @@ export default {
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Style for Leaflet.draw control to match the interface */
-:deep(.leaflet-control-container .leaflet-draw-toolbar) {
-  box-shadow: none;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-:deep(.leaflet-draw-toolbar .leaflet-draw-actions) {
-  margin-top: 4px;
-}
-
-:deep(.leaflet-control-container .leaflet-draw-toolbar a) {
-  background-image: none !important; /* Removes default background images */
-  border: 1px solid rgba(var(--v-border-color), 0.1);
-  background-color: rgb(var(--v-theme-surface));
-  color: rgb(var(--v-theme-on-surface));
-  height: 32px;
-  width: 32px;
-  line-height: 32px;
-  text-align: center;
-  padding: 0;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px; /* Use larger fonts instead of icons */
-}
-
-:deep(.leaflet-draw-toolbar a:hover) {
-  background-color: rgba(var(--v-theme-primary), 0.1);
-  color: rgb(var(--v-theme-primary));
-}
-
-:deep(.leaflet-draw-toolbar a.leaflet-draw-toolbar-button-enabled) {
-  background-color: rgb(var(--v-theme-primary)) !important;
-  color: rgb(var(--v-theme-on-primary)) !important;
-  border-color: rgb(var(--v-theme-primary)) !important;
-}
-
-:deep(.leaflet-draw-toolbar .leaflet-draw-edit-remove) {
-  color: rgb(var(--v-theme-error)) !important;
-}
-
-:deep(.leaflet-draw-toolbar .leaflet-draw-edit-edit) {
-  color: rgb(var(--v-theme-info)) !important;
-}
-
-/* Insert mdi-pencil icon for Draw-Polyline button */
-:deep(.leaflet-draw-draw-polyline:before) {
-  content: "\F34F" !important; /* mdi-pencil */
-  font-family: 'Material Design Icons';
-  font-size: 20px;
-}
-
-/* Insert mdi-pencil-outline icon for Edit-Edit button */
-:deep(.leaflet-draw-edit-edit:before) {
-  content: "\F638" !important; /* mdi-pencil-outline */
-  font-family: 'Material Design Icons',serif;
-  font-size: 20px;
-}
-
-/* Insert mdi-close-circle-outline icon for Edit-Remove button */
-:deep(.leaflet-draw-edit-remove:before) {
-  content: "\F0553" !important; /* mdi-delete-outline */
-  font-family: 'Material Design Icons';
-  font-size: 20px;
-}
-
-/* Hide original labels built into Leaflet.draw */
-:deep(.leaflet-draw-toolbar a:after) {
-  display: none;
-}
 </style>

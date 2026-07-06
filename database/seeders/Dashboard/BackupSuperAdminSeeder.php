@@ -13,6 +13,9 @@ class BackupSuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
+        config(['permission.cache.store' => 'array']);
+        config(['cache.default' => 'array']);
+
         // Utwórz backup Super Admin - zabezpieczenie przed utratą kontroli
         $backupSuperAdmin = User::firstOrCreate(
             ['email' => 'backup.superadmin@kayakmap.pl'],
@@ -21,15 +24,19 @@ class BackupSuperAdminSeeder extends Seeder
                 'last_name' => 'Super Admin',
                 'email' => 'backup.superadmin@kayakmap.pl',
                 'password' => Hash::make('BackupSuperAdmin2024!'),
+                'is_admin' => true,
+                'is_active' => true,
             ]
         );
 
         $backupSuperAdmin->update([
             'email_verified_at' => now(),
+            'is_admin' => true,
+            'is_active' => true,
         ]);
 
         // Przypisz rolę Super Admin
-        $backupSuperAdmin->assignRole('Super Admin');
+        $backupSuperAdmin->syncRoles(['Super Admin']);
 
         // Utwórz dodatkowego Admin dla bezpieczeństwa
         $backupAdmin = User::firstOrCreate(
@@ -39,16 +46,20 @@ class BackupSuperAdminSeeder extends Seeder
                 'last_name' => 'Admin',
                 'email' => 'backup.admin@kayakmap.pl',
                 'password' => Hash::make('BackupAdmin2024!'),
+                'is_admin' => true,
+                'is_active' => true,
 
             ]
         );
 
         $backupAdmin->update([
             'email_verified_at' => now(),
+            'is_admin' => true,
+            'is_active' => true,
         ]);
 
         // Przypisz rolę Admin
-        $backupAdmin->assignRole('Admin');
+        $backupAdmin->syncRoles(['Admin']);
 
         $this->command->info('Backup administrators created:');
         $this->command->info('Backup Super Admin: backup.superadmin@kayakmap.pl / BackupSuperAdmin2024!');

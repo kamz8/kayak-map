@@ -4,12 +4,11 @@ namespace Database\Seeders;
 
 use Database\Seeders\Dashboard\AdminUserSeeder;
 use Database\Seeders\Dashboard\BackupSuperAdminSeeder;
-use Database\Seeders\Dashboard\RolePermissionSeeder;
 use Database\Seeders\Dashboard\RoleSeeder;
 use Database\Seeders\Dashboard\SuperAdminSeeder;
 use Illuminate\Database\Seeder;
 
-class GroupDashboardSeeder extends seeder
+class GroupDashboardSeeder extends Seeder
 {
 
     /**
@@ -18,9 +17,8 @@ class GroupDashboardSeeder extends seeder
     public function run(): void
     {
         $this->call([
-            RoleSeeder::class,
             PermissionSeeder::class,
-            RolePermissionSeeder::class,
+            RoleSeeder::class,
             AdminUserSeeder::class,
             BackupSuperAdminSeeder::class,
             SuperAdminSeeder::class,

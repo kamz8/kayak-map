@@ -12,6 +12,8 @@ use App\Services\Dashboard\DashboardTrailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 
 /**
  * @OA\Tag(
@@ -440,13 +442,29 @@ class TrailController extends Controller
     {
         $trail = Trail::findOrFail($id);
         $validated = $request->validated();
+        $trackPoints = $validated['track_points'] ?? null;
+        unset($validated['track_points']);
 
         // Regenerate slug if trail_name changed
         if (isset($validated['trail_name']) && $validated['trail_name'] !== $trail->trail_name) {
             $validated['slug'] = Str::slug($validated['trail_name']);
         }
 
-        $trail->update($validated);
+        if ($validated !== []) {
+            $trail->update($validated);
+        }
+
+        if ($trackPoints !== null) {
+            $lineString = new LineString(array_map(
+                fn (array $coordinates): Point => new Point($coordinates[1], $coordinates[0]),
+                $trackPoints
+            ));
+
+            $trail->riverTrack()->updateOrCreate(
+                ['trail_id' => $trail->id],
+                ['track_points' => $lineString]
+            );
+        }
 
         return response()->json([
             'message' => 'Szlak został zaktualizowany',

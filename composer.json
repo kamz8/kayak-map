@@ -13,7 +13,7 @@
         "darkaonline/l5-swagger": "^8.6",
         "geocoder-php/nominatim-provider": "^5.7",
         "guzzlehttp/guzzle": "^7.8",
-        "kamz8/laravel-overpass": "0.1.0-alpha",
+        "kamz8/laravel-overpass": "0.1.0-alpha as 1.0.0",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
@@ -33,6 +33,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "laravel-lang/lang": "^15.9",
+        "laravel/boost": "^1.1",
         "laravel/dusk": "^8.2",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
@@ -63,12 +64,18 @@
     "repositories": [
         {
             "type": "path",
-            "url": "packages/Kamz8/LaravelOverpass"
+            "url": "packages/Kamz8/LaravelOverpass",
+            "options": {
+                "symlink": false
+            }
 
         },
         {
             "type": "path",
-            "url": "packages/kamz/laravel-brouter"
+            "url": "packages/Kamz8/laravel-brouter",
+            "options": {
+                "symlink": false
+            }
         }
     ],
     "scripts": {

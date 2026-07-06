@@ -4,7 +4,7 @@
             <!-- Left: Drawing Tools -->
             <div class="toolbar-section">
                 <!-- Draw Track -->
-                <v-tooltip text="Rysuj trasę (P)" location="bottom">
+                <v-tooltip text="Planuj/edytuj trasę (P)" location="bottom">
                     <template #activator="{ props }">
                         <ui-button
                             v-bind="props"
@@ -16,24 +16,6 @@
                             class="tool-button ui-interactive"
                         >
                             <v-icon>mdi-pencil</v-icon>
-                        </ui-button>
-                    </template>
-                </v-tooltip>
-
-                <!-- Edit Points -->
-                <v-tooltip text="Edytuj punkty (A)" location="bottom">
-                    <template #activator="{ props }">
-                        <ui-button
-                            v-bind="props"
-                            size="sm"
-                            density="comfortable"
-                            variant="default"
-                            :active="activeTool === 'edit'"
-                            :disabled="!hasTrack"
-                            @click="handleEditTool"
-                            class="tool-button ui-interactive"
-                        >
-                            <v-icon>mdi-vector-polyline-edit</v-icon>
                         </ui-button>
                     </template>
                 </v-tooltip>
@@ -313,14 +295,7 @@ export default {
         // Tool Selection - Toggle behavior
         handleDrawTool() {
             const newTool = this.activeTool === 'draw' ? null : 'draw'
-            console.log('🖊️ Draw tool', newTool ? 'activated' : 'deactivated')
-            this.$store.commit(`trailEditor/${trailEditorMutations.SET_ACTIVE_TOOL}`, newTool)
-        },
-
-        handleEditTool() {
-            if (!this.hasTrack && this.activeTool !== 'edit') return
-            const newTool = this.activeTool === 'edit' ? null : 'edit'
-            console.log('✏️ Edit tool', newTool ? 'activated' : 'deactivated')
+            console.log('🖊️ Plan/Edit route tool', newTool ? 'activated' : 'deactivated')
             this.$store.commit(`trailEditor/${trailEditorMutations.SET_ACTIVE_TOOL}`, newTool)
         },
 
@@ -446,7 +421,6 @@ export default {
     min-width: 32px !important;
     width: 32px !important;
     height: 32px !important;
-    //border: 1px solid rgba(var(--v-border-color), 0.3) !important;
     background: rgb(var(--v-theme-surface)) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
     font-size: 14px;

@@ -31,7 +31,6 @@
                     @save="handleSave"
                     @back="$emit('back')"
                     @export="handleExport"
-                    @tool-changed="handleToolChanged"
                     @snap-requested="handleSnapRequested"
                 />
             </div>
@@ -66,8 +65,7 @@ export default {
     data() {
         return {
             trailName: '',
-            mapInstance: null,
-            activeTool: null
+            mapInstance: null
         }
     },
 
@@ -128,10 +126,6 @@ export default {
             this.mapInstance = mapInstance
             console.log('🗺️ Map ready in editor component')
 
-            // Load existing track to map if available
-            if (this.trackCoordinates.length > 0 && this.mapInstance.createEditablePolyline) {
-                this.mapInstance.createEditablePolyline(this.trackCoordinates)
-            }
         },
 
         handleZoomChanged(zoomLevel) {
@@ -147,31 +141,6 @@ export default {
         },
 
         // Tool handling
-        handleToolChanged(tool) {
-            console.log('🛠️ Tool changed to:', tool)
-            this.activeTool = tool
-
-            if (this.mapInstance) {
-                switch (tool) {
-                    case 'draw':
-                        this.mapInstance.startDrawing()
-                        break
-                    case 'edit':
-                        this.mapInstance.toggleEdit()
-                        break
-                    case 'poi':
-                        this.mapInstance.activatePoiMode()
-                        break
-                    default:
-                        if (this.mapInstance.disableAllModes) {
-                            this.mapInstance.disableAllModes()
-                        }
-                }
-            } else {
-                console.error('❌ Map instance not available')
-            }
-        },
-
         // Snap functionality
         handleSnapRequested(config) {
             if (this.mapInstance && this.mapInstance.applySnapToRiver) {

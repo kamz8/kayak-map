@@ -13,19 +13,25 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
+        config(['permission.cache.store' => 'array']);
+        config(['cache.default' => 'array']);
+
         // Create or update admin user
-        User::updateOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@kayak-map.test'],
             [
                 'first_name' => 'Admin',
                 'last_name' => 'Kayak Map',
                 'email' => 'admin@kayak-map.test',
                 'password' => Hash::make('password'),
+                'is_admin' => true,
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
         );
 
-        $this->command->info('Admin user created: admin@kayak-map.test / password');
+        $admin->syncRoles(['Super Admin']);
+
+        $this->command->info('Super Admin user created: admin@kayak-map.test / password');
     }
 }

@@ -12,6 +12,11 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        config([
+            'cache.default' => 'array',
+            'permission.cache.store' => 'array',
+        ]);
+
         // Dashboard permissions (dashboard.*)
         $dashboardPermissions = [
             'dashboard.view',

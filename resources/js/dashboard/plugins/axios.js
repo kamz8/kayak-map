@@ -13,9 +13,17 @@ const apiClient = axios.create({
   }
 })
 
+const authEndpoints = ['/auth/login', '/auth/refresh']
+
+const isAuthEndpoint = (url = '') => authEndpoints.some((endpoint) => url.includes(endpoint))
+
 // Request interceptor - add auth token with automatic refresh
 apiClient.interceptors.request.use(
   async (config) => {
+    if (isAuthEndpoint(config.url)) {
+      return config
+    }
+
     try {
       // Let token manager handle token refresh if needed
       return await tokenManager.handleRequest(config)
@@ -36,6 +44,10 @@ apiClient.interceptors.response.use(
     return response
   },
   async (error) => {
+    if (isAuthEndpoint(error.config?.url)) {
+      return Promise.reject(error)
+    }
+
     // Let token manager handle 401 errors with automatic refresh and retry
     return await tokenManager.handleResponse(error)
   }
