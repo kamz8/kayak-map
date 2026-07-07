@@ -23,8 +23,13 @@
                                     </v-btn>
                                 </v-btn-toggle>
                             </div>
-                            <div class="carousel-track">
-                                <div class="carousel-thumb" :style="thumbStyle"></div>
+                            <div class="carousel-track" ref="track" @mousedown.self="jumpToPosition">
+                                <div
+                                    class="carousel-thumb"
+                                    :style="thumbStyle"
+                                    @mousedown="startThumbDrag"
+                                    @touchstart.passive="startThumbDrag"
+                                ></div>
                             </div>
 
                             <v-row class="mt-4" v-if="activeDay !== null">
@@ -93,6 +98,9 @@ export default {
             carouselScrollLeft: 0,
             carouselScrollWidth: 0,
             carouselClientWidth: 0,
+            isDragging: false,
+            dragStartX: 0,
+            dragStartScroll: 0,
         }
     },
     computed: {
@@ -139,19 +147,76 @@ export default {
             const carousel = this.$refs.carousel
             if (!carousel) return
 
-            const buttons = carousel.querySelectorAll('.date-btn')
-            const btn     = buttons[index]
+            const buttons     = carousel.querySelectorAll('.date-btn')
+            const btn         = buttons[index]
             if (!btn) return
 
-            const carouselRight = carousel.getBoundingClientRect().right
-            const btnRight      = btn.getBoundingClientRect().right
+            const cRect   = carousel.getBoundingClientRect()
+            const bRect   = btn.getBoundingClientRect()
 
-            // Jeśli kliknięty przycisk jest przy prawej krawędzi i jest następny
-            if (btnRight >= carouselRight - 8 && index < buttons.length - 1) {
-                const nextBtn     = buttons[index + 1]
-                const targetLeft  = carousel.scrollLeft + (nextBtn.getBoundingClientRect().left - carousel.getBoundingClientRect().left)
-                carousel.scrollTo({ left: targetLeft, behavior: 'smooth' })
+            // Prawa krawędź → scroll w prawo, pokaż następny
+            if (bRect.right >= cRect.right - 8 && index < buttons.length - 1) {
+                const next = buttons[index + 1]
+                carousel.scrollTo({
+                    left: carousel.scrollLeft + (next.getBoundingClientRect().left - cRect.left),
+                    behavior: 'smooth',
+                })
             }
+            // Lewa krawędź → scroll w lewo, pokaż poprzedni
+            else if (bRect.left <= cRect.left + 8 && index > 0) {
+                const prev = buttons[index - 1]
+                carousel.scrollTo({
+                    left: carousel.scrollLeft - (cRect.left - prev.getBoundingClientRect().left + prev.offsetWidth),
+                    behavior: 'smooth',
+                })
+            }
+        },
+
+        // ── Przeciąganie wskaźnika ──
+        startThumbDrag(e) {
+            e.preventDefault()
+            this.isDragging    = true
+            this.dragStartX    = e.clientX ?? e.touches?.[0].clientX
+            this.dragStartScroll = this.$refs.carousel?.scrollLeft ?? 0
+
+            document.addEventListener('mousemove', this.onThumbDrag)
+            document.addEventListener('mouseup',   this.stopThumbDrag)
+            document.addEventListener('touchmove', this.onThumbDrag, { passive: false })
+            document.addEventListener('touchend',  this.stopThumbDrag)
+        },
+
+        onThumbDrag(e) {
+            if (!this.isDragging) return
+            e.preventDefault()
+            const carousel = this.$refs.carousel
+            if (!carousel) return
+
+            const clientX   = e.clientX ?? e.touches?.[0].clientX
+            const dx        = clientX - this.dragStartX
+            const trackW    = this.carouselClientWidth
+            const maxScroll = this.carouselScrollWidth - this.carouselClientWidth
+            const delta     = (dx / trackW) * this.carouselScrollWidth
+
+            carousel.scrollLeft = Math.max(0, Math.min(maxScroll, this.dragStartScroll + delta))
+        },
+
+        stopThumbDrag() {
+            this.isDragging = false
+            document.removeEventListener('mousemove', this.onThumbDrag)
+            document.removeEventListener('mouseup',   this.stopThumbDrag)
+            document.removeEventListener('touchmove', this.onThumbDrag)
+            document.removeEventListener('touchend',  this.stopThumbDrag)
+        },
+
+        // Kliknięcie w track → przeskocz do pozycji
+        jumpToPosition(e) {
+            const track   = this.$refs.track
+            if (!track) return
+            const rect    = track.getBoundingClientRect()
+            const ratio   = (e.clientX - rect.left) / rect.width
+            const carousel = this.$refs.carousel
+            const maxScroll = carousel.scrollWidth - carousel.clientWidth
+            carousel.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' })
         },
 
         async fetchWeatherData() {
