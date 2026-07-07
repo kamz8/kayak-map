@@ -4,6 +4,6 @@ namespace Kamz\LaravelBRouter\Exceptions;
 
 use RuntimeException;
 
-class NoWaterwayFoundException extends RuntimeException
+class DisconnectedWaterwayException extends RuntimeException
 {
 }

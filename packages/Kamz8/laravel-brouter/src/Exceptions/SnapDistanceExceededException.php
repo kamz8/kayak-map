@@ -4,6 +4,6 @@ namespace Kamz\LaravelBRouter\Exceptions;
 
 use RuntimeException;
 
-class NoWaterwayFoundException extends RuntimeException
+class SnapDistanceExceededException extends RuntimeException
 {
 }

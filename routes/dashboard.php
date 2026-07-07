@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\Api\V1\Dashboard\LinkController;
 use App\Http\Controllers\Api\V1\Dashboard\PermissionController;
-  use App\Http\Controllers\Api\V1\Dashboard\PointController;
-  use App\Http\Controllers\Api\V1\Dashboard\RoleController;
+use App\Http\Controllers\Api\V1\Dashboard\PointController;
+use App\Http\Controllers\Api\V1\Dashboard\RoleController;
 use App\Http\Controllers\Api\V1\Dashboard\SystemSecurityController;
 use App\Http\Controllers\Api\V1\Dashboard\TrailController;
+use App\Http\Controllers\Api\V1\Dashboard\TrailRiverRouteController;
 use App\Http\Controllers\Api\V1\Dashboard\UserController;
 use App\Http\Controllers\Api\V1\Dashboard\UserRoleController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::prefix('/dashboard')
 
         Route::patch('trails/{trail}/status', [TrailController::class, 'changeStatus'])
             ->name('dashboard.trails.change-status');
+        Route::post('trails/{trail}/river-route', TrailRiverRouteController::class)
+            ->name('dashboard.trails.river-route');
         Route::get('trails/{trail}', [TrailController::class, 'show'])
             ->name('dashboard.trails.show');
         Route::put('trails/{trail}', [TrailController::class, 'update'])

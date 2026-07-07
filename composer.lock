@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "10584e6890d4362db01c173522b248b7",
+    "content-hash": "e8d9e280332aa3c4626f23ec1f8fadbf",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -189,6 +189,71 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
+        },
+        {
+            "name": "clue/graph",
+            "version": "v0.9.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/graphp/graph.git",
+                "reference": "d1661c0a0e011a8550fa60ae5354f230d1555909"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/graphp/graph/zipball/d1661c0a0e011a8550fa60ae5354f230d1555909",
+                "reference": "d1661c0a0e011a8550fa60ae5354f230d1555909",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
+            },
+            "suggest": {
+                "graphp/algorithms": "Common graph algorithms, such as Dijkstra and Moore-Bellman-Ford (shortest path), minimum spanning tree (MST), Kruskal, Prim and many more..",
+                "graphp/graphviz": "GraphViz graph drawing / DOT output"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Fhaculty\\Graph\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering"
+                }
+            ],
+            "description": "GraPHP is the mathematical graph/network library written in PHP.",
+            "homepage": "https://github.com/graphp/graph",
+            "keywords": [
+                "edge",
+                "graph",
+                "mathematical",
+                "network",
+                "vertex"
+            ],
+            "support": {
+                "issues": "https://github.com/graphp/graph/issues",
+                "source": "https://github.com/graphp/graph/tree/v0.9.3"
+            },
+            "funding": [
+                {
+                    "url": "https://clue.engineering/support",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
+            ],
+            "time": "2021-12-30T09:22:01+00:00"
         },
         {
             "name": "darkaonline/l5-swagger",
@@ -1135,6 +1200,60 @@
             "time": "2025-12-27T19:43:20+00:00"
         },
         {
+            "name": "graphp/algorithms",
+            "version": "v0.8.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/graphp/algorithms.git",
+                "reference": "abebbc44109f65c2962cd66f048ea3b8563e0a4a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/graphp/algorithms/zipball/abebbc44109f65c2962cd66f048ea3b8563e0a4a",
+                "reference": "abebbc44109f65c2962cd66f048ea3b8563e0a4a",
+                "shasum": ""
+            },
+            "require": {
+                "clue/graph": "~0.9.0|~0.8.0",
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Graphp\\Algorithms\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering"
+                }
+            ],
+            "description": "Common mathematical graph algorithms implemented in PHP",
+            "homepage": "https://github.com/graphp/algorithms",
+            "keywords": [
+                "Graph algorithms",
+                "dijkstra",
+                "kruskal",
+                "minimum spanning tree",
+                "moore-bellman-ford",
+                "prim",
+                "shortest path"
+            ],
+            "support": {
+                "issues": "https://github.com/graphp/algorithms/issues",
+                "source": "https://github.com/graphp/algorithms/tree/v0.8.2"
+            },
+            "time": "2020-02-20T18:01:41+00:00"
+        },
+        {
             "name": "guzzlehttp/guzzle",
             "version": "7.13.2",
             "source": {
@@ -1557,9 +1676,11 @@
             "dist": {
                 "type": "path",
                 "url": "packages/Kamz8/laravel-brouter",
-                "reference": "68ea340d061372ccf90b602a676d2e3a73f82b6d"
+                "reference": "bb8b8f5b5bcb0ed0fb811e8508fc7b039cbf9e18"
             },
             "require": {
+                "clue/graph": "^0.9",
+                "graphp/algorithms": "^0.8",
                 "kamz8/laravel-overpass": "^1.0",
                 "laravel/framework": "^10.0|^11.0",
                 "php": "^8.2"
@@ -14325,8 +14446,8 @@
     ],
     "minimum-stability": "stable",
     "stability-flags": {
-        "kamz8/laravel-overpass": 15,
-        "kamz8/laravel-brouter": 20
+        "kamz8/laravel-brouter": 20,
+        "kamz8/laravel-overpass": 15
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -14334,6 +14455,6 @@
         "php": "^8.2",
         "ext-xml": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }

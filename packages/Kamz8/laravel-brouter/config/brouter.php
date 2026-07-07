@@ -15,8 +15,10 @@ return [
     */
     'cache' => [
         'enabled' => true,
-        'duration' => 3600, // seconds
         'store' => env('BROUTER_CACHE_STORE', 'redis'),
+        'osm_ttl' => 60 * 60 * 24 * 30,
+        'graph_ttl' => 60 * 60 * 24 * 30,
+        'route_ttl' => 60 * 60 * 24 * 7,
     ],
 
     /*
@@ -25,9 +27,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'routing' => [
-        'max_snap_distance' => 1000, // meters
-        'bbox_buffer' => 0.1, // degrees
+        'max_snap_distance' => 500, // meters
+        'bbox_buffer_km' => 15,
         'max_route_distance' => 500000, // meters
+        'simplify_tolerance_m' => 10,
     ],
 
     /*

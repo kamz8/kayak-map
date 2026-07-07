@@ -3,32 +3,33 @@
 namespace Kamz\LaravelBRouter\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Kamz\LaravelBRouter\Facades\BRouter;
+use Kamz\LaravelBRouter\Contracts\RouterInterface;
+use Kamz\LaravelBRouter\DTO\RouteRequestData;
 
 class RouteController
 {
-    public function findRoute(Request $request)
+    public function findRoute(Request $request, RouterInterface $router)
     {
-        $request->validate([
-            'start_lat' => 'required|numeric|between:-90,90',
-            'start_lon' => 'required|numeric|between:-180,180',
-            'end_lat' => 'required|numeric|between:-90,90',
-            'end_lon' => 'required|numeric|between:-180,180',
-            'profile' => 'sometimes|string|in:river,canoe,ship',
+        $validated = $request->validate([
+            'river_name' => ['required', 'string', 'max:255'],
+            'start' => ['required', 'array'],
+            'start.lat' => ['required', 'numeric', 'between:-90,90'],
+            'start.lng' => ['required', 'numeric', 'between:-180,180'],
+            'end' => ['required', 'array'],
+            'end.lat' => ['required', 'numeric', 'between:-90,90'],
+            'end.lng' => ['required', 'numeric', 'between:-180,180'],
+            'snap_tolerance_m' => ['sometimes', 'numeric', 'min:1'],
+            'simplify' => ['sometimes', 'boolean'],
         ]);
 
         try {
-            $route = BRouter::findRoute(
-                [$request->start_lon, $request->start_lat],
-                [$request->end_lon, $request->end_lat],
-                $request->profile
-            );
+            $route = $router->findRoute(RouteRequestData::fromArray($validated));
 
-            return response()->json($route);
+            return response()->json($route->toArray());
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 400);
         }
     }
@@ -39,7 +40,7 @@ class RouteController
         return response()->json(['message' => 'Not implemented yet']);
     }
 
-    public function health()
+    public function health(): \Illuminate\Http\JsonResponse
     {
         return response()->json(['status' => 'healthy']);
     }

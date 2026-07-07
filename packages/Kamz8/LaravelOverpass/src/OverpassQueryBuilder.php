@@ -304,6 +304,12 @@ class OverpassQueryBuilder
                 'data' => $fullQuery,
             ]);
 
+            if ($response->failed()) {
+                $message = trim(strip_tags($response->body()));
+
+                throw new \Exception('Overpass API request failed with status '.$response->status().($message !== '' ? ': '.$message : ''));
+            }
+
             $body = $response->body();
 
             if ($this->output === 'json') {

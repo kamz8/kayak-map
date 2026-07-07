@@ -4,6 +4,7 @@
 namespace Kamz\LaravelBRouter\Tests;
 
 use Kamz\LaravelBRouter\BRouterServiceProvider;
+use Kamz8\LaravelOverpass\Providers\OverpassServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
@@ -11,6 +12,7 @@ abstract class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
+            OverpassServiceProvider::class,
             BRouterServiceProvider::class,
         ];
     }

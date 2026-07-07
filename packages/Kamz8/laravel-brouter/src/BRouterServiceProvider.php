@@ -3,31 +3,26 @@
 namespace Kamz\LaravelBRouter;
 
 use Illuminate\Support\ServiceProvider;
-use Kamz\LaravelBRouter\Services\RoutingEngine;
+use Kamz\LaravelBRouter\Contracts\DataProviderInterface;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
+use Kamz\LaravelBRouter\Services\OverpassDataProvider;
+use Kamz\LaravelBRouter\Services\RoutingEngine;
 
 class BRouterServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
-        // Merge config
         $this->mergeConfigFrom(
             __DIR__ . '/../config/brouter.php', 'brouter'
         );
 
-        // Register main service
-        $this->app->singleton(RouterInterface::class, function ($app) {
-            return new RoutingEngine(
-                config('brouter.cache_duration'),
-                config('brouter.max_snap_distance')
-            );
-        });
+        $this->app->singleton(DataProviderInterface::class, OverpassDataProvider::class);
+        $this->app->singleton(RouterInterface::class, RoutingEngine::class);
 
-        // Register facade
         $this->app->alias(RouterInterface::class, 'brouter');
     }
 
-    public function boot()
+    public function boot(): void
     {
         // Publish config
         $this->publishes([

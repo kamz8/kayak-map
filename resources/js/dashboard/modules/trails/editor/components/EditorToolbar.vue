@@ -48,7 +48,7 @@
                             density="comfortable"
                             variant="flat"
                             :color="activeTool === 'snap' ? 'primary' : undefined"
-                            :disabled="!hasTrack"
+                            :disabled="!startPoint || !endPoint"
                             @click="handleSnapTool"
                             class="tool-button ui-interactive"
                         >
@@ -114,6 +114,17 @@
                 >
                     Snap: {{ snapProgress }}%
                 </v-chip>
+
+                <v-chip
+                    v-if="hasRoutePreview"
+                    size="x-small"
+                    color="success"
+                    variant="flat"
+                    prepend-icon="mdi-routes"
+                    class="status-chip"
+                >
+                    Podgląd trasy
+                </v-chip>
             </div>
 
             <!-- Right: Actions -->
@@ -154,6 +165,38 @@
 
                 <v-divider vertical class="mx-1" />
 
+                <v-tooltip text="Zastosuj wygenerowaną trasę" location="bottom">
+                    <template #activator="{ props }">
+                        <ui-button
+                            v-bind="props"
+                            size="sm"
+                            variant="default"
+                            :disabled="!hasRoutePreview"
+                            @click="handleApplyRoutePreview"
+                            class="tool-button ui-interactive"
+                        >
+                            <v-icon>mdi-check</v-icon>
+                        </ui-button>
+                    </template>
+                </v-tooltip>
+
+                <v-tooltip text="Wyczyść podgląd trasy" location="bottom">
+                    <template #activator="{ props }">
+                        <ui-button
+                            v-bind="props"
+                            size="sm"
+                            variant="outline"
+                            :disabled="!hasRoutePreview"
+                            @click="clearRoutePreview"
+                            class="tool-button ui-interactive"
+                        >
+                            <v-icon>mdi-close</v-icon>
+                        </ui-button>
+                    </template>
+                </v-tooltip>
+
+                <v-divider vertical class="mx-1" />
+
                 <!-- Save -->
                 <v-tooltip text="Zapisz trasę (Ctrl+S)" location="bottom">
                     <template #activator="{ props }">
@@ -176,80 +219,73 @@
         </div>
 
         <!-- Snap Options Dialog -->
-        <v-dialog v-model="showSnapDialog" max-width="500">
-            <v-card class="v-card">
-                <v-card-title class="text-h6 ui-heading">
-                    <v-icon start>mdi-vector-radius</v-icon>
-                    Snap do rzeki
-                </v-card-title>
+        <UiDialog
+            v-model="showSnapDialog"
+            title="Snap do rzeki"
+            icon="mdi-waves"
+            max-width="500"
+            closable
+            class="snap-dialog"
+        >
+            <p class="snap-dialog-description mb-4">
+                Wygenerowana trasa zostanie pokazana jako podgląd. Zastosuj ją osobnym przyciskiem, jeśli chcesz zastąpić aktualną ścieżkę.
+            </p>
 
-                <v-card-text>
-                    <v-select
-                        label="Rzeka"
-                        :items="availableRivers"
-                        v-model="selectedRiver"
-                        prepend-icon="mdi-river"
-                        density="comfortable"
-                        variant="outlined"
-                    />
+            <v-slider
+                class="snap-dialog-slider"
+                label="Tolerancja (m)"
+                v-model="snapTolerance"
+                min="10"
+                max="500"
+                step="10"
+                thumb-label
+                prepend-icon="mdi-ruler"
+                density="comfortable"
+                color="primary"
+            >
+                <template v-slot:append>
+                    <span class="snap-dialog-value">{{ snapTolerance }}m</span>
+                </template>
+            </v-slider>
 
-                    <v-slider
-                        label="Tolerancja (m)"
-                        v-model="snapTolerance"
-                        min="10"
-                        max="500"
-                        step="10"
-                        thumb-label
-                        prepend-icon="mdi-ruler"
-                        density="comfortable"
-                        color="primary"
-                    >
-                        <template v-slot:append>
-                            <span class="text-caption ui-text-muted">{{ snapTolerance }}m</span>
-                        </template>
-                    </v-slider>
+            <v-checkbox
+                class="snap-dialog-checkbox"
+                v-model="autoSimplify"
+                label="Automatyczne uproszczenie trasy"
+                color="primary"
+                density="comfortable"
+            />
 
-                    <v-checkbox
-                        v-model="autoSimplify"
-                        label="Automatyczne uproszczenie trasy"
-                        color="primary"
-                        density="comfortable"
-                    />
-                </v-card-text>
-
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        variant="text"
-                        @click="showSnapDialog = false"
-                        size="small"
-                        class="ui-interactive"
-                    >
-                        Anuluj
-                    </v-btn>
-                    <v-btn
-                        color="primary"
-                        @click="applySnap"
-                        :loading="isSnapping"
-                        size="small"
-                        class="ui-interactive"
-                    >
-                        Zastosuj Snap
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+            <template #actions>
+                <UiButton
+                    variant="secondary"
+                    @click="showSnapDialog = false"
+                    class="ui-interactive snap-dialog-cancel"
+                >
+                    Anuluj
+                </UiButton>
+                <UiButton
+                    variant="default"
+                    @click="applySnap"
+                    :loading="isSnapping"
+                    class="ui-interactive snap-dialog-submit"
+                >
+                    Generuj Podgląd
+                </UiButton>
+            </template>
+        </UiDialog>
     </v-sheet>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { trailEditorGetters, trailEditorActions, trailEditorMutations } from '../store/trailEditor.js'
-import UiButton from "@ui/UiButton.vue";
+import UiButton from '@ui/UiButton.vue'
+import UiDialog from '@ui/UiDialog.vue'
 
 export default {
     name: 'EditorToolbar',
-    components: {UiButton},
+    components: { UiButton, UiDialog },
 
     emits: ['save-success', 'save-error', 'tool-changed', 'snap-requested'],
 
@@ -280,6 +316,9 @@ export default {
             trackLength: trailEditorGetters.TRACK_LENGTH,
             unsavedChanges: trailEditorGetters.UNSAVED_CHANGES,
             isSaving: trailEditorGetters.IS_SAVING,
+            startPoint: trailEditorGetters.START_POINT,
+            endPoint: trailEditorGetters.END_POINT,
+            hasRoutePreview: trailEditorGetters.HAS_ROUTE_PREVIEW,
             hasPoi: trailEditorGetters.HAS_POI,
             poiCount: trailEditorGetters.POI_COUNT,
             activeTool: trailEditorGetters.ACTIVE_TOOL
@@ -289,7 +328,10 @@ export default {
     methods: {
         ...mapActions('trailEditor', {
             saveTrack: trailEditorActions.SAVE_TRACK,
-            clearAllFeatures: trailEditorActions.CLEAR_ALL_FEATURES
+            clearAllFeatures: trailEditorActions.CLEAR_ALL_FEATURES,
+            generateRiverRoute: trailEditorActions.GENERATE_RIVER_ROUTE,
+            applyRoutePreview: trailEditorActions.APPLY_ROUTE_PREVIEW,
+            clearRoutePreview: trailEditorActions.CLEAR_ROUTE_PREVIEW
         }),
 
         // Tool Selection - Toggle behavior
@@ -322,22 +364,29 @@ export default {
         // Snap Actions
         async applySnap() {
             this.isSnapping = true
-            this.snapProgress = 0
+            this.snapProgress = null
 
             try {
-                // Symulacja progresu
-                const interval = setInterval(() => {
-                    this.snapProgress += 10
-                    if (this.snapProgress >= 100) {
-                        clearInterval(interval)
-                        this.finishSnap()
-                    }
-                }, 200)
+                await this.generateRiverRoute({
+                    snapToleranceMeters: this.snapTolerance
+                })
 
+                this.showSnapDialog = false
+                this.$store.dispatch('ui/showSuccess', 'Wygenerowano podgląd trasy rzecznej')
             } catch (error) {
                 console.error('Snap error:', error)
+                this.$store.dispatch('ui/showError', 'Nie udało się wygenerować trasy: ' + error.message)
+            } finally {
                 this.isSnapping = false
-                this.snapProgress = null
+            }
+        },
+
+        async handleApplyRoutePreview() {
+            try {
+                await this.applyRoutePreview()
+                this.$store.dispatch('ui/showSuccess', 'Podgląd trasy został zastosowany')
+            } catch (error) {
+                this.$store.dispatch('ui/showError', 'Nie udało się zastosować podglądu: ' + error.message)
             }
         },
 
@@ -474,6 +523,47 @@ export default {
 
 .status-chip {
     height: 28px;
+}
+
+.snap-dialog-description {
+    color: #c7c7c7;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.snap-dialog-value {
+    color: #c7c7c7;
+    font-size: 12px;
+    min-width: 34px;
+    text-align: right;
+}
+
+.snap-dialog-slider,
+.snap-dialog-checkbox {
+    color: #e5e5e5;
+}
+
+:deep(.snap-dialog .v-label),
+:deep(.snap-dialog .v-selection-control__input),
+:deep(.snap-dialog .v-slider-thumb__label) {
+    color: #e5e5e5 !important;
+}
+
+:deep(.snap-dialog .v-slider-track__background) {
+    background-color: #3a3a3a !important;
+}
+
+.snap-dialog-cancel {
+    background: rgba(var(--v-theme-secondary), 0.28) !important;
+    border: 1px solid rgba(var(--v-theme-secondary), 0.48) !important;
+    color: #ffffff !important;
+}
+
+.snap-dialog-submit {
+    background: rgb(var(--v-theme-primary)) !important;
+    border: 1px solid rgba(var(--v-theme-primary), 0.75) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(var(--v-theme-primary), 0.24) !important;
 }
 
 /* Mobile Responsiveness */

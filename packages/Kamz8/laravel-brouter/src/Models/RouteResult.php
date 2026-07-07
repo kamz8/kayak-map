@@ -4,29 +4,32 @@ namespace Kamz\LaravelBRouter\Models;
 
 class RouteResult
 {
-    public $path;
-    public $startSnap;
-    public $endSnap;
-    public $distance;
-    public $duration;
+    public function __construct(
+        public array $path = [],
+        public array $startSnap = [],
+        public array $endSnap = [],
+        public float $distanceMeters = 0.0,
+        public array $warnings = [],
+        public array $cache = [],
+    ) {
+    }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
-            'type' => 'FeatureCollection',
-            'features' => [
-                $this->toGeoJSON()
+            'data' => [
+                'path' => $this->path,
+                'start_snap' => $this->startSnap,
+                'end_snap' => $this->endSnap,
+                'distance_m' => $this->distanceMeters,
+                'warnings' => $this->warnings,
+                'cache' => $this->cache,
             ],
-            'properties' => [
-                'distance' => $this->distance,
-                'duration' => $this->duration,
-            ]
         ];
     }
 
-    public function toGeoJSON()
+    public function toGeoJSON(): array
     {
-        // Convert to GeoJSON
         return [
             'type' => 'Feature',
             'geometry' => [

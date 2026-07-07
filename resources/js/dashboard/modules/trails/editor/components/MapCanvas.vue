@@ -104,6 +104,7 @@ export default {
       startMarkerLayer: null,
       endMarkerLayer: null,
       trackLayer: null,
+      routePreviewLayer: null,
     };
   },
   computed: {
@@ -112,6 +113,7 @@ export default {
       center: 'centerPoint',
       currentLayer: 'currentLayer',
       trackCoordinates: 'trackCoordinates',
+      routePreviewCoordinates: 'routePreviewCoordinates',
       startPoint: 'startPoint',
       endPoint: 'endPoint',
       poiPoints: 'poiPoints',
@@ -152,6 +154,9 @@ export default {
       }
     },
     trackCoordinates() {
+      this.rebuildEditableLayers();
+    },
+    routePreviewCoordinates() {
       this.rebuildEditableLayers();
     },
     startPoint() {
@@ -235,6 +240,15 @@ export default {
                 this.syncRouteCoordinates(coords);
             })
             .addTo(this.editableLayers);
+        }
+
+        if (this.routePreviewCoordinates.length > 0) {
+            this.routePreviewLayer = L.polyline(this.routePreviewCoordinates, {
+                color: '#2E7D32',
+                weight: 5,
+                opacity: 0.9,
+                dashArray: '8 8',
+            }).addTo(this.editableLayers);
         }
 
         // Re-create start marker

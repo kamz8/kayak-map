@@ -23,6 +23,8 @@ const state = () => ({
     // Trail data
     trailId: null,
     trackCoordinates: [],
+    routePreviewCoordinates: [],
+    routePreviewMeta: null,
     startPoint: null,
     endPoint: null,
 
@@ -69,6 +71,8 @@ export const GETTERS = {
     REQUEST_ZOOM_IN: 'requestZoomIn',
     REQUEST_ZOOM_OUT: 'requestZoomOut',
     TRACK_COORDINATES: 'trackCoordinates',
+    ROUTE_PREVIEW_COORDINATES: 'routePreviewCoordinates',
+    HAS_ROUTE_PREVIEW: 'hasRoutePreview',
     START_POINT: 'startPoint',
     END_POINT: 'endPoint',
     CENTER_POINT: 'centerPoint',
@@ -101,6 +105,7 @@ const getters = {
     [GETTERS.REQUEST_ZOOM_IN]: (state) => state.requestZoomIn,
     [GETTERS.REQUEST_ZOOM_OUT]: (state) => state.requestZoomOut,
     [GETTERS.TRACK_COORDINATES]: (state) => state.trackCoordinates,
+    [GETTERS.ROUTE_PREVIEW_COORDINATES]: (state) => state.routePreviewCoordinates,
     [GETTERS.START_POINT]: (state) => state.startPoint,
     [GETTERS.END_POINT]: (state) => state.endPoint,
     [GETTERS.CENTER_POINT]: (state) => state.centerPoint,
@@ -128,6 +133,7 @@ const getters = {
     }),
 
     [GETTERS.HAS_TRACK]: (state) => state.trackCoordinates.length > 0,
+    [GETTERS.HAS_ROUTE_PREVIEW]: (state) => state.routePreviewCoordinates.length > 0,
     [GETTERS.IS_VALID]: (state) => state.trackCoordinates.length >= 2,
     [GETTERS.CAN_UNDO]: (state) => state.historyIndex > 0,
     [GETTERS.CAN_REDO]: (state) => state.historyIndex < state.history.length - 1,
@@ -142,6 +148,8 @@ const getters = {
 export const MUTATIONS = {
     SET_TRAIL_ID: 'SET_TRAIL_ID',
     UPDATE_TRACK_COORDINATES: 'UPDATE_TRACK_COORDINATES',
+    SET_ROUTE_PREVIEW: 'SET_ROUTE_PREVIEW',
+    CLEAR_ROUTE_PREVIEW: 'CLEAR_ROUTE_PREVIEW',
     SET_START_POINT: 'SET_START_POINT',
     SET_END_POINT: 'SET_END_POINT',
     SET_ZOOM_LEVEL: 'SET_ZOOM_LEVEL',
@@ -193,6 +201,22 @@ const mutations = {
         } else {
             state.historyIndex++
         }
+    },
+
+    [MUTATIONS.SET_ROUTE_PREVIEW](state, payload) {
+        if (Array.isArray(payload)) {
+            state.routePreviewCoordinates = payload
+            state.routePreviewMeta = null
+            return
+        }
+
+        state.routePreviewCoordinates = payload.coordinates
+        state.routePreviewMeta = payload.meta ?? null
+    },
+
+    [MUTATIONS.CLEAR_ROUTE_PREVIEW](state) {
+        state.routePreviewCoordinates = []
+        state.routePreviewMeta = null
     },
 
     [MUTATIONS.SET_START_POINT](state, point) {
@@ -329,6 +353,9 @@ const mutations = {
 export const ACTIONS = {
     LOAD_TRAIL: 'loadTrail',
     SAVE_TRACK: 'saveTrack',
+    GENERATE_RIVER_ROUTE: 'generateRiverRoute',
+    APPLY_ROUTE_PREVIEW: 'applyRoutePreview',
+    CLEAR_ROUTE_PREVIEW: 'clearRoutePreview',
     FETCH_POINT_TYPES: 'fetchPointTypes',
     ZOOM_IN: 'zoomIn',
     ZOOM_OUT: 'zoomOut',
@@ -519,6 +546,50 @@ const actions = {
         } finally {
             commit(MUTATIONS.SET_SAVING, false)
         }
+    },
+
+    async [ACTIONS.GENERATE_RIVER_ROUTE]({ state, commit }, options = {}) {
+        if (!state.trailId) {
+            throw new Error('Trail must be loaded before generating a river route')
+        }
+
+        const payload = {}
+
+        if (state.startPoint) {
+            payload.start = { lat: state.startPoint[0], lng: state.startPoint[1] }
+        }
+
+        if (state.endPoint) {
+            payload.end = { lat: state.endPoint[0], lng: state.endPoint[1] }
+        }
+
+        if (options.snapToleranceMeters) {
+            payload.snap_tolerance_m = options.snapToleranceMeters
+        }
+
+        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/river-route`, payload)
+        const routeData = response.data.data
+        const coordinates = routeData.path.map(([lng, lat]) => [lat, lng])
+
+        commit(MUTATIONS.SET_ROUTE_PREVIEW, {
+            coordinates,
+            meta: routeData
+        })
+
+        return routeData
+    },
+
+    async [ACTIONS.APPLY_ROUTE_PREVIEW]({ state, commit }) {
+        if (state.routePreviewCoordinates.length === 0) {
+            throw new Error('No route preview to apply')
+        }
+
+        commit(MUTATIONS.UPDATE_TRACK_COORDINATES, state.routePreviewCoordinates.map(point => [...point]))
+        commit(MUTATIONS.CLEAR_ROUTE_PREVIEW)
+    },
+
+    async [ACTIONS.CLEAR_ROUTE_PREVIEW]({ commit }) {
+        commit(MUTATIONS.CLEAR_ROUTE_PREVIEW)
     },
 
     async [ACTIONS.ZOOM_IN]({ commit, state, getters }) {

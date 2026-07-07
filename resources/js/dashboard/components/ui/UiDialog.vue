@@ -121,11 +121,15 @@ export default {
 
 /* Title styling */
 :deep(.ui-dialog-title) {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 64px !important;
   background: #222222 !important;
   color: #ffffff !important;
   border-bottom: 1px solid #333333 !important;
   font-weight: 600 !important;
-  padding: 20px 24px 16px 24px !important;
+  padding: 20px 64px 16px 24px !important;
   font-size: 18px !important;
 }
 
@@ -148,12 +152,18 @@ export default {
 
 /* Close button styling */
 :deep(.ui-dialog-close) {
-  color: #9ca3af !important;
+  position: absolute !important;
+  top: 14px !important;
+  right: 16px !important;
+  color: #d7e3ff !important;
+  background: rgba(var(--v-theme-primary), 0.12) !important;
+  border: 1px solid rgba(var(--v-theme-primary), 0.3) !important;
+  z-index: 2 !important;
 }
 
 :deep(.ui-dialog-close:hover) {
   color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(var(--v-theme-primary), 0.24) !important;
 }
 
 /* Icon styling */

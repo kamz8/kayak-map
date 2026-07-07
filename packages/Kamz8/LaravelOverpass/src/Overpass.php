@@ -36,7 +36,8 @@ class Overpass
         $client = Http::baseUrl($this->config['endpoint'])
             ->timeout($this->config['timeout'])
             ->withHeaders([
-                'User-Agent' => sprintf('%s (%s)', $this->config['app_name'], $this->config['app_author'])
+                'Accept' => '*/*',
+                'User-Agent' => sprintf('%s (%s)', $this->config['app_name'], $this->config['app_author']),
             ]);
 
         // If throttling is enabled, we implement delay logic before the request

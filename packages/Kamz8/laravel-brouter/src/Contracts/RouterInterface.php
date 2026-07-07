@@ -2,9 +2,10 @@
 
 namespace Kamz\LaravelBRouter\Contracts;
 
+use Kamz\LaravelBRouter\DTO\RouteRequestData;
+use Kamz\LaravelBRouter\Models\RouteResult;
+
 interface RouterInterface
 {
-    public function findRoute(array $start, array $end, string $profile = null);
-    public function findNearestWaterway(array $point, float $maxDistance = null);
-    public function getRouteStatistics(array $start, array $end);
+    public function findRoute(RouteRequestData $request): RouteResult;
 }
