@@ -8,7 +8,7 @@
                 <v-card flat>
                     <v-card-text>
                         <div v-if="weatherData && weatherData.properties && weatherData.properties.timeseries">
-                            <div class="date-scroll-wrapper">
+                            <div class="date-carousel" ref="carousel" @scroll="onCarouselScroll">
                                 <v-btn-toggle v-model="activeDay" mandatory rounded class="date-toggle">
                                     <v-btn
                                         v-for="(day, index) in weatherData.properties.timeseries"
@@ -16,11 +16,15 @@
                                         :value="index"
                                         color="primary"
                                         class="date-btn"
+                                        @click="handleDayClick(index)"
                                     >
                                         {{ getDayName(day.time) }}<br>
                                         {{ getDayNumber(day.time) }}
                                     </v-btn>
                                 </v-btn-toggle>
+                            </div>
+                            <div class="carousel-track">
+                                <div class="carousel-thumb" :style="thumbStyle"></div>
                             </div>
 
                             <v-row class="mt-4" v-if="activeDay !== null">
@@ -85,7 +89,10 @@ export default {
             weatherData: null,
             error: null,
             cacheKey: 'weatherData',
-            cacheTime: 3600000 // 1 godzina w milisekundach
+            cacheTime: 3600000, // 1 godzina w milisekundach
+            carouselScrollLeft: 0,
+            carouselScrollWidth: 0,
+            carouselClientWidth: 0,
         }
     },
     computed: {
@@ -94,16 +101,59 @@ export default {
         },
         cacheIndex() {
             return this.cacheKey+"-"+this.latitude+this.longitude
-        }
+        },
+        thumbStyle() {
+            const max = this.carouselScrollWidth - this.carouselClientWidth
+            if (max <= 0) return { display: 'none' }
+            const widthPct = (this.carouselClientWidth / this.carouselScrollWidth) * 100
+            const leftPct  = (this.carouselScrollLeft / max) * (100 - widthPct)
+            return { width: widthPct + '%', left: leftPct + '%' }
+        },
     },
     watch: {
         latitude: 'fetchWeatherData',
-        longitude: 'fetchWeatherData'
+        longitude: 'fetchWeatherData',
+        weatherData() {
+            this.$nextTick(this.syncCarouselState)
+        },
     },
     mounted() {
         this.fetchWeatherData();
     },
     methods: {
+        syncCarouselState() {
+            const el = this.$refs.carousel
+            if (!el) return
+            this.carouselScrollLeft  = el.scrollLeft
+            this.carouselScrollWidth = el.scrollWidth
+            this.carouselClientWidth = el.clientWidth
+        },
+
+        onCarouselScroll(e) {
+            this.carouselScrollLeft  = e.target.scrollLeft
+            this.carouselScrollWidth = e.target.scrollWidth
+            this.carouselClientWidth = e.target.clientWidth
+        },
+
+        handleDayClick(index) {
+            const carousel = this.$refs.carousel
+            if (!carousel) return
+
+            const buttons = carousel.querySelectorAll('.date-btn')
+            const btn     = buttons[index]
+            if (!btn) return
+
+            const carouselRight = carousel.getBoundingClientRect().right
+            const btnRight      = btn.getBoundingClientRect().right
+
+            // Jeśli kliknięty przycisk jest przy prawej krawędzi i jest następny
+            if (btnRight >= carouselRight - 8 && index < buttons.length - 1) {
+                const nextBtn     = buttons[index + 1]
+                const targetLeft  = carousel.scrollLeft + (nextBtn.getBoundingClientRect().left - carousel.getBoundingClientRect().left)
+                carousel.scrollTo({ left: targetLeft, behavior: 'smooth' })
+            }
+        },
+
         async fetchWeatherData() {
             if (!this.isLocationAvailable) {
                 this.error = 'Brak danych o lokalizacji.';
@@ -281,22 +331,16 @@ export default {
     margin: 0 auto;
 }
 
-.date-scroll-wrapper {
+/* ── Date carousel ── */
+.date-carousel {
     overflow-x: auto;
     overflow-y: hidden;
-    padding-bottom: 8px;
-    /* scrollbar widoczny ale subtelny */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,.2) transparent;
+    /* ukryj native scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
-
-.date-scroll-wrapper::-webkit-scrollbar {
-    height: 4px;
-}
-
-.date-scroll-wrapper::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 2px;
+.date-carousel::-webkit-scrollbar {
+    display: none;
 }
 
 .date-toggle {
@@ -307,5 +351,24 @@ export default {
 .date-btn {
     min-width: 56px !important;
     flex-shrink: 0;
+}
+
+/* ── Custom niebieski wskaźnik ── */
+.carousel-track {
+    height: 3px;
+    background: rgba(25, 118, 210, 0.15);
+    border-radius: 99px;
+    margin-top: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-thumb {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: #1976D2;
+    border-radius: 99px;
+    transition: left 0.25s ease, width 0.25s ease;
 }
 </style>
