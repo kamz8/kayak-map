@@ -8,17 +8,20 @@
                 <v-card flat>
                     <v-card-text>
                         <div v-if="weatherData && weatherData.properties && weatherData.properties.timeseries">
-                            <v-btn-toggle v-model="activeDay" mandatory rounded>
-                                <v-btn
-                                    v-for="(day, index) in weatherData.properties.timeseries"
-                                    :key="index"
-                                    :value="index"
-                                    color="primary"
-                                >
-                                    {{ getDayName(day.time) }}<br>
-                                    {{ getDayNumber(day.time) }}
-                                </v-btn>
-                            </v-btn-toggle>
+                            <div class="date-scroll-wrapper">
+                                <v-btn-toggle v-model="activeDay" mandatory rounded class="date-toggle">
+                                    <v-btn
+                                        v-for="(day, index) in weatherData.properties.timeseries"
+                                        :key="index"
+                                        :value="index"
+                                        color="primary"
+                                        class="date-btn"
+                                    >
+                                        {{ getDayName(day.time) }}<br>
+                                        {{ getDayNumber(day.time) }}
+                                    </v-btn>
+                                </v-btn-toggle>
+                            </div>
 
                             <v-row class="mt-4" v-if="activeDay !== null">
                                 <v-col cols="8">
@@ -48,7 +51,7 @@
                         </v-alert>
                         <v-progress-circular v-else indeterminate color="primary"></v-progress-circular>
                     </v-card-text>
-                    <v-card-actions>
+                    <v-card-actions class="pb-6">
                         <v-spacer></v-spacer>
                         <div class="text-caption">
                             Dane pogodowe: <a href="https://www.yr.no/" target="_blank" rel="noopener noreferrer">Yr.no</a>
@@ -276,5 +279,33 @@ export default {
 <style scoped>
 .v-img {
     margin: 0 auto;
+}
+
+.date-scroll-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    /* scrollbar widoczny ale subtelny */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,.2) transparent;
+}
+
+.date-scroll-wrapper::-webkit-scrollbar {
+    height: 4px;
+}
+
+.date-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.date-toggle {
+    flex-wrap: nowrap !important;
+    min-width: max-content;
+}
+
+.date-btn {
+    min-width: 56px !important;
+    flex-shrink: 0;
 }
 </style>
