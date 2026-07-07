@@ -342,7 +342,6 @@ export default {
         },
 
         handleSnapTool() {
-            if (!this.hasTrack) return
             console.log('🌊 Snap tool activated')
             this.showSnapDialog = true
         },

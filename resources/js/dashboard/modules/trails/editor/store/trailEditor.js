@@ -428,8 +428,8 @@ const actions = {
                 commit(MUTATIONS.SET_CENTER_POINT, startPoint)
             }
 
-            // Set end point from database
-            if (trail.end_lat && trail.end_lng) {
+            // Set end point from database (-1 is a legacy sentinel for "not set")
+            if (trail.end_lat && trail.end_lng && trail.end_lat !== -1 && trail.end_lng !== -1) {
                 const endPoint = [
                     parseFloat(trail.end_lat),
                     parseFloat(trail.end_lng)
@@ -501,40 +501,26 @@ const actions = {
         commit(MUTATIONS.SET_SAVING, true)
 
         try {
-            const payload = {
-                track_points: state.trackCoordinates.map(([lat, lng]) => [lng, lat]),
-                start_lat: state.startPoint[0],
-                start_lng: state.startPoint[1],
-                end_lat: state.endPoint[0],
-                end_lng: state.endPoint[1],
+            const trackPoints = state.trackCoordinates.map(([lat, lng]) => [lng, lat])
+            const firstPoint = state.trackCoordinates[0]
+            const lastPoint = state.trackCoordinates[state.trackCoordinates.length - 1]
+
+            const apiBody = {
+                track_points: trackPoints,
+                start_lat: firstPoint[0],
+                start_lng: firstPoint[1],
+                end_lat: lastPoint[0],
+                end_lng: lastPoint[1],
                 trail_length: Math.round(getters[GETTERS.TRACK_LENGTH] * 1000),
-                poi_points: state.poiPoints.map(poi => ({
-                    id: poi.id,
-                    point_type_id: poi.point_type_id,
-                    name: poi.name,
-                    description: poi.description,
-                    lat: poi.lat,
-                    lng: poi.lng,
-                    icon: poi.icon,
-                    at_length: poi.at_length,
-                    order: poi.order
-                })),
-                saved_at: new Date().toISOString()
             }
 
             localStorage.setItem(`trail_track_${state.trailId}`, JSON.stringify({
                 trailId: state.trailId,
-                ...payload
+                ...apiBody,
+                saved_at: new Date().toISOString()
             }))
 
-            await apiClient.put(`/dashboard/trails/${state.trailId}`, {
-                track_points: payload.track_points,
-                start_lat: payload.start_lat,
-                start_lng: payload.start_lng,
-                end_lat: payload.end_lat,
-                end_lng: payload.end_lng,
-                trail_length: payload.trail_length
-            })
+            await apiClient.put(`/dashboard/trails/${state.trailId}`, apiBody)
 
             commit(MUTATIONS.RESET_UNSAVED_CHANGES)
 

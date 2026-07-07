@@ -3,7 +3,7 @@
     <Navbar/>
 
     <!-- Toolbar for search and filters -->
-    <v-app-bar app elevation="0">
+    <v-app-bar v-if="hasToolbar" app elevation="0">
         <router-view name="toolbar"/>
     </v-app-bar>
 
@@ -24,7 +24,7 @@
 
     <!-- Main Content -->
     <v-main app class="flex-grow-1">
-        <v-container app fluid class="pa-0 d-flex flex-column" style="height: calc(100vh - 64px - 66px);">
+        <v-container app fluid class="pa-0 d-flex flex-column" :style="mainContainerStyle">
             <router-view name="main"></router-view>
 <!--    toggle map / list button       -->
                 <v-btn variant="flat" size="x-large" density="default" @click="toggleDrawer" color="river-blue" class="mapToggleButton d-inline-block d-md-none d-lg-none" rounded="xl"><v-icon :icon="!drawer ? 'mdi-view-list' : 'mdi-map'"  />
@@ -55,12 +55,16 @@ export default {
         }
     },
     computed: {
+        hasToolbar() {
+            return this.$route.matched.some(record => record.components?.toolbar)
+        },
+        mainContainerStyle() {
+            const appBarHeight = this.hasToolbar ? 66 : 0
+            return `height: calc(100vh - 64px - ${appBarHeight}px);`
+        },
         mapToggleBtnText() {
             return (this.drawer) ? "Mapa" : 'Lista'
         },
-        drawerOnMobile() {
-
-        }
     },
     methods: {
         toggleDrawer() {
