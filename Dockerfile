@@ -96,15 +96,25 @@ COPY docker/php/local.ini /usr/local/etc/php/conf.d/
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/
 COPY docker/supervisord.conf /etc/supervisor/conf.d/
 
-# Kopiowanie aplikacji
-COPY --from=builder /var/www/html /var/www/html
+# Kopiowanie aplikacji jako kopii wzorcowej (synchronizowanej do /var/www/html
+# przez entrypoint, aby współdzielony wolumen aktualizował się przy każdym deployu)
+COPY --from=builder /var/www/html /var/www/html-dist
 WORKDIR /var/www/html
 
-# Konfiguracja uprawnień
-RUN mkdir -p storage/framework/{cache,views,sessions} storage/logs \
-    && chown -R www-data:www-data . \
-    && chmod -R 775 storage bootstrap/cache
+# Konfiguracja uprawnień na kopii wzorcowej
+RUN mkdir -p /var/www/html-dist/storage/framework/cache \
+             /var/www/html-dist/storage/framework/views \
+             /var/www/html-dist/storage/framework/sessions \
+             /var/www/html-dist/storage/logs \
+    && chown -R www-data:www-data /var/www/html-dist \
+    && chmod -R 775 /var/www/html-dist/storage /var/www/html-dist/bootstrap/cache
+
+# Entrypoint synchronizujący kod z obrazu do współdzielonego wolumenu
+COPY docker/scripts/prod-app-entrypoint.sh /usr/local/bin/prod-app-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/prod-app-entrypoint.sh \
+    && chmod +x /usr/local/bin/prod-app-entrypoint.sh
 
 EXPOSE 9000
 
+ENTRYPOINT ["/usr/local/bin/prod-app-entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
