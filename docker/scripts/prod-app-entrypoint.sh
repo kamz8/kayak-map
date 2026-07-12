@@ -34,6 +34,11 @@ if [ -d "$DIST" ]; then
              "$APP/storage/framework/sessions" \
              "$APP/storage/logs"
     chown -R www-data:www-data "$APP/storage" 2>/dev/null || true
+
+    # Keep Laravel's public storage link available after syncing into the
+    # shared application volume; otherwise /storage/assets/* returns 404.
+    rm -rf "$APP/public/storage"
+    ln -s ../storage/app/public "$APP/public/storage"
 fi
 
 exec "$@"

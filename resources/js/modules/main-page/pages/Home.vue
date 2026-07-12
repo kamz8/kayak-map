@@ -215,7 +215,9 @@ export default {
           this.isLoading = true;
 
           const fetchFunction = async () => {
-              const response = await apiClient().get(`/trails/nearby?location_name=Polska`);
+              const response = await apiClient.get('/trails/nearby', {
+                  params: { location_name: 'Polska' },
+              });
               return response.data?.data;
           };
 
