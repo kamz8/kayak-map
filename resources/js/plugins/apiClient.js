@@ -3,7 +3,6 @@ import axios from 'axios';
 // Ustawienie wartości domyślnej dla VITE_API_URL
 const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1`;
 
-console.log(apiUrl);
 const apiClient = axios.create({
     baseURL: apiUrl,
     timeout: 10000,

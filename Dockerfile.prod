@@ -1,6 +1,8 @@
 # Etap budowania
 FROM node:25-bookworm-slim as node-builder
 WORKDIR /app
+ARG VITE_API_URL=https://api.wartkinurt.pl
+ENV VITE_API_URL=${VITE_API_URL}
 COPY package*.json ./
 COPY vite.config.js ./
 COPY resources/js ./resources/js

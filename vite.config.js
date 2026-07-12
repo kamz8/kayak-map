@@ -8,6 +8,9 @@ import browsersync from "vite-plugin-browser-sync";
 
 const host = 'kayak-map.test';
 export default defineConfig({
+    define: {
+        'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'https://api.wartkinurt.pl'),
+    },
     plugins: [
         vue(),
         laravel({

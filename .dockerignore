@@ -2,6 +2,8 @@
 /vendor
 .git
 .env
+.env.*
+!.env.example
 /public/hot
 .phpunit.result.cache
 Homestead.json

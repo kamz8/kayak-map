@@ -36,6 +36,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Budowanie aplikacji
 WORKDIR /var/www/html
+ARG VITE_API_URL=https://api.wartkinurt.pl
+ENV VITE_API_URL=${VITE_API_URL}
 COPY composer.* package*.json ./
 COPY packages ./packages
 RUN composer install --no-scripts --no-autoloader --no-dev \

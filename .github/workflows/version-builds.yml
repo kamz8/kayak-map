@@ -68,6 +68,7 @@ jobs:
             BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
             VCS_REF=${{ github.sha }}
             VERSION=${{ github.event.inputs.image_tag }}
+            VITE_API_URL=https://api.wartkinurt.pl
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
