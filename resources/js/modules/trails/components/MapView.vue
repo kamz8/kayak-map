@@ -106,17 +106,13 @@ export default {
         };
     },
 
-    computed: {
+        computed: {
         ...mapGetters('trails', ['trails', 'activeTrail', 'highlightedTrail', 'boundingBox']),
         activeTrailCoords() {
-            return this.activeTrail
-                ? this.activeTrail.river_track?.track_points.map(point => [point[0], point[1]])
-                : [];
+            return this.trackPointsToLatLngs(this.activeTrail?.river_track?.track_points);
         },
         highlightedTrailCoords() {
-            return (this.highlightedTrail)
-                ? this.highlightedTrail?.river_track.track_points
-                : [];
+            return this.trackPointsToLatLngs(this.highlightedTrail?.river_track?.track_points);
         }
     },
     provide() {
@@ -128,7 +124,7 @@ export default {
         '$route.query': 'updateMapFromUrl'
     },
     mounted() {
-        this.updateMapFromUrl();
+        this.$nextTick(() => this.initializeMapData());
     },
     methods: {
         ...mapActions('trails', [
@@ -139,14 +135,15 @@ export default {
             'clearActiveTrail'
         ]),
         onMapReady(mapInstance) {
-            this.mapInstance = mapInstance;
-            this.updateBoundingBoxFromMap();
+            this.mapInstance = mapInstance || this.resolveMapInstance();
+            this.initializeMapData();
         },
         onMapMoveEnd() {
             this.updateBoundingBoxFromMap();
             this.updateUrlFromMap();
         },
         updateBoundingBoxFromMap() {
+            this.mapInstance = this.mapInstance || this.resolveMapInstance();
             if (!this.mapInstance) return;
             const bounds = this.mapInstance.getBounds();
             const boundingBox = {
@@ -156,6 +153,35 @@ export default {
                 end_lng: bounds.getEast()
             };
             this.updateBoundingBox(boundingBox);
+        },
+
+        initializeMapData(retries = 10) {
+            this.mapInstance = this.mapInstance || this.resolveMapInstance();
+
+            if (!this.mapInstance) {
+                if (retries > 0) {
+                    setTimeout(() => this.initializeMapData(retries - 1), 100);
+                }
+                return;
+            }
+
+            this.updateMapFromUrl();
+            this.updateBoundingBoxFromMap();
+        },
+
+        resolveMapInstance() {
+            return this.$refs.map?.leafletObject || this.$refs.map?.mapObject || null;
+        },
+
+        trackPointsToLatLngs(trackPoints) {
+            const points = Array.isArray(trackPoints) ? trackPoints : trackPoints?.coordinates;
+            if (!Array.isArray(points)) return [];
+
+            const usesGeoJsonOrder = !Array.isArray(trackPoints) && Array.isArray(trackPoints?.coordinates);
+
+            return points
+                .filter(point => Array.isArray(point) && point.length >= 2)
+                .map(([first, second]) => usesGeoJsonOrder ? [second, first] : [first, second]);
         },
 
         async fetchLocalTrails() {
@@ -386,4 +412,3 @@ export default {
     font-size: 14px;
 }
 </style>
-
