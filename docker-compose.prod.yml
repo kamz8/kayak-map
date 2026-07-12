@@ -128,6 +128,7 @@ services:
       - traefik-public
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
       - "traefik.http.routers.pma.rule=Host(`db.wartkinurt.pl`)"
       - "traefik.http.routers.pma.tls=true"
       - "traefik.http.routers.pma.tls.certresolver=myresolver"
@@ -185,6 +186,7 @@ services:
       - traefik-public
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
       - "traefik.http.routers.main.rule=Host(`wartkinurt.pl`)"
       - "traefik.http.routers.main.tls=true"
       - "traefik.http.routers.main.tls.certresolver=myresolver"
