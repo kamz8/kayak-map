@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupDatabase extends Command
 {
-    protected $signature = 'backup:database';
+    protected $signature = 'db:backup';
 
     protected $description = 'Backup the database to a file';
 

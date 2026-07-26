@@ -102,7 +102,6 @@ export default [
         components: {
             main: MapOveriew,
             sidebar: SidebarTrailsOverview,
-            toolbar: TrailOverviewToolbar
         },
     },
     {

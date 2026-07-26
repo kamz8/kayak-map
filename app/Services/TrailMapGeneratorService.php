@@ -84,7 +84,19 @@ class TrailMapGeneratorService
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
-                    '--disable-gpu'
+                    '--disable-gpu',
+                    '--headless',
+                    '--disable-crash-reporter',
+                    '--disable-software-rasterizer',
+                    '--single-process',
+                    '--disable-features=VizDisplayCompositor',  // ✅ DODAJ
+                    '--no-zygote',                              // ✅ DODAJ
+                    '--no-first-run',                           // ✅ DODAJ
+                    '--disable-breakpad',                       // ✅ DODAJ
+                    '--deterministic-mode',                     // ✅ DODAJ
+                    '--disable-logging',                        // ✅ DODAJ
+                    '--disable-in-process-stack-traces',        // ✅ DODAJ
+                    '--disable-hang-monitor',                   // ✅ DODAJ
                 ])
                 ->windowSize(800, 600)
                 ->timeout(60000)

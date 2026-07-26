@@ -1,0 +1,181 @@
+/* Dashboard Module Styles */
+html, body {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.v-application {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dashboard specific styles */
+.dashboard-sidebar {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-main {
+  background-color: #f5f5f5;
+}
+
+/* Stats cards */
+.stats-card {
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Data table enhancements */
+.v-data-table .v-data-table-header th {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Action buttons */
+.action-buttons .v-btn {
+  margin: 0 2px;
+}
+
+/* Form enhancements */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section .v-card-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Dashboard dialog enhancements */
+.dashboard-dialog .v-overlay__scrim {
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
+.dashboard-dialog-card {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
+  border-radius: 12px !important;
+}
+
+.dashboard-dialog-title {
+  background: #222222 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #333333 !important;
+  font-weight: 600 !important;
+  padding: 20px 24px 16px 24px !important;
+  font-size: 18px !important;
+}
+
+.dashboard-dialog-actions {
+  background: #1f1f1f !important;
+  border-top: 1px solid #333333 !important;
+  padding: 16px 24px !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+/* Fix v-card-text background inside dialog */
+.dashboard-dialog-card .v-card-text {
+  background: #1a1a1a !important;
+  color: #e0e0e0 !important;
+}
+
+/* Ensure form elements inside dialog are visible */
+.dashboard-dialog-card .v-select .v-field {
+  background: #2a2a2a !important;
+  border: 1px solid #404040 !important;
+}
+
+.dashboard-dialog-card .v-select .v-field--focused {
+  border-color: #bb86fc !important;
+}
+
+.dashboard-dialog-card .v-alert {
+  background: rgba(255, 152, 0, 0.1) !important;
+  border: 1px solid rgba(255, 152, 0, 0.3) !important;
+}
+
+.dashboard-dialog-card .v-chip {
+  background: #333333 !important;
+  border: 1px solid #404040 !important;
+}
+
+.dashboard-dialog-card .v-divider {
+  border-color: #333333 !important;
+}
+
+/* Gap utilities */
+.gap-1 {
+  gap: 4px !important;
+}
+
+.gap-2 {
+  gap: 8px !important;
+}
+
+.gap-3 {
+  gap: 12px !important;
+}
+
+.gap-4 {
+  gap: 16px !important;
+}
+
+.gap-5 {
+  gap: 20px !important;
+}
+
+.gap-6 {
+  gap: 24px !important;
+}
+/* Custom Leaflet Popup Overrides for Dashboard Map */
+
+/* Make the main popup pane transparent and remove default styling */
+.leaflet-popup.custom-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Set the content container to have no margin or intrinsic width */
+.leaflet-popup.custom-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+/* Hide the popup tip (the little arrow) */
+.leaflet-popup.custom-popup .leaflet-popup-tip-container {
+  display: none !important;
+}
+
+/* Hide the close button if it appears */
+.leaflet-popup.custom-popup .leaflet-popup-close-button {
+    display: none !important;
+}
+
+/* Cursor for POI placement mode */
+.map-container.map-cursor-poi-mode {
+  cursor: crosshair !important;
+}

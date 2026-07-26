@@ -35,6 +35,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  *     @OA\Property(property="scenery", type="integer"),
  *     @OA\Property(property="rating", type="number", format="float")
  * )
+ * @method static find(int $modelId)
  */
 class Trail extends Model
 {
@@ -43,7 +44,7 @@ class Trail extends Model
     protected $fillable = [
         'river_name', 'trail_name', 'slug', 'description', 'start_lat',
         'start_lng', 'end_lat', 'end_lng', 'trail_length', 'author',
-        'difficulty', 'scenery', 'rating','difficulty_detailed'
+        'difficulty', 'scenery', 'rating','difficulty_detailed', 'status'
     ];
 
     protected $casts = [
@@ -59,7 +60,8 @@ class Trail extends Model
     protected $attributes = [
         'difficulty' => Difficulty::EASY->value,
         'scenery' => 0,
-        'rating' => 0.0
+        'rating' => 0.0,
+        'status' => 'active'
     ];
 
     public function riverTrack(): HasOne
@@ -82,7 +84,7 @@ class Trail extends Model
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order');
     }
 
-    public function links(): MorphToMany
+    public function links() : MorphToMany
     {
         return $this->morphToMany(Link::class, 'linkable');
     }
@@ -97,7 +99,7 @@ class Trail extends Model
     {
         return Attribute::make(
             get: fn ($value) => Difficulty::tryFrom($value),
-            set: fn (Difficulty $value) => $value->value,
+            set: fn (Difficulty|string $value) => $value instanceof Difficulty ? $value->value : $value,
         );
     }
 
@@ -115,6 +117,56 @@ class Trail extends Model
         return $query->where('trail_name', 'like', "%{$searchTerm}%")
             ->orWhere('river_name', 'like', "%{$searchTerm}%")
             ->orWhere('description', 'like', "%{$searchTerm}%");
+    }
+
+    /**
+     * Scope filtrujący po statusie szlaku
+     */
+    public function scopeStatus(Builder $query, string|array $status): Builder
+    {
+        if (is_array($status)) {
+            return $query->whereIn('status', $status);
+        }
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Scope filtrujący po trudności szlaku
+     */
+    public function scopeDifficulty(Builder $query, string|array $difficulty): Builder
+    {
+        if (is_array($difficulty)) {
+            return $query->whereIn('difficulty', $difficulty);
+        }
+        return $query->where('difficulty', $difficulty);
+    }
+
+    /**
+     * Scope filtrujący po regionie
+     */
+    public function scopeRegion(Builder $query, int|array $regionIds): Builder
+    {
+        return $query->whereHas('regions', function ($q) use ($regionIds) {
+            if (is_array($regionIds)) {
+                $q->whereIn('regions.id', $regionIds);
+            } else {
+                $q->where('regions.id', $regionIds);
+            }
+        });
+    }
+
+    /**
+     * Scope filtrujący po zakresie dat utworzenia
+     */
+    public function scopeDateRange(Builder $query, ?string $startDate, ?string $endDate): Builder
+    {
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+        return $query;
     }
 
 }

@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\V1\TrailController;
 use App\Http\Controllers\Api\V1\TrailGeocodingController;
 use App\Http\Controllers\Api\V1\TrailMapController;
 use App\Http\Controllers\Api\V1\WeatherProxyController;
+use App\Http\Controllers\Api\V1\Dashboard\UserController as DashboardUserController;
+use App\Http\Controllers\Api\V1\Dashboard\TrailController as DashboardTrailController;
 use App\Http\Middleware\Auth\CheckRegistrationEnabled;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -70,7 +72,7 @@ Route::middleware('api')->group(function () {
             'throttle:registration',
             CheckRegistrationEnabled::class,
         ])->group(function () {
-            Route::post('register', RegisterController::class);
+            Route::post('register', [RegisterController::class, '__invoke']);
         });
 
         // Protected routes
@@ -85,6 +87,11 @@ Route::middleware('api')->group(function () {
             Route::post('{provider}/callback', [SocialAuthController::class, 'callback'])
                 ->where('provider', 'google|facebook');
         });
+    });
+
+    // Dashboard API Routes - Protected by admin middleware
+    Route::prefix('dashboard')->middleware(['api.auth', 'role:Admin|Super Admin'])->group(function () {
+        Route::apiResource('users', DashboardUserController::class);
     });
 
 });

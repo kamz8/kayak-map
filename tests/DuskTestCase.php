@@ -5,6 +5,7 @@ namespace Tests;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Laravel\Dusk\Browser;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\BeforeClass;
 
@@ -64,6 +65,13 @@ abstract class DuskTestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app['config']['app.url'] = 'https://kayak-map.test';
+
+        // Use nginx container hostname for Docker environment
+        // Chrome in kayak-app container communicates with nginx container
+        $baseUrl = env('DUSK_BASE_URL', 'http://nginx');
+        $this->app['config']['app.url'] = $baseUrl;
+
+        // Set base URL for Dusk browser
+        Browser::$baseUrl = $baseUrl;
     }
 }

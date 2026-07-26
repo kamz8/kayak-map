@@ -1,0 +1,39 @@
+# docker/vite/Dockerfile.optimized
+FROM node:18-alpine AS development
+
+WORKDIR /app
+
+# Zainstaluj zależności systemowe
+RUN apk add --no-cache \
+    curl \
+    git \
+    python3 \
+    make \
+    g++
+
+# Skopiuj package.json i package-lock.json
+COPY package*.json ./
+
+# ✅ Użyj --legacy-peer-deps i --force
+RUN npm install --legacy-peer-deps --force && \
+    npm cache clean --force
+
+# Skopiuj resztę aplikacji
+COPY . .
+
+# Ustaw zmienne środowiskowe
+ENV DOCKER_ENV=true
+ENV NODE_ENV=development
+ENV HOST=0.0.0.0
+ENV PORT=5173
+
+# Expose porty
+EXPOSE 5173
+EXPOSE 24678
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5173 || exit 1
+
+# Uruchom Vite
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173", "--config", "vite.config.js"]

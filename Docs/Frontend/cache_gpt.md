@@ -17,7 +17,7 @@ Ta dokumentacja pozwala algorytmom, takim jak GPT, rozwijać i pisać kod przy u
 
    ```javascript
    import { createApp } from 'vue';
-   import App from './App.vue';
+   import App from './Dashboard.vue';
    import cachePlugin from './plugins/cachePlugin';
 
    const app = createApp(App);

@@ -79,6 +79,22 @@ return [
             ]) : [],
         ],
 
+        'mysql_testing' => [
+            'driver' => 'mysql',
+            'host' => env('TEST_DB_HOST', '127.0.0.1'),
+            'port' => env('TEST_DB_PORT', '3307'),
+            'database' => env('TEST_DB_DATABASE', 'wartkinurt_testing'),
+            'username' => env('TEST_DB_USERNAME', 'admin'),
+            'password' => env('TEST_DB_PASSWORD', 'admin123'),
+            'unix_socket' => '',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),

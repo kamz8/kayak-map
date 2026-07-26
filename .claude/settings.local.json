@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node_modules/.bin/vitest run *)",
+      "Bash(git add *)",
+      "Bash(npm install *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git stash *)",
+      "Bash(git restore *)",
+      "Bash(git merge fix/cache-plugin --no-ff -m ' *)",
+      "Bash(git commit *)",
+      "Bash(node -e \"const v = require\\('./node_modules/vuetify/package.json'\\); console.log\\(v.version\\)\")",
+      "Bash(xargs grep *)",
+      "Bash(docker start *)",
+      "Bash(docker exec *)",
+      "Bash(docker restart *)",
+      "Bash(node *)",
+      "PowerShell(icacls \"D:\\\\Laravel\\\\kayak-map\\\\tests\\\\Feature\\\\Api\\\\V1\\\\Dashboard\" /grant \"${env:USERNAME}:\\(OI\\)\\(CI\\)\\(F\\)\")"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "laravel-boost"
+  ]
+}

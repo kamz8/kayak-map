@@ -87,9 +87,9 @@ return [
             'docs' => storage_path('api-docs'),
 
             /*
-             * Absolute path to directory where to export views
+             * Absolute path to directory where to export Pages
              */
-            'views' => base_path('resources/views/vendor/l5-swagger'),
+            'Pages' => base_path('resources/Pages/vendor/l5-swagger'),
 
             /*
              * Edit to set the api's base path

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @OA\Schema(
@@ -21,7 +22,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
  */
 class User extends Authenticatable implements JWTSubject
 {
-    use SoftDeletes, HasFactory, Notifiable, HasApiTokens;
+    use SoftDeletes, HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     protected $fillable = [
         'first_name',
@@ -35,6 +36,20 @@ class User extends Authenticatable implements JWTSubject
         'gender',
         'preferences',
         'notification_settings',
+        'is_admin',
+        'is_active',
+    ];
+
+    protected $guarded = [
+        'id',
+        'email_notifications_enabled',
+        'notifications_enabled',
+        'preferred_language',
+        'email_verified_at',
+        'remember_token',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     protected $hidden = [
@@ -46,9 +61,10 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
         'phone_verified' => 'boolean',
         'is_active' => 'boolean',
+        'is_admin' => 'boolean',
         'last_login_at' => 'datetime',
-        'preferences' => 'array',
-        'notification_settings' => 'array',
+        'preferences' => \App\Casts\UserPreferences::class,
+        'notification_settings' => \App\Casts\UserPreferences::class,
         'birth_date' => 'date',
     ];
 
@@ -58,12 +74,17 @@ class User extends Authenticatable implements JWTSubject
         return $this->morphToMany(Image::class, 'imageable')->withPivot('is_main', 'order')->orderBy('order');
     }
 
-    // Avatar - pierwszy obraz oznaczony jako główny
-    public function avatar(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    // Avatar - pierwszy obraz oznaczony jako główny przez pivot table
+    public function avatar()
     {
-        return $this->morphOne(Image::class, 'imageable')
-            ->where('is_main', true);
+        return $this->morphToMany(Image::class, 'imageable')
+            ->wherePivot('is_main', true)
+            ->withPivot(['is_main', 'order'])
+            ->withTimestamps()
+            ->orderBy('order')
+            ->limit(1);
     }
+
 
     public function socialAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
@@ -105,5 +126,39 @@ class User extends Authenticatable implements JWTSubject
             'client_type' => $clientType,
             'ip' => request()->ip(),
         ];
+    }
+
+    /**
+     * Determine if the user is a Super Admin.
+     * Super Admin bypasses all permission checks.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('Super Admin');
+    }
+
+    /**
+     * Get user status based on various conditions
+     */
+    public function getStatus(): string
+    {
+        if ($this->deleted_at) {
+            return 'deleted';
+        }
+
+        if (!$this->is_active) {
+            return 'inactive';
+        }
+
+        if (!$this->email_verified_at) {
+            return 'unverified';
+        }
+
+        return 'active';
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 }

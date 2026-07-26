@@ -25,10 +25,10 @@
                 <v-card flat style="min-height: 100px">
                     <keep-alive>
                         <component
-                            :is="markRaw(tab.component)"
-                            v-bind="markRaw(tab.props)"
+                            :is="tab.component"
+                            v-bind="tab.props || {}"
                             @update="handleUpdate"
-                            :ref="markRaw(tab.id)"
+                            :ref="tab.id"
                         />
                     </keep-alive>
                 </v-card>

@@ -1,0 +1,683 @@
+<template>
+  <div class="roles-index">
+    <UiDataTable
+      title="Role systemowe"
+      :headers="headers"
+      :items="roles"
+      :loading="loading"
+      :actions="{
+        view: false,
+        edit: $can('roles.update'),
+        delete: $can('roles.delete')
+      }"
+      searchable
+      search-label="Szukaj ról..."
+      @edit="editRole"
+      @delete="confirmDeleteRole"
+    >
+      <!-- Actions in header -->
+      <template #default>
+        <div class="d-flex gap-2">
+          <UiButton
+            v-if="$can('roles.create')"
+            variant="default"
+            size="sm"
+            @click="createRole"
+          >
+            <v-icon start>mdi-plus</v-icon>
+            Dodaj rolę
+          </UiButton>
+          <UiButton
+            v-if="$can('roles.view')"
+            variant="outline"
+            size="sm"
+            @click="exportRoles"
+            :disabled="roles.length === 0"
+          >
+            <v-icon start>mdi-download</v-icon>
+            Eksport
+          </UiButton>
+        </div>
+      </template>
+
+      <!-- Custom columns -->
+      <template #item.name="{ item }">
+        <div class="d-flex align-center">
+          <UiBadge
+            :variant="getRoleVariant(item.name)"
+            size="sm"
+            class="me-2"
+          >
+            {{ item.name }}
+          </UiBadge>
+        </div>
+      </template>
+
+      <template #item.permissions_count="{ item }">
+        <v-chip
+          size="small"
+          color="primary"
+          variant="tonal"
+        >
+          {{ item.permissions_count || 0 }} uprawnień
+        </v-chip>
+      </template>
+
+      <template #item.users_count="{ item }">
+        <span class="text-body-2">{{ item.users_count || 0 }} użytkowników</span>
+      </template>
+
+      <template #item.guard_name="{ item }">
+        <v-chip
+          size="small"
+          color="secondary"
+          variant="outlined"
+        >
+          {{ item.guard_name }}
+        </v-chip>
+      </template>
+
+      <template #item.created_at="{ value }">
+        <span class="text-body-2">{{ formatDate(value) }}</span>
+      </template>
+
+      <!-- Custom actions -->
+      <template #actions="{ item }">
+
+      </template>
+    </UiDataTable>
+
+    <!-- Role Management Modal -->
+    <v-dialog
+      v-model="roleDialog.show"
+      max-width="800px"
+      class="dashboard-dialog"
+    >
+      <v-card class="dashboard-dialog-card">
+        <v-card-title class="dashboard-dialog-title">
+          {{ roleDialog.mode === 'create' ? 'Dodaj nową rolę' : 'Edytuj rolę' }}
+        </v-card-title>
+
+        <v-card-text>
+          <v-tabs v-model="roleDialog.activeTab" class="mb-4">
+            <v-tab value="basic">Podstawowe dane</v-tab>
+            <v-tab value="permissions">Uprawnienia</v-tab>
+            <v-tab value="users">Użytkownicy</v-tab>
+          </v-tabs>
+
+          <v-tabs-window v-model="roleDialog.activeTab">
+            <!-- Basic info tab -->
+            <v-tabs-window-item value="basic">
+              <v-form ref="roleForm" v-model="roleDialog.valid">
+                <div class="mb-4">
+                  <UiInput
+                    v-model="roleDialog.role.name"
+                    label="Nazwa roli"
+                    placeholder="np. Moderator"
+                    :rules="roleNameRules"
+                    :error-message="roleDialog.errors.name"
+                  />
+                </div>
+
+                <div class="mb-4">
+                  <UiInput
+                    v-model="roleDialog.role.guard_name"
+                    label="Guard"
+                    placeholder="web"
+                    :rules="guardNameRules"
+                    :error-message="roleDialog.errors.guard_name"
+                  />
+                </div>
+              </v-form>
+            </v-tabs-window-item>
+
+            <!-- Permissions tab -->
+            <v-tabs-window-item value="permissions">
+              <div v-if="!roleDialog.role.name" class="text-center text-medium-emphasis py-8">
+                <v-icon size="48" class="mb-2">mdi-shield-alert</v-icon>
+                <p>Najpierw wprowadź nazwę roli</p>
+              </div>
+              <PermissionSelector
+                v-else
+                :role="roleDialog.role"
+                :permissions="availablePermissions"
+                :initial-permissions="roleDialog.selectedPermissions"
+                :loading="permissionsLoading"
+                :saving="roleDialog.saving"
+                @save="handlePermissionsSelect"
+              />
+            </v-tabs-window-item>
+
+            <!-- Users tab -->
+            <v-tabs-window-item value="users">
+              <div v-if="!roleDialog.role.name" class="text-center text-medium-emphasis py-8">
+                <v-icon size="48" class="mb-2">mdi-account-alert</v-icon>
+                <p>Najpierw wprowadź nazwę roli</p>
+              </div>
+              <UserSelector
+                v-else
+                :users="availableUsers"
+                :initial-selection="roleDialog.selectedUsers"
+                :loading="usersLoading"
+                :saving="roleDialog.saving"
+                :role="roleDialog.role"
+                @save="handleUsersSelect"
+                @cancel="() => {}"
+              />
+            </v-tabs-window-item>
+          </v-tabs-window>
+        </v-card-text>
+
+        <v-card-actions class="dashboard-dialog-actions">
+          <v-spacer />
+          <UiButton
+            variant="outline"
+            @click="closeRoleDialog"
+            :disabled="roleDialog.loading"
+          >
+            Anuluj
+          </UiButton>
+          <UiButton
+            variant="default"
+            @click="saveRole"
+            :loading="roleDialog.loading"
+            :disabled="!roleDialog.valid"
+          >
+            {{ roleDialog.mode === 'create' ? 'Utwórz' : 'Zapisz' }}
+          </UiButton>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Permission Management Modal -->
+    <v-dialog
+      v-model="permissionDialog.show"
+      max-width="800px"
+      class="dashboard-dialog"
+    >
+      <v-card class="dashboard-dialog-card">
+        <v-card-title class="dashboard-dialog-title">
+          Zarządzanie uprawnieniami - {{ permissionDialog.role?.name }}
+        </v-card-title>
+
+        <v-card-text v-if="permissionDialog.role">
+          <div class="text-body-2 mb-4">
+            Wybierz uprawnienia dla roli <strong>{{ permissionDialog.role.name }}</strong>
+          </div>
+
+          <PermissionSelector
+            :role="permissionDialog.role"
+            :permissions="availablePermissions"
+            :initial-permissions="rolePermissions"
+            :loading="permissionDialog.loading"
+            :saving="permissionDialog.saving"
+            :error="permissionDialog.error"
+            @save="saveRolePermissions"
+            @cancel="closePermissionDialog"
+          />
+        </v-card-text>
+
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+      v-model="deleteDialog.show"
+      :title="`Usuń rolę`"
+      :message="`Czy na pewno chcesz usunąć rolę '${deleteDialog.role?.name}'? Ta operacja nie może zostać cofnięta.`"
+      confirm-text="Usuń"
+      confirm-color="error"
+      dangerous
+      @confirm="deleteRole"
+      @cancel="closeDeleteDialog"
+    />
+  </div>
+</template>
+
+<script>
+import { mapState, mapGetters, mapActions } from 'vuex'
+import { UiDataTable, UiButton, UiBadge, UiInput, PermissionSelector, UserSelector } from '@/dashboard/components/ui'
+import ConfirmDialog from '@/dashboard/components/ui/ConfirmDialog.vue'
+
+const TABLE_HEADERS = [
+  {
+    title: 'Nazwa roli',
+    key: 'name',
+    sortable: true,
+    width: '200px'
+  },
+  {
+    title: 'Uprawnienia',
+    key: 'permissions_count',
+    sortable: false,
+    width: '140px'
+  },
+  {
+    title: 'Użytkownicy',
+    key: 'users_count',
+    sortable: false,
+    width: '140px'
+  },
+  {
+    title: 'Guard',
+    key: 'guard_name',
+    sortable: false,
+    width: '120px'
+  },
+  {
+    title: 'Utworzono',
+    key: 'created_at',
+    sortable: true,
+    width: '140px'
+  }
+]
+
+export default {
+  name: 'RolesIndex',
+  components: {
+    UiDataTable,
+    UiButton,
+    UiBadge,
+    UiInput,
+    PermissionSelector,
+    UserSelector,
+    ConfirmDialog
+  },
+  data() {
+    return {
+      roleDialog: {
+        show: false,
+        mode: 'create', // 'create' or 'edit'
+        valid: false,
+        loading: false,
+        saving: false,
+        activeTab: 'basic',
+        role: {
+          id: null,
+          name: '',
+          guard_name: 'web'
+        },
+        selectedPermissions: [],
+        selectedUsers: [],
+        errors: {}
+      },
+      permissionDialog: {
+        show: false,
+        role: null,
+        loading: false,
+        saving: false,
+        error: null
+      },
+      deleteDialog: {
+        show: false,
+        role: null
+      },
+      roleNameRules: [
+        v => !!v || 'Nazwa roli jest wymagana',
+        v => (v && v.length >= 3) || 'Nazwa roli musi mieć co najmniej 3 znaki',
+        v => (v && v.length <= 50) || 'Nazwa roli może mieć maksymalnie 50 znaków'
+      ],
+      guardNameRules: [
+        v => !!v || 'Guard jest wymagany',
+        v => (v && v.length >= 2) || 'Guard musi mieć co najmniej 2 znaki'
+      ]
+    }
+  },
+  computed: {
+    ...mapState('roles', ['roles', 'loading']),
+    ...mapState('permissions', {
+      availablePermissions: 'permissions',
+      permissionsLoading: 'loading'
+    }),
+    ...mapState('users', {
+      availableUsers: 'users',
+      usersLoading: 'loading'
+    }),
+
+    headers() {
+      return TABLE_HEADERS
+    },
+
+    rolePermissions() {
+      return this.permissionDialog.role?.permissions || []
+    }
+  },
+  async created() {
+    await Promise.all([
+      this.fetchRoles(),
+      this.fetchPermissions(),
+      this.fetchUsers()
+    ])
+  },
+  methods: {
+    ...mapActions('roles', [
+      'fetchRoles',
+      'createRole',
+      'updateRole',
+      'deleteRole',
+      'assignPermissions',
+      'assignUsersToRole'
+    ]),
+    ...mapActions('permissions', [
+      'fetchPermissions',
+      'fetchRolePermissions'
+    ]),
+    ...mapActions('users', [
+      'fetchUsers'
+    ]),
+    ...mapActions('ui', ['showSuccess', 'showError', 'showInfo']),
+
+    getRoleVariant(roleName) {
+      const variants = {
+        'Super Admin': 'destructive',
+        'Admin': 'warning',
+        'Editor': 'secondary',
+        'User': 'default'
+      }
+      return variants[roleName] || 'default'
+    },
+
+    formatDate(date) {
+      if (!date) return '-'
+
+      return new Intl.DateTimeFormat('pl-PL', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(date))
+    },
+
+    createRole() {
+      this.roleDialog = {
+        show: true,
+        mode: 'create',
+        valid: false,
+        loading: false,
+        saving: false,
+        activeTab: 'basic',
+        role: {
+          id: null,
+          name: '',
+          guard_name: 'web'
+        },
+        selectedPermissions: [],
+        selectedUsers: [],
+        errors: {}
+      }
+    },
+
+    editRole(role) {
+      this.roleDialog = {
+        show: true,
+        mode: 'edit',
+        valid: true,
+        loading: false,
+        role: { ...role },
+        errors: {}
+      }
+    },
+
+    async saveRole() {
+      if (!this.roleDialog.valid) return
+
+      try {
+        this.roleDialog.loading = true
+
+        if (this.roleDialog.mode === 'create') {
+          await this.createRole({
+            name: this.roleDialog.role.name,
+            guard_name: this.roleDialog.role.guard_name
+          })
+          this.showSuccess(`Rola '${this.roleDialog.role.name}' została utworzona`)
+        } else {
+          await this.updateRole({
+            id: this.roleDialog.role.id,
+            roleData: {
+              name: this.roleDialog.role.name,
+              guard_name: this.roleDialog.role.guard_name
+            }
+          })
+          this.showSuccess(`Rola '${this.roleDialog.role.name}' została zaktualizowana`)
+        }
+
+        // After creating/updating role, assign permissions and users if selected
+        if (this.roleDialog.selectedPermissions.length > 0 || this.roleDialog.selectedUsers.length > 0) {
+          await this.handlePostRoleActions()
+        }
+
+        this.closeRoleDialog()
+      } catch (error) {
+        console.error('Save role error:', error)
+
+        // Handle validation errors
+        if (error.response?.status === 422) {
+          this.roleDialog.errors = error.response.data.errors || {}
+        }
+
+        this.showError(
+          error.response?.data?.message ||
+          `Nie udało się ${this.roleDialog.mode === 'create' ? 'utworzyć' : 'zaktualizować'} roli`
+        )
+      } finally {
+        this.roleDialog.loading = false
+      }
+    },
+
+    async handlePostRoleActions() {
+      try {
+        this.roleDialog.saving = true
+
+        // Find the created/updated role
+        const role = this.roles.find(r => r.name === this.roleDialog.role.name)
+        if (!role) {
+          throw new Error('Nie znaleziono utworzonej roli')
+        }
+
+        // Assign permissions if selected
+        if (this.roleDialog.selectedPermissions.length > 0) {
+          await this.assignPermissions({
+            roleId: role.id,
+            permissionIds: this.roleDialog.selectedPermissions
+          })
+        }
+
+        // Assign users if selected
+        if (this.roleDialog.selectedUsers.length > 0) {
+          await this.assignUsersToRole({
+            roleId: role.id,
+            userIds: this.roleDialog.selectedUsers
+          })
+        }
+
+      } catch (error) {
+        console.error('Post role actions error:', error)
+        this.showError('Rola została utworzona, ale nie udało się przypisać wszystkich uprawnień/użytkowników')
+      } finally {
+        this.roleDialog.saving = false
+      }
+    },
+
+    handlePermissionsSelect(permissionIds) {
+      this.roleDialog.selectedPermissions = permissionIds
+    },
+
+    handleUsersSelect(userIds) {
+      this.roleDialog.selectedUsers = userIds
+    },
+
+    closeRoleDialog() {
+      this.roleDialog = {
+        show: false,
+        mode: 'create',
+        valid: false,
+        loading: false,
+        saving: false,
+        activeTab: 'basic',
+        role: {
+          id: null,
+          name: '',
+          guard_name: 'web'
+        },
+        selectedPermissions: [],
+        selectedUsers: [],
+        errors: {}
+      }
+    },
+
+    confirmDeleteRole(role) {
+      // Check if role is system role that cannot be deleted
+      const systemRoles = ['Super Admin', 'Admin', 'Editor', 'User']
+      if (systemRoles.includes(role.name)) {
+        this.showError('Nie można usunąć roli systemowej')
+        return
+      }
+
+      this.deleteDialog = {
+        show: true,
+        role: role
+      }
+    },
+
+    async deleteRole() {
+      if (!this.deleteDialog.role) return
+
+      try {
+        await this.$store.dispatch('roles/deleteRole', this.deleteDialog.role.id)
+        this.showSuccess(`Rola '${this.deleteDialog.role.name}' została usunięta`)
+      } catch (error) {
+        console.error('Delete role error:', error)
+        this.showError(
+          error.response?.data?.message || 'Nie udało się usunąć roli'
+        )
+      } finally {
+        this.closeDeleteDialog()
+      }
+    },
+
+    closeDeleteDialog() {
+      this.deleteDialog = {
+        show: false,
+        role: null
+      }
+    },
+
+    async managePermissions(role) {
+      this.permissionDialog = {
+        show: true,
+        role: role,
+        loading: true,
+        saving: false,
+        error: null
+      }
+
+      try {
+        // Load permissions and role permissions concurrently
+        await Promise.all([
+          this.fetchPermissions(),
+          this.loadRolePermissions(role.id)
+        ])
+      } catch (error) {
+        console.error('Error loading permissions:', error)
+        this.permissionDialog.error = 'Nie udało się załadować uprawnień'
+      } finally {
+        this.permissionDialog.loading = false
+      }
+    },
+
+    async loadRolePermissions(roleId) {
+      try {
+        const permissions = await this.fetchRolePermissions(roleId)
+        // Update role with permissions
+        this.permissionDialog.role = {
+          ...this.permissionDialog.role,
+          permissions: permissions
+        }
+      } catch (error) {
+        console.error('Error loading role permissions:', error)
+        throw error
+      }
+    },
+
+    async saveRolePermissions(permissionIds) {
+      this.permissionDialog.saving = true
+      this.permissionDialog.error = null
+
+      try {
+        await this.assignPermissions({
+          roleId: this.permissionDialog.role.id,
+          permissionIds: permissionIds
+        })
+
+        this.showSuccess(`Uprawnienia dla roli '${this.permissionDialog.role.name}' zostały zaktualizowane`)
+
+        // Refresh roles to update permissions count
+        await this.fetchRoles()
+
+        this.closePermissionDialog()
+      } catch (error) {
+        console.error('Save permissions error:', error)
+        this.permissionDialog.error = error.response?.data?.message || 'Nie udało się zapisać uprawnień'
+      } finally {
+        this.permissionDialog.saving = false
+      }
+    },
+
+    closePermissionDialog() {
+      this.permissionDialog = {
+        show: false,
+        role: null,
+        loading: false,
+        saving: false,
+        error: null
+      }
+    },
+
+    async exportRoles() {
+      try {
+        // Simple CSV export of current roles data
+        const csvData = this.roles.map(role => ({
+          'ID': role.id,
+          'Nazwa roli': role.name,
+          'Guard': role.guard_name,
+          'Liczba uprawnień': role.permissions_count || 0,
+          'Liczba użytkowników': role.users_count || 0,
+          'Data utworzenia': role.created_at
+        }))
+
+        if (csvData.length === 0) {
+          this.showInfo('Brak danych do eksportu')
+          return
+        }
+
+        // Generate CSV
+        const headers = Object.keys(csvData[0])
+        const csvContent = [
+          headers.join(','),
+          ...csvData.map(row =>
+            headers.map(header => `"${(row[header] || '').toString().replace(/"/g, '""')}"`).join(',')
+          )
+        ].join('\n')
+
+        // Download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `role_systemowe_${new Date().toISOString().split('T')[0]}.csv`
+        link.click()
+
+        this.showSuccess(`Wyeksportowano ${csvData.length} ról`)
+      } catch (error) {
+        this.showError('Nie udało się wyeksportować ról')
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.roles-index {
+  height: 100%;
+}
+</style>

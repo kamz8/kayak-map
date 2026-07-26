@@ -15,7 +15,7 @@ sudo chmod -R 775 /home/services/kayak-prod/storage
 
 # Stwórz wymagane katalogi
 sudo mkdir -p /home/services/kayak-prod/storage/logs
-sudo mkdir -p /home/services/kayak-prod/storage/framework/{cache,sessions,views}
+sudo mkdir -p /home/services/kayak-prod/storage/framework/{cache,sessions,Pages}
 
 # Ustaw uprawnienia dla nowych katalogów
 sudo chown -R www-data:www-data /home/services/kayak-prod/storage/*
@@ -51,7 +51,7 @@ RUN chown -R www-data:www-data /var/www/html/storage
 #!/bin/bash
 sudo chown -R www-data:www-data /home/services/kayak-prod/storage
 sudo chmod -R 775 /home/services/kayak-prod/storage
-sudo mkdir -p /home/services/kayak-prod/storage/{logs,framework/{cache,sessions,views}}
+sudo mkdir -p /home/services/kayak-prod/storage/{logs,framework/{cache,sessions,Pages}}
 sudo chown -R www-data:www-data /home/services/kayak-prod/storage/*
 ```
 

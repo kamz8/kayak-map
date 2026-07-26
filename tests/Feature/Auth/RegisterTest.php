@@ -6,6 +6,8 @@ use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\Dashboard\RoleSeeder;
 
 class RegisterTest extends TestCase
 {
@@ -17,6 +19,11 @@ class RegisterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Seed permissions and roles for testing
+        $this->seed(PermissionSeeder::class);
+        $this->seed(RoleSeeder::class);
+
         config(['auth.registration.enabled' => true]);
         $this->faker = Faker::create('pl_PL');
         $this->headers = [
@@ -259,5 +266,49 @@ class RegisterTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
             'x-Client-Type' => 'web'
         ])->assertStatus(200);
+    }
+
+    /**
+     * @test
+     */
+    public function newly_registered_user_has_default_user_role(): void
+    {
+        $payload = [
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName()
+        ];
+
+        $response = $this->postJson($this->endpoint, $payload, $this->headers);
+
+        $response->assertStatus(201);
+
+        // Verify user has 'User' role in database
+        $user = User::where('email', $payload['email'])->first();
+        $this->assertNotNull($user);
+        $this->assertTrue($user->hasRole('User'), 'Newly registered user should have "User" role');
+
+        // Verify user has expected permissions through User role
+        $expectedPermissions = ['trails.view', 'regions.view', 'api.access'];
+        foreach ($expectedPermissions as $permission) {
+            $this->assertTrue(
+                $user->hasPermissionTo($permission),
+                "User should have '{$permission}' permission through User role"
+            );
+        }
+
+        // Verify JWT token contains roles in claims
+        $token = $response->json('data.token');
+        $this->assertNotEmpty($token);
+
+        // Decode JWT and verify roles are included
+        $tokenParts = explode('.', $token);
+        $payload = json_decode(base64_decode($tokenParts[1]), true);
+
+        $this->assertArrayHasKey('roles', $payload, 'JWT token should contain roles claim');
+        $this->assertCount(1, $payload['roles'], 'User should have exactly 1 role');
+        $this->assertEquals('User', $payload['roles'][0]['name'], 'Default role should be "User"');
     }
 }

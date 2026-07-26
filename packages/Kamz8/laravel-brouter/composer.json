@@ -1,0 +1,42 @@
+{
+    "name": "kamz8/laravel-brouter",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^10.0|^11.0",
+        "kamz8/laravel-overpass": "^1.0",
+        "clue/graph": "^0.9",
+        "graphp/algorithms": "^0.8"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0",
+        "phpunit/phpunit": "^10.0",
+        "mockery/mockery": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kamz\\LaravelBRouter\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kamz\\LaravelBRouter\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kamz\\LaravelBRouter\\BRouterServiceProvider"
+            ],
+            "aliases": {
+                "BRouter": "Kamz\\LaravelBRouter\\Facades\\BRouter"
+            }
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

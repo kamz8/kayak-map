@@ -1,0 +1,169 @@
+<?php
+
+namespace Tests\Feature\Api\V1\Dashboard;
+
+use App\Models\User;
+use Database\Seeders\Dashboard\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+
+class ACLUserRoleTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $superAdmin1;
+    protected User $superAdmin2;
+    protected User $admin;
+    protected User $regularUser;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->superAdmin1 = User::factory()->create(['email' => 'superadmin1@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->superAdmin1->assignRole('Super Admin');
+
+        $this->superAdmin2 = User::factory()->create(['email' => 'superadmin2@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->superAdmin2->assignRole('Super Admin');
+
+        $this->admin = User::factory()->create(['email' => 'admin@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->admin->assignRole('Admin');
+
+        $this->regularUser = User::factory()->create(['email' => 'user@test.com', 'is_active' => true, 'email_verified_at' => now()]);
+        $this->regularUser->assignRole('User');
+    }
+
+    private function headers(): array
+    {
+        return [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'X-Client-Type' => 'web'
+        ];
+    }
+
+    /** @test */
+    public function it_gets_user_roles()
+    {
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->getJson("/api/v1/dashboard/users/{$this->admin->id}/roles", $this->headers());
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'user' => ['id', 'email'],
+                    'roles' => ['*' => ['id', 'name']]
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_assigns_role_to_user()
+    {
+        $editorRole = Role::where('name', 'Editor')->first();
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->postJson("/api/v1/dashboard/users/{$this->regularUser->id}/assign-roles", [
+                'roles' => [$editorRole->id]
+            ], $this->headers());
+
+        $response->assertOk();
+        $this->assertTrue($this->regularUser->fresh()->hasRole('Editor'));
+    }
+
+    /** @test */
+    public function it_prevents_admin_from_assigning_super_admin_role()
+    {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson("/api/v1/dashboard/users/{$this->regularUser->id}/assign-roles", [
+                'roles' => [$superAdminRole->id]
+            ], $this->headers());
+
+        $response->assertForbidden();
+        $this->assertFalse($this->regularUser->fresh()->hasRole('Super Admin'));
+    }
+
+    /** @test */
+    public function it_allows_super_admin_to_assign_super_admin_role()
+    {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->postJson("/api/v1/dashboard/users/{$this->regularUser->id}/assign-roles", [
+                'roles' => [$superAdminRole->id]
+            ], $this->headers());
+
+        $response->assertOk();
+        $this->assertTrue($this->regularUser->fresh()->hasRole('Super Admin'));
+    }
+
+    /** @test */
+    public function it_prevents_user_from_modifying_own_roles()
+    {
+        $editorRole = Role::where('name', 'Editor')->first();
+
+        $response = $this->actingAs($this->admin, 'api')
+            ->postJson("/api/v1/dashboard/users/{$this->admin->id}/assign-roles", [
+                'roles' => [$editorRole->id]
+            ], $this->headers());
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
+    public function it_revokes_role_from_user()
+    {
+        $editorRole = Role::where('name', 'Editor')->first();
+        $this->regularUser->assignRole($editorRole);
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->deleteJson("/api/v1/dashboard/users/{$this->regularUser->id}/revoke-roles", [
+                'roles' => [$editorRole->id]
+            ], $this->headers());
+
+        $response->assertOk();
+        $this->assertFalse($this->regularUser->fresh()->hasRole('Editor'));
+    }
+
+    /** @test */
+    public function it_prevents_revoking_last_super_admin()
+    {
+        $this->superAdmin2->delete();
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->deleteJson("/api/v1/dashboard/users/{$this->superAdmin1->id}/revoke-roles", [
+                'roles' => [$superAdminRole->id]
+            ], $this->headers());
+
+        $response->assertForbidden();
+        $this->assertTrue($this->superAdmin1->fresh()->hasRole('Super Admin'));
+    }
+
+    /** @test */
+    public function it_syncs_user_roles()
+    {
+        $this->regularUser->assignRole(['Editor', 'Moderator']);
+
+        $editorRole = Role::where('name', 'Editor')->first();
+
+        $response = $this->actingAs($this->superAdmin1, 'api')
+            ->putJson("/api/v1/dashboard/users/{$this->regularUser->id}/sync-roles", [
+                'roles' => [$editorRole->id]
+            ], $this->headers());
+
+        $response->assertOk();
+
+        $user = $this->regularUser->fresh();
+        $this->assertTrue($user->hasRole('Editor'));
+        $this->assertFalse($user->hasRole('Moderator'));
+        $this->assertCount(1, $user->roles);
+    }
+}

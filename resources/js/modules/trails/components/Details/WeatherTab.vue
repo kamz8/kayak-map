@@ -8,17 +8,29 @@
                 <v-card flat>
                     <v-card-text>
                         <div v-if="weatherData && weatherData.properties && weatherData.properties.timeseries">
-                            <v-btn-toggle v-model="activeDay" mandatory rounded>
-                                <v-btn
-                                    v-for="(day, index) in weatherData.properties.timeseries"
-                                    :key="index"
-                                    :value="index"
-                                    color="primary"
-                                >
-                                    {{ getDayName(day.time) }}<br>
-                                    {{ getDayNumber(day.time) }}
-                                </v-btn>
-                            </v-btn-toggle>
+                            <div class="date-carousel" ref="carousel" @scroll="onCarouselScroll">
+                                <v-btn-toggle v-model="activeDay" mandatory rounded class="date-toggle">
+                                    <v-btn
+                                        v-for="(day, index) in weatherData.properties.timeseries"
+                                        :key="index"
+                                        :value="index"
+                                        color="primary"
+                                        class="date-btn"
+                                        @click="handleDayClick(index)"
+                                    >
+                                        {{ getDayName(day.time) }}<br>
+                                        {{ getDayNumber(day.time) }}
+                                    </v-btn>
+                                </v-btn-toggle>
+                            </div>
+                            <div class="carousel-track" ref="track" @mousedown.self="jumpToPosition">
+                                <div
+                                    class="carousel-thumb"
+                                    :style="thumbStyle"
+                                    @mousedown="startThumbDrag"
+                                    @touchstart.passive="startThumbDrag"
+                                ></div>
+                            </div>
 
                             <v-row class="mt-4" v-if="activeDay !== null">
                                 <v-col cols="8">
@@ -48,7 +60,7 @@
                         </v-alert>
                         <v-progress-circular v-else indeterminate color="primary"></v-progress-circular>
                     </v-card-text>
-                    <v-card-actions>
+                    <v-card-actions class="pb-6">
                         <v-spacer></v-spacer>
                         <div class="text-caption">
                             Dane pogodowe: <a href="https://www.yr.no/" target="_blank" rel="noopener noreferrer">Yr.no</a>
@@ -82,7 +94,13 @@ export default {
             weatherData: null,
             error: null,
             cacheKey: 'weatherData',
-            cacheTime: 3600000 // 1 godzina w milisekundach
+            cacheTime: 3600000, // 1 godzina w milisekundach
+            carouselScrollLeft: 0,
+            carouselScrollWidth: 0,
+            carouselClientWidth: 0,
+            isDragging: false,
+            dragStartX: 0,
+            dragStartScroll: 0,
         }
     },
     computed: {
@@ -91,16 +109,116 @@ export default {
         },
         cacheIndex() {
             return this.cacheKey+"-"+this.latitude+this.longitude
-        }
+        },
+        thumbStyle() {
+            const max = this.carouselScrollWidth - this.carouselClientWidth
+            if (max <= 0) return { display: 'none' }
+            const widthPct = (this.carouselClientWidth / this.carouselScrollWidth) * 100
+            const leftPct  = (this.carouselScrollLeft / max) * (100 - widthPct)
+            return { width: widthPct + '%', left: leftPct + '%' }
+        },
     },
     watch: {
         latitude: 'fetchWeatherData',
-        longitude: 'fetchWeatherData'
+        longitude: 'fetchWeatherData',
+        weatherData() {
+            this.$nextTick(this.syncCarouselState)
+        },
     },
     mounted() {
         this.fetchWeatherData();
     },
     methods: {
+        syncCarouselState() {
+            const el = this.$refs.carousel
+            if (!el) return
+            this.carouselScrollLeft  = el.scrollLeft
+            this.carouselScrollWidth = el.scrollWidth
+            this.carouselClientWidth = el.clientWidth
+        },
+
+        onCarouselScroll(e) {
+            this.carouselScrollLeft  = e.target.scrollLeft
+            this.carouselScrollWidth = e.target.scrollWidth
+            this.carouselClientWidth = e.target.clientWidth
+        },
+
+        handleDayClick(index) {
+            const carousel = this.$refs.carousel
+            if (!carousel) return
+
+            const buttons     = carousel.querySelectorAll('.date-btn')
+            const btn         = buttons[index]
+            if (!btn) return
+
+            const cRect   = carousel.getBoundingClientRect()
+            const bRect   = btn.getBoundingClientRect()
+
+            // Prawa krawędź → scroll w prawo, pokaż następny
+            if (bRect.right >= cRect.right - 8 && index < buttons.length - 1) {
+                const next = buttons[index + 1]
+                carousel.scrollTo({
+                    left: carousel.scrollLeft + (next.getBoundingClientRect().left - cRect.left),
+                    behavior: 'smooth',
+                })
+            }
+            // Lewa krawędź → scroll w lewo, pokaż poprzedni
+            else if (bRect.left <= cRect.left + 8 && index > 0) {
+                const prev = buttons[index - 1]
+                carousel.scrollTo({
+                    left: carousel.scrollLeft - (cRect.left - prev.getBoundingClientRect().left + prev.offsetWidth),
+                    behavior: 'smooth',
+                })
+            }
+        },
+
+        // ── Przeciąganie wskaźnika ──
+        startThumbDrag(e) {
+            e.preventDefault()
+            this.isDragging    = true
+            this.dragStartX    = e.clientX ?? e.touches?.[0].clientX
+            this.dragStartScroll = this.$refs.carousel?.scrollLeft ?? 0
+
+            document.addEventListener('mousemove', this.onThumbDrag)
+            document.addEventListener('mouseup',   this.stopThumbDrag)
+            document.addEventListener('touchmove', this.onThumbDrag, { passive: false })
+            document.addEventListener('touchend',  this.stopThumbDrag)
+        },
+
+        onThumbDrag(e) {
+            if (!this.isDragging) return
+            e.preventDefault()
+            const carousel = this.$refs.carousel
+            if (!carousel) return
+
+            const clientX   = e.clientX ?? e.touches?.[0].clientX
+            const dx        = clientX - this.dragStartX
+            const trackW    = this.carouselClientWidth
+            const maxScroll = this.carouselScrollWidth - this.carouselClientWidth
+            const delta     = (dx / trackW) * this.carouselScrollWidth
+
+            carousel.scrollLeft = Math.max(0, Math.min(maxScroll, this.dragStartScroll + delta))
+        },
+
+        stopThumbDrag() {
+            this.isDragging = false
+            document.removeEventListener('mousemove', this.onThumbDrag)
+            document.removeEventListener('mouseup',   this.stopThumbDrag)
+            document.removeEventListener('touchmove', this.onThumbDrag)
+            document.removeEventListener('touchend',  this.stopThumbDrag)
+        },
+
+        // Kliknięcie w track → przeskocz do pozycji
+        jumpToPosition(e) {
+            const track   = this.$refs.track
+            if (!track) return
+            const rect    = track.getBoundingClientRect()
+            const ratio   = (e.clientX - rect.left) / rect.width
+            const carousel = this.$refs.carousel
+            const maxScroll = carousel.scrollWidth - carousel.clientWidth
+            carousel.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' })
+        },
+
         async fetchWeatherData() {
             if (!this.isLocationAvailable) {
                 this.error = 'Brak danych o lokalizacji.';
@@ -276,5 +394,46 @@ export default {
 <style scoped>
 .v-img {
     margin: 0 auto;
+}
+
+/* ── Date carousel ── */
+.date-carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* ukryj native scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.date-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.date-toggle {
+    flex-wrap: nowrap !important;
+    min-width: max-content;
+}
+
+.date-btn {
+    min-width: 56px !important;
+    flex-shrink: 0;
+}
+
+/* ── Custom niebieski wskaźnik ── */
+.carousel-track {
+    height: 3px;
+    background: rgba(25, 118, 210, 0.15);
+    border-radius: 99px;
+    margin-top: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-thumb {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: #1976D2;
+    border-radius: 99px;
+    transition: left 0.25s ease, width 0.25s ease;
 }
 </style>

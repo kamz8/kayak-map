@@ -1,0 +1,55 @@
+<?php
+
+namespace Kamz\LaravelBRouter\Services;
+
+use Kamz\LaravelBRouter\Contracts\DataProviderInterface;
+use Kamz\LaravelBRouter\Contracts\RouterInterface;
+use Kamz\LaravelBRouter\DTO\RouteRequestData;
+use Kamz\LaravelBRouter\Models\RouteResult;
+
+class RoutingEngine implements RouterInterface
+{
+    public function __construct(
+        protected DataProviderInterface $dataProvider,
+        protected RouteCache $cache,
+        protected WaterwayNormalizer $normalizer,
+        protected WaterwayGraphBuilder $graphBuilder,
+        protected EdgeSnapper $snapper,
+        protected GraphRouter $graphRouter,
+    ) {
+    }
+
+    public function findRoute(RouteRequestData $request): RouteResult
+    {
+        $bbox = $this->bbox($request);
+        $osm = $this->cache->rememberOsm($request->riverName, $bbox, fn (): array => $this->dataProvider->getWaterwayByName($request->riverName, $bbox));
+        $normalized = $this->normalizer->normalize($osm, $request->riverName);
+        $graphPayload = $this->graphBuilder->build($normalized);
+        $startSnap = $this->snapper->snap($request->start, $graphPayload['edges'], $request->snapToleranceMeters);
+        $endSnap = $this->snapper->snap($request->end, $graphPayload['edges'], $request->snapToleranceMeters);
+        $route = $this->graphRouter->route($graphPayload, $startSnap, $endSnap);
+
+        return new RouteResult(
+            path: $route['coordinates'],
+            startSnap: $startSnap->toArray(),
+            endSnap: $endSnap->toArray(),
+            distanceMeters: $route['distance_m'],
+            cache: ['osm' => 'miss', 'graph' => 'miss', 'route' => 'miss'],
+        );
+    }
+
+    private function bbox(RouteRequestData $request): array
+    {
+        $bufferKm = (float) config('brouter.routing.bbox_buffer_km', 5);
+        $bufferLat = $bufferKm / 111.32;
+        $centerLat = ($request->start['lat'] + $request->end['lat']) / 2;
+        $bufferLng = $bufferKm / (111.32 * max(cos(deg2rad($centerLat)), 0.01));
+
+        return [
+            'south' => min($request->start['lat'], $request->end['lat']) - $bufferLat,
+            'west' => min($request->start['lng'], $request->end['lng']) - $bufferLng,
+            'north' => max($request->start['lat'], $request->end['lat']) + $bufferLat,
+            'east' => max($request->start['lng'], $request->end['lng']) + $bufferLng,
+        ];
+    }
+}
