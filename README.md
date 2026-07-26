@@ -1,6 +1,6 @@
 # Kayak Map
 
-Kayak Map is a Laravel and Vue application for exploring kayak trails, managing river route data, and preparing geospatial information for paddlers. The public app focuses on maps, trail discovery, regions, route details, warnings, and weather/context data. The administration dashboard is now part of the production release and is exposed at `https://dashboard.wartkinurt.pl`.
+Kayak Map is a Laravel and Vue application for exploring kayak trails, managing river route data, and preparing geospatial information for paddlers. The public app focuses on maps, trail discovery, regions, route details, warnings, and weather/context data. 
 
 ## Main Features
 
