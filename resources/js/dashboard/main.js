@@ -26,6 +26,11 @@ window.axios.defaults.headers.common['X-Client-Type'] = 'web';
 // Initialize permission service
 const permissionService = createPermissionService(store)
 
+// Global notification helper — use $notify(message, type) anywhere in dashboard
+app.config.globalProperties.$notify = function (message, type = 'info') {
+  store.dispatch(`ui/show${type.charAt(0).toUpperCase() + type.slice(1)}`, message)
+}
+
 // Global properties
 app.config.globalProperties.$http = axios
 app.config.globalProperties.$permissions = permissionService

@@ -16,7 +16,8 @@
       "Bash(docker exec *)",
       "Bash(docker restart *)",
       "Bash(node *)",
-      "PowerShell(icacls \"D:\\\\Laravel\\\\kayak-map\\\\tests\\\\Feature\\\\Api\\\\V1\\\\Dashboard\" /grant \"${env:USERNAME}:\\(OI\\)\\(CI\\)\\(F\\)\")"
+      "PowerShell(icacls \"D:\\\\Laravel\\\\kayak-map\\\\tests\\\\Feature\\\\Api\\\\V1\\\\Dashboard\" /grant \"${env:USERNAME}:\\(OI\\)\\(CI\\)\\(F\\)\")",
+      "Bash(php artisan *)"
     ]
   },
   "enableAllProjectMcpServers": true,

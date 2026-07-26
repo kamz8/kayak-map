@@ -65,18 +65,12 @@ export default {
 
         handleSaveSuccess() {
             console.log('✅ Trail saved successfully')
-            this.$store.dispatch('ui/showMessage', {
-                type: 'success',
-                message: 'Szlak został zapisany pomyślnie'
-            })
+            this.$notify('Szlak został zapisany pomyślnie', 'success')
         },
 
         handleSaveError(error) {
             console.error('❌ Save error:', error)
-            this.$store.dispatch('ui/showMessage', {
-                type: 'error',
-                message: 'Błąd podczas zapisywania szlaku: ' + error.message
-            })
+            this.$notify('Błąd podczas zapisywania szlaku: ' + error.message, 'error')
         },
 
         confirmNavigation() {

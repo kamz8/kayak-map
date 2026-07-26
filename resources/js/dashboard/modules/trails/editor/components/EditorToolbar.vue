@@ -20,6 +20,24 @@
                     </template>
                 </v-tooltip>
 
+                <!-- Waterway Routing Toggle -->
+                <v-tooltip text="Routing wodny - klikaj punkty na mapie (W)" location="bottom">
+                    <template #activator="{ props }">
+                        <v-btn
+                            v-bind="props"
+                            size="x-small"
+                            density="comfortable"
+                            variant="flat"
+                            :color="waterwaySnapEnabled ? 'teal' : undefined"
+                            :disabled="activeTool !== 'draw'"
+                            @click="handleWaterwaySnapToggle"
+                            class="tool-button ui-interactive"
+                        >
+                            <v-icon>mdi-waves</v-icon>
+                        </v-btn>
+                    </template>
+                </v-tooltip>
+
                 <!-- Add POI -->
                 <v-tooltip text="Dodaj punkt POI (O)" location="bottom">
                     <template #activator="{ props }">
@@ -289,6 +307,14 @@ export default {
 
     emits: ['save-success', 'save-error', 'tool-changed', 'snap-requested'],
 
+    watch: {
+        activeTool(newTool) {
+            if (newTool !== 'draw' && this.waterwaySnapEnabled) {
+                this.$store.commit(`trailEditor/${trailEditorMutations.SET_WATERWAY_SNAP_ENABLED}`, false)
+            }
+        }
+    },
+
     data() {
         return {
             showSnapDialog: false,
@@ -321,7 +347,8 @@ export default {
             hasRoutePreview: trailEditorGetters.HAS_ROUTE_PREVIEW,
             hasPoi: trailEditorGetters.HAS_POI,
             poiCount: trailEditorGetters.POI_COUNT,
-            activeTool: trailEditorGetters.ACTIVE_TOOL
+            activeTool: trailEditorGetters.ACTIVE_TOOL,
+            waterwaySnapEnabled: trailEditorGetters.WATERWAY_SNAP_ENABLED
         })
     },
 
@@ -333,6 +360,10 @@ export default {
             applyRoutePreview: trailEditorActions.APPLY_ROUTE_PREVIEW,
             clearRoutePreview: trailEditorActions.CLEAR_ROUTE_PREVIEW
         }),
+
+        handleWaterwaySnapToggle() {
+            this.$store.commit(`trailEditor/${trailEditorMutations.SET_WATERWAY_SNAP_ENABLED}`, !this.waterwaySnapEnabled)
+        },
 
         // Tool Selection - Toggle behavior
         handleDrawTool() {
@@ -371,10 +402,10 @@ export default {
                 })
 
                 this.showSnapDialog = false
-                this.$store.dispatch('ui/showSuccess', 'Wygenerowano podgląd trasy rzecznej')
+                this.$notify('Wygenerowano podgląd trasy rzecznej', 'success')
             } catch (error) {
                 console.error('Snap error:', error)
-                this.$store.dispatch('ui/showError', 'Nie udało się wygenerować trasy: ' + error.message)
+                this.$notify('Nie udało się wygenerować trasy: ' + error.message, 'error')
             } finally {
                 this.isSnapping = false
             }
@@ -383,9 +414,9 @@ export default {
         async handleApplyRoutePreview() {
             try {
                 await this.applyRoutePreview()
-                this.$store.dispatch('ui/showSuccess', 'Podgląd trasy został zastosowany')
+                this.$notify('Podgląd trasy został zastosowany', 'success')
             } catch (error) {
-                this.$store.dispatch('ui/showError', 'Nie udało się zastosować podglądu: ' + error.message)
+                this.$notify('Nie udało się zastosować podglądu: ' + error.message, 'error')
             }
         },
 
@@ -400,7 +431,7 @@ export default {
             this.snapProgress = null
             this.showSnapDialog = false
 
-            this.$store.dispatch('ui/showSuccess', 'Trasa została przyciągnięta do rzeki')
+            this.$notify('Trasa została przyciągnięta do rzeki', 'success')
         },
 
         // Actions
@@ -426,11 +457,11 @@ export default {
         async handleSave() {
             try {
                 await this.saveTrack()
-                this.$store.dispatch('ui/showSuccess', 'Trasa została zapisana pomyślnie')
+                this.$notify('Trasa została zapisana pomyślnie', 'success')
                 this.$emit('save-success')
                 console.log('✅ Track saved successfully')
             } catch (error) {
-                this.$store.dispatch('ui/showError', 'Błąd podczas zapisywania trasy: ' + error.message)
+                this.$notify('Błąd podczas zapisywania trasy: ' + error.message, 'error')
                 this.$emit('save-error', error)
                 console.error('❌ Save error:', error)
             }
