@@ -1,179 +1,107 @@
-# DevOps - Kayak Map
+# DevOps
 
-## Zaszyfrowany Backup Bazy Danych w Repozytorium
+This directory contains setup, backup, restore, and deployment helpers for Kayak Map.
 
-Projekt używa zaszyfrowanego backup bazy danych znajdującego się w repozytorium dla łatwego współdzielenia danych produkcyjnych między deweloperami.
+## Encrypted Database Backup
 
-### 🔐 Bezpieczeństwo
+The repository can include an encrypted database backup for sharing non-user production geography data with developers.
 
-- **Backup jest zaszyfrowany** AES-256-CBC z solą
-- **Hasło domyślne**: `kayak2024!backup#secure`
-- **Brak danych użytkowników** - tylko dane geograficzne i szlaki
-- Niezaszyfrowane pliki SQL są **ignorowane przez Git**
+- Encryption: AES-256-CBC with salt.
+- Default backup password: `kayak2024!backup#secure`.
+- User data is not included; the backup is intended for trails, regions, points, and related geography data.
+- Plain SQL dumps are ignored by Git.
 
-### 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Klonowanie i setup projektu
 git clone <repo-url>
 cd kayak-map
-
-# Automatyczny setup z danymi produkcyjnymi
 npm run setup
-# LUB
+```
+
+Alternative:
+
+```bash
 make setup
 ```
 
-## Dostępne Komendy
+## Available Commands
 
 ### NPM Scripts
 
 ```bash
-npm run setup        # Pełny setup projektu
-npm run fresh        # Świeża instalacja
-npm run fresh:deep   # Głęboka instalacja (usuwa node_modules/vendor)
-npm run db:backup    # Stwórz zaszyfrowany backup
-npm run db:restore   # Przywróć dane z backup
+npm run setup        # Full project setup
+npm run fresh        # Clean local setup
+npm run fresh:deep   # Clean setup and remove node_modules/vendor
+npm run db:backup    # Create encrypted database backup
+npm run db:restore   # Restore encrypted database backup
+npm run db:test      # Test restore in an isolated database
+npm run db:cleanup   # Clean test restore artifacts
 ```
 
 ### Makefile
 
 ```bash
-make setup          # Pełny setup projektu
-make fresh          # Świeża instalacja
-make fresh-deep     # Głęboka świeża instalacja
-make db-backup      # Backup bazy danych
-make db-restore     # Restore bazy danych
-make status         # Status projektu
-make help           # Pokaż wszystkie komendy
+make setup           # Full project setup
+make fresh           # Clean local setup
+make db-backup       # Create database backup
+make db-restore      # Restore database backup
+make db-test         # Test restore workflow
+make status          # Show project/container status
+make help            # Show available commands
 ```
 
-## Struktura Plików DevOps
+## Directory Structure
 
-```
+```text
 devops/
-├── database/
-│   ├── db-backup.sh     # Tworzenie zaszyfrowanego backup
-│   └── db-restore.sh    # Przywracanie z backup
-├── setup/
-│   ├── project-setup.sh # Pełny setup projektu
-│   └── fresh-install.sh # Świeża instalacja
-└── README.md           # Ta dokumentacja
+├── database/         # Backup, restore, and cleanup scripts
+├── docker/           # Docker-specific notes
+├── setup/            # Local setup scripts
+└── README.md         # This file
 ```
 
-## Zarządzanie Bazą Danych
-
-### Tworzenie Backup
+## Backup Workflow
 
 ```bash
-# Automatycznie tworzy zaszyfrowany plik w database/backups/
 npm run db:backup
-
-# Plik production_data.sql.enc może być commitowany do repo
 git add database/backups/production_data.sql.enc
-git commit -m "Update database backup"
+git commit -m "Update encrypted database backup"
 ```
 
-### Przywracanie Danych
+## Restore Workflow
 
 ```bash
-# Z zaszyfrowanego pliku w repo
 npm run db:restore
-
-# Automatycznie:
-# 1. Odszyfruje backup
-# 2. Zaimportuje do bazy MySQL w kontenerze  
-# 3. Pokaże statystyki
 ```
 
-## Workflow dla Nowego Dewelopera
+The restore script decrypts the backup, imports it into the Docker database, and prints basic import statistics.
 
-1. **Klonowanie repo**
-   ```bash
-   git clone <repo-url>
-   cd kayak-map
-   ```
+## New Developer Workflow
 
-2. **Automatyczny setup**
-   ```bash
-   npm run setup
-   ```
-   
-   To wykona:
-   - ✅ Sprawdzenie wymagań (Docker, PHP, Composer, NPM)
-   - ✅ Instalację dependencji (composer install, npm install)  
-   - ✅ Konfigurację .env
-   - ✅ Generowanie klucza Laravel
-   - ✅ Uruchomienie kontenerów Docker
-   - ✅ Migracje bazy danych
-   - ✅ Import danych produkcyjnych z zaszyfrowanego backup
-   - ✅ Cache konfiguracji
-   - ✅ Build frontend
+1. Clone the repository.
+2. Run `npm run setup`.
+3. Start frontend development with `npm run dev`.
+4. Use `php artisan`, `composer`, or `./dev-helper.sh` depending on local setup.
 
-3. **Gotowe!**
-   ```bash
-   npm run dev          # Frontend development server
-   php artisan serve    # Backend development server
-   ```
+## System Requirements
 
-## Wymagania Systemowe
+- Docker and Docker Compose.
+- PHP 8.3+ if running PHP locally.
+- Composer 2+ if running Composer locally.
+- Node.js and NPM.
+- OpenSSL for backup encryption and decryption.
 
-- **Docker** + **Docker Compose**
-- **PHP** 8.2+
-- **Composer** 2.x+
-- **Node.js** 14.x+ + **NPM**
-- **OpenSSL** (do szyfrowania/odszyfrowywania)
+## Production Dashboard
 
-### Linux/Mac
-```bash
-# Sprawdź uprawnienia plików
-make permissions
-```
-
-### Windows
-- Używaj **Git Bash** lub **WSL** do uruchamiania skryptów
-- Upewnij się, że Docker Desktop działa
+The production dashboard is exposed through Traefik at `https://dashboard.wartkinurt.pl`. The production Compose file routes this host to the Nginx service and mounts `docker/nginx/laravel.conf` as the Nginx default server config.
 
 ## Troubleshooting
 
-### MySQL nie startuje
 ```bash
-# Sprawdź logi
-docker-compose logs mysql
-
-# Restart kontenerów
+docker-compose logs
 docker-compose down
 docker-compose up -d
 ```
 
-### Błąd odszyfrowywania backup
-```bash
-# Sprawdź czy plik istnieje
-ls -la database/backups/production_data.sql.enc
-
-# Sprawdź hasło w skrypcie
-grep BACKUP_PASSWORD devops/database/db-restore.sh
-```
-
-### Uprawnienia (Linux/Mac)
-```bash
-# Napraw uprawnienia
-make permissions
-# LUB
-chmod +x devops/setup/*.sh
-chmod +x devops/database/*.sh
-```
-
-## Konfiguracja
-
-### Zmiana hasła backup
-Edytuj zmienną `BACKUP_PASSWORD` w:
-- `devops/database/db-backup.sh`
-- `devops/database/db-restore.sh`
-
-### Zmienne środowiskowe
-Sprawdź `.env.example` dla wszystkich dostępnych opcji konfiguracji.
-
----
-
-**💡 Tip**: Użyj `make help` aby zobaczyć wszystkie dostępne komendy!
+If backup restore fails, confirm that `database/backups/production_data.sql.enc` exists and that the backup password in the restore script matches the backup password used during export.
