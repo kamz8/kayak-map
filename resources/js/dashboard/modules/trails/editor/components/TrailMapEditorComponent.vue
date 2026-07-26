@@ -117,7 +117,7 @@ export default {
 
             } catch (error) {
                 console.error('❌ Failed to load trail:', error)
-                this.$store.dispatch('ui/showError', 'Nie udało się załadować trasy')
+                this.$notify('Nie udało się załadować trasy', 'error')
                 this.$emit('load-error', error)
             }
         },

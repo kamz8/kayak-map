@@ -56,7 +56,10 @@ const state = () => ({
 
     // POI editor mode
     poiEditMode: false,
-    poiInEditMode: null // ID POI będącego w trybie edycji
+    poiInEditMode: null, // ID POI będącego w trybie edycji
+
+    // Waterway routing toggle
+    waterwaySnapEnabled: false
 })
 
 // Getter names as constants for better maintenance
@@ -91,7 +94,8 @@ export const GETTERS = {
     POINT_TYPES_LOADED: 'pointTypesLoaded',
     MAP_LAYERS: 'mapLayers',
     POI_EDIT_MODE: 'poiEditMode',
-    POI_IN_EDIT_MODE: 'poiInEditMode'
+    POI_IN_EDIT_MODE: 'poiInEditMode',
+    WATERWAY_SNAP_ENABLED: 'waterwaySnapEnabled'
 }
 
 const getters = {
@@ -115,6 +119,7 @@ const getters = {
     [GETTERS.POINT_TYPES_LOADED]: (state) => state.pointTypesLoaded,
     [GETTERS.POI_EDIT_MODE]: (state) => state.poiEditMode,
     [GETTERS.POI_IN_EDIT_MODE]: (state) => state.poiInEditMode,
+    [GETTERS.WATERWAY_SNAP_ENABLED]: (state) => state.waterwaySnapEnabled,
 
     // Map layers configuration
     [GETTERS.MAP_LAYERS]: () => ({
@@ -173,7 +178,8 @@ export const MUTATIONS = {
     REDO: 'REDO',
     RESET_HISTORY: 'RESET_HISTORY',
     SET_POI_EDIT_MODE: 'SET_POI_EDIT_MODE',
-    SET_POI_IN_EDIT_MODE: 'SET_POI_IN_EDIT_MODE'
+    SET_POI_IN_EDIT_MODE: 'SET_POI_IN_EDIT_MODE',
+    SET_WATERWAY_SNAP_ENABLED: 'SET_WATERWAY_SNAP_ENABLED'
 }
 
 const mutations = {
@@ -344,6 +350,10 @@ const mutations = {
 
     [MUTATIONS.SET_POI_IN_EDIT_MODE](state, poiId) {
         state.poiInEditMode = poiId
+    },
+
+    [MUTATIONS.SET_WATERWAY_SNAP_ENABLED](state, enabled) {
+        state.waterwaySnapEnabled = enabled
     }
 }
 
@@ -369,7 +379,8 @@ export const ACTIONS = {
     START_POI_EDIT: 'startPoiEdit',
     STOP_POI_EDIT: 'stopPoiEdit',
     UPDATE_POI_POSITION: 'updatePoiPosition',
-    DELETE_POI: 'deletePoi'
+    DELETE_POI: 'deletePoi',
+    ROUTE_WAYPOINT: 'routeWaypoint'
 }
 
 const actions = {
@@ -563,6 +574,34 @@ const actions = {
         })
 
         return routeData
+    },
+
+    async [ACTIONS.ROUTE_WAYPOINT]({ state, commit }, { lat, lng }) {
+        if (!state.trailId) {
+            throw new Error('Trail must be loaded before routing')
+        }
+
+        const currentCoords = state.trackCoordinates
+
+        if (currentCoords.length === 0) {
+            commit(MUTATIONS.UPDATE_TRACK_COORDINATES, [[lat, lng]])
+            commit(MUTATIONS.SET_START_POINT, [lat, lng])
+            commit(MUTATIONS.SET_END_POINT, [lat, lng])
+            return { firstPoint: true }
+        }
+
+        const lastPoint = currentCoords[currentCoords.length - 1]
+        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/river-route`, {
+            start: { lat: lastPoint[0], lng: lastPoint[1] },
+            end: { lat, lng },
+            snap_tolerance_m: 150
+        })
+
+        const newPoints = response.data.data.path.map(([lngVal, latVal]) => [latVal, lngVal])
+        const merged = [...currentCoords, ...newPoints.slice(1)]
+
+        commit(MUTATIONS.UPDATE_TRACK_COORDINATES, merged)
+        commit(MUTATIONS.SET_END_POINT, merged[merged.length - 1])
     },
 
     async [ACTIONS.APPLY_ROUTE_PREVIEW]({ state, commit }) {

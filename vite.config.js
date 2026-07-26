@@ -76,8 +76,8 @@ export default defineConfig({
         hmr: {
             ...(isDocker ? {
                 host: 'kayak-map.test',
+                protocol: 'wss',
                 clientPort: 443,
-                port: 24678,
                 path: '/_vite/ws',
             } : {
                 host: 'kayak-map.test',
