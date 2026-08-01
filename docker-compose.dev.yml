@@ -16,6 +16,11 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BROUTER_DB_HOST: brouter-db
+      BROUTER_DB_PORT: 5432
+      BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+      BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+      BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
       REDIS_HOST: redis
       REDIS_PASSWORD: null
       REDIS_PORT: 6379
@@ -29,6 +34,7 @@ services:
       - laravel-storage:/var/www/html/storage
     depends_on:
       - db
+      - brouter-db
       - redis
     networks:
       - laravel
@@ -150,6 +156,21 @@ services:
     networks:
       - laravel
 
+  brouter-db:
+    image: postgis/postgis:16-3.4
+    container_name: brouter-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${BROUTER_DB_DATABASE:-brouter}
+      POSTGRES_USER: ${BROUTER_DB_USERNAME:-brouter}
+      POSTGRES_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
+    ports:
+      - '5433:5432'
+    volumes:
+      - brouter_db_data:/var/lib/postgresql/data
+    networks:
+      - laravel
+
   redis:
     image: redis:latest
     container_name: redis
@@ -177,6 +198,11 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BROUTER_DB_HOST: brouter-db
+      BROUTER_DB_PORT: 5432
+      BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+      BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+      BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
       REDIS_HOST: redis
       REDIS_PASSWORD: null
       REDIS_PORT: 6379
@@ -187,6 +213,7 @@ services:
       - laravel-storage:/var/www/html/storage
     depends_on:
       - db
+      - brouter-db
       - redis
     networks:
       - laravel
@@ -207,6 +234,7 @@ services:
 
 volumes:
   db_data:
+  brouter_db_data:
   laravel-storage:
     driver: local
   # High-performance volumes for Vite

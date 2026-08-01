@@ -13,7 +13,7 @@ class BRouterServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/brouter.php', 'brouter'
+            __DIR__.'/../config/brouter.php', 'brouter'
         );
 
         $this->app->singleton(DataProviderInterface::class, OverpassDataProvider::class);
@@ -24,20 +24,22 @@ class BRouterServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
         // Publish config
         $this->publishes([
-            __DIR__ . '/../config/brouter.php' => config_path('brouter.php'),
+            __DIR__.'/../config/brouter.php' => config_path('brouter.php'),
         ], 'brouter-config');
 
         // Publish migrations
         $this->publishes([
-            __DIR__ . '/../database/migrations' => database_path('migrations'),
+            __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'brouter-migrations');
 
         // Load routes
-        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
 
         // Load views if needed
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'brouter');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'brouter');
     }
 }

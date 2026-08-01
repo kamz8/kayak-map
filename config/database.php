@@ -110,6 +110,21 @@ return [
             'sslmode' => 'prefer',
         ],
 
+        'brouter' => [
+            'driver' => 'pgsql',
+            'url' => env('BROUTER_DB_URL'),
+            'host' => env('BROUTER_DB_HOST', 'brouter-db'),
+            'port' => env('BROUTER_DB_PORT', '5432'),
+            'database' => env('BROUTER_DB_DATABASE', 'brouter'),
+            'username' => env('BROUTER_DB_USERNAME', 'brouter'),
+            'password' => env('BROUTER_DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('BROUTER_DB_SSLMODE', 'prefer'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

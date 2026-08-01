@@ -14,6 +14,11 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BROUTER_DB_HOST: brouter-db
+      BROUTER_DB_PORT: 5432
+      BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+      BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+      BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD}
       CACHE_DRIVER: redis
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
@@ -35,6 +40,8 @@ services:
     networks:
       - traefik-public
       - internal
+    depends_on:
+      - brouter-db
     labels:
       - "traefik.enable=false"
     deploy:
@@ -58,6 +65,11 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BROUTER_DB_HOST: brouter-db
+      BROUTER_DB_PORT: 5432
+      BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+      BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+      BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD}
       QUEUE_CONNECTION: redis
       REDIS_HOST: redis
       CACHE_DRIVER: redis
@@ -66,6 +78,8 @@ services:
       - /home/services/kayak-prod/.env:/var/www/html/.env
     networks:
       - internal
+    depends_on:
+      - brouter-db
     deploy:
       resources:
         limits:
@@ -87,10 +101,17 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BROUTER_DB_HOST: brouter-db
+      BROUTER_DB_PORT: 5432
+      BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+      BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+      BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD}
     volumes:
       - kayak_storage:/var/www/html/storage
     networks:
       - internal
+    depends_on:
+      - brouter-db
 
   db:
     image: mariadb:latest
@@ -114,6 +135,19 @@ services:
         limits:
           cpus: '0.4'
           memory: 512M
+
+  brouter-db:
+    image: postgis/postgis:16-3.4
+    container_name: brouter-postgis-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${BROUTER_DB_DATABASE:-brouter}
+      POSTGRES_USER: ${BROUTER_DB_USERNAME:-brouter}
+      POSTGRES_PASSWORD: ${BROUTER_DB_PASSWORD}
+    volumes:
+      - brouter_db_data:/var/lib/postgresql/data
+    networks:
+      - internal
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -213,6 +247,8 @@ volumes:
       o: bind
   db_data:
     name: kayak_db_data
+  brouter_db_data:
+    name: kayak_brouter_db_data
   redis_data:
     name: kayak_redis_data
   kayak_backups:
