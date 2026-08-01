@@ -23,6 +23,7 @@ yarn-error.log
 /.vscode
 /supervisord.log
 /supervisord.pid
+/.worktrees/
 
 # Database backups - keep encrypted, ignore unencrypted
 /database/backups/*.sql
