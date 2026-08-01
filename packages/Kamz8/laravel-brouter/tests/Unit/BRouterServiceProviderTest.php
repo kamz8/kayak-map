@@ -6,7 +6,7 @@ namespace Kamz\LaravelBRouter\Tests\Unit;
 use Kamz\LaravelBRouter\Contracts\DataProviderInterface;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
 use Kamz\LaravelBRouter\Facades\BRouter;
-use Kamz\LaravelBRouter\Services\OverpassDataProvider;
+use Kamz\LaravelBRouter\Services\PublishedImportDataProvider;
 use Kamz\LaravelBRouter\Services\RoutingEngine;
 use Kamz\LaravelBRouter\Tests\TestCase;
 
@@ -27,7 +27,7 @@ class BRouterServiceProviderTest extends TestCase
         $this->assertTrue($this->app->bound(DataProviderInterface::class));
 
         $provider = $this->app->make(DataProviderInterface::class);
-        $this->assertInstanceOf(OverpassDataProvider::class, $provider);
+        $this->assertInstanceOf(PublishedImportDataProvider::class, $provider);
     }
 
     /** @test */

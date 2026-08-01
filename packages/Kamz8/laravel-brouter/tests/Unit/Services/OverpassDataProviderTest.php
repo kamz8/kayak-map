@@ -60,4 +60,48 @@ class OverpassDataProviderTest extends TestCase
             'east' => 18.9,
         ]);
     }
+
+    /** @test */
+    public function it_fetches_all_import_features_and_preserves_the_bbox(): void
+    {
+        config()->set('overpass.endpoint', 'https://overpass.test/api/interpreter');
+
+        Http::fake([
+            'overpass.test/*' => Http::response(['elements' => []], 200),
+        ]);
+
+        (new OverpassDataProvider())->getImportData([
+            'south' => 51.0,
+            'west' => 16.0,
+            'north' => 52.0,
+            'east' => 17.0,
+        ]);
+
+        Http::assertSent(function ($request) {
+            $query = $request['data'];
+
+            return str_contains($query, 'node["waterway"]')
+                && str_contains($query, 'way["waterway"]')
+                && str_contains($query, 'relation["waterway"]')
+                && str_contains($query, 'node["waterway"~"^(dam|weir|lock_gate|sluice_gate|watermill|rapids|waterfall)$"]')
+                && str_contains($query, 'way["barrier"~"^(dam|weir)$"]')
+                && str_contains($query, 'node["lock"="yes"]')
+                && str_contains($query, 'way["natural"="water"]')
+                && str_contains($query, 'relation["water"~"^(reservoir|lake)$"]')
+                && str_contains($query, '(51,16,52,17)');
+        });
+    }
+
+    /** @test */
+    public function it_rejects_an_invalid_import_bbox(): void
+    {
+        $this->expectException(OverpassException::class);
+
+        (new OverpassDataProvider())->getImportData([
+            'south' => 52.0,
+            'west' => 17.0,
+            'north' => 51.0,
+            'east' => 16.0,
+        ]);
+    }
 }

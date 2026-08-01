@@ -5,11 +5,17 @@ namespace Kamz\LaravelBRouter\Services;
 use Kamz8\LaravelOverpass\Overpass;
 use Kamz\LaravelBRouter\Exceptions\OverpassException;
 use Kamz\LaravelBRouter\Contracts\DataProviderInterface;
+use Kamz\LaravelBRouter\Contracts\ImportDataProviderInterface;
 use Throwable;
 
-class OverpassDataProvider implements DataProviderInterface
+class OverpassDataProvider implements DataProviderInterface, ImportDataProviderInterface
 {
-    public function __construct(private readonly Overpass $overpass) {}
+    public function __construct(private readonly ?Overpass $overpass = null) {}
+
+    public function getImportData(array $bbox): array
+    {
+        return $this->fetch($this->buildImportQuery($this->validatedBbox($bbox)));
+    }
 
     public function getWaterwaysInBBox(array $bbox): array
     {
@@ -28,7 +34,7 @@ class OverpassDataProvider implements DataProviderInterface
     private function fetch(string $query): array
     {
         try {
-            $result = $this->overpass->raw($query)->get();
+            $result = ($this->overpass ?? app(Overpass::class))->raw($query)->get();
         } catch (Throwable $exception) {
             throw new OverpassException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
@@ -38,7 +44,7 @@ class OverpassDataProvider implements DataProviderInterface
 
     private function buildWaterwaysQuery(array $bbox): string
     {
-        $bboxString = $this->formatBbox($bbox);
+        $bboxString = $this->formatBbox($this->validatedBbox($bbox));
 
         return <<<OVERPASS
 [out:json][timeout:60];
@@ -73,5 +79,55 @@ OVERPASS;
             $bbox['north'],
             $bbox['east'],
         ]);
+    }
+
+    private function buildImportQuery(array $bbox): string
+    {
+        $bboxString = $this->formatBbox($bbox);
+        $featureTags = implode('|', array_map('preg_quote', config('brouter.overpass.feature_tags', [])));
+
+        return <<<OVERPASS
+[out:json][timeout:60];
+(
+  node["waterway"]({$bboxString});
+  way["waterway"]({$bboxString});
+  relation["waterway"]({$bboxString});
+  node["waterway"~"^({$featureTags})$"]({$bboxString});
+  way["waterway"~"^({$featureTags})$"]({$bboxString});
+  relation["waterway"~"^({$featureTags})$"]({$bboxString});
+  node["barrier"~"^(dam|weir)$"]({$bboxString});
+  way["barrier"~"^(dam|weir)$"]({$bboxString});
+  relation["barrier"~"^(dam|weir)$"]({$bboxString});
+  node["lock"="yes"]({$bboxString});
+  way["lock"="yes"]({$bboxString});
+  relation["lock"="yes"]({$bboxString});
+  way["natural"="water"]({$bboxString});
+  relation["natural"="water"]({$bboxString});
+  way["water"~"^(reservoir|lake)$"]({$bboxString});
+  relation["water"~"^(reservoir|lake)$"]({$bboxString});
+);
+out geom;
+OVERPASS;
+    }
+
+    private function validatedBbox(array $bbox): array
+    {
+        foreach (['south', 'west', 'north', 'east'] as $key) {
+            if (! isset($bbox[$key]) || ! is_numeric($bbox[$key])) {
+                throw new OverpassException('Bounding box must contain numeric south, west, north and east values.');
+            }
+        }
+
+        $validated = array_map('floatval', $bbox);
+
+        if ($validated['south'] >= $validated['north'] || $validated['west'] >= $validated['east']) {
+            throw new OverpassException('Bounding box minimums must be smaller than maximums.');
+        }
+
+        if ($validated['south'] < -90 || $validated['north'] > 90 || $validated['west'] < -180 || $validated['east'] > 180) {
+            throw new OverpassException('Bounding box coordinates are outside the valid coordinate range.');
+        }
+
+        return $validated;
     }
 }

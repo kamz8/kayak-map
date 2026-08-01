@@ -34,4 +34,40 @@ class WaterwayNormalizerTest extends TestCase
         $this->assertSame('Wda', $normalized['edges'][0]['river_name']);
         $this->assertGreaterThan(0, $normalized['edges'][0]['distance_m']);
     }
+
+    /** @test */
+    public function it_normalizes_relations_nodes_features_water_bodies_and_all_tags(): void
+    {
+        $tags = [
+            'waterway' => 'waterfall',
+            'name' => 'Hidden Falls',
+            'operator' => 'OSM',
+        ];
+        $data = [
+            'elements' => [
+                ['type' => 'node', 'id' => 7, 'lat' => 53.1, 'lon' => 18.1, 'tags' => ['barrier' => 'dam', 'custom' => 'yes']],
+                ['type' => 'relation', 'id' => 20, 'tags' => $tags, 'members' => [[
+                    'type' => 'way',
+                    'geometry' => [
+                        ['lat' => 53.1, 'lon' => 18.1],
+                        ['lat' => 53.2, 'lon' => 18.2],
+                    ],
+                ]]],
+                ['type' => 'way', 'id' => 30, 'tags' => ['natural' => 'water', 'water' => 'lake'], 'geometry' => [
+                    ['lat' => 53.0, 'lon' => 18.0],
+                    ['lat' => 53.0, 'lon' => 18.1],
+                    ['lat' => 53.1, 'lon' => 18.1],
+                    ['lat' => 53.0, 'lon' => 18.0],
+                ]],
+            ],
+        ];
+
+        $normalized = (new WaterwayNormalizer())->normalize($data);
+
+        $this->assertSame($tags, $normalized['waterways'][0]['source_tags']);
+        $this->assertSame(['barrier' => 'dam', 'custom' => 'yes'], $normalized['features'][0]['source_tags']);
+        $this->assertSame($tags, $normalized['features'][1]['source_tags']);
+        $this->assertSame('lake', $normalized['water_bodies'][0]['water_type']);
+        $this->assertCount(1, $normalized['water_bodies']);
+    }
 }

@@ -42,6 +42,15 @@ return [
         'endpoint' => env('OVERPASS_ENDPOINT', 'https://overpass-api.de/api/interpreter'),
         'timeout' => 60,
         'retries' => 3,
+        'feature_tags' => [
+            'dam',
+            'weir',
+            'lock_gate',
+            'sluice_gate',
+            'watermill',
+            'rapids',
+            'waterfall',
+        ],
     ],
 
     /*
