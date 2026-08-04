@@ -24,7 +24,12 @@ class OverpassImportService
             $this->repository->setStatus($importId, 'importing');
             $raw = $this->dataProvider->getImportData($bbox);
             $normalized = $this->normalizer->normalize($raw, (string) ($metadata['name'] ?? ''));
-            $this->graphBuilder->build($normalized);
+            $graphPayload = $this->graphBuilder->build($normalized);
+            $normalized['edges'] = array_values(array_map(
+                static fn (array $edge): array => array_diff_key($edge, ['graph_edge' => true]),
+                $graphPayload['edges'],
+            ));
+            $normalized['components'] = $graphPayload['components'];
             $counts = $this->repository->persist($importId, $normalized, $raw);
             $this->repository->buildGraph($importId, $normalized);
             $this->repository->setStatus($importId, 'validating');

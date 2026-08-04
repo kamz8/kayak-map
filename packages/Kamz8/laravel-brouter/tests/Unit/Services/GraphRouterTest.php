@@ -26,6 +26,29 @@ class GraphRouterTest extends TestCase
     }
 
     /** @test */
+    public function it_routes_between_virtual_snap_points_on_the_same_edge(): void
+    {
+        $payload = (new WaterwayGraphBuilder())->build([
+            'nodes' => [
+                ['id' => 'n1', 'lat' => 0.0, 'lng' => 0.0, 'virtual' => false],
+                ['id' => 'n2', 'lat' => 0.0, 'lng' => 10.0, 'virtual' => false],
+            ],
+            'edges' => [
+                ['id' => 'e1', 'from_node' => 'n1', 'to_node' => 'n2', 'geometry' => [['lat' => 0.0, 'lng' => 0.0], ['lat' => 0.0, 'lng' => 10.0]], 'distance_m' => 1000.0],
+            ],
+        ]);
+
+        $route = (new GraphRouter())->route(
+            $payload,
+            new SnapResultData(['lat' => 0, 'lng' => 2], ['lat' => 0, 'lng' => 2], 0, 'e1', 0.2, 200.0, 'n1', 'n2'),
+            new SnapResultData(['lat' => 0, 'lng' => 7], ['lat' => 0, 'lng' => 7], 0, 'e1', 0.7, 700.0, 'n1', 'n2'),
+        );
+
+        $this->assertSame([[2, 0], [7, 0]], $route['coordinates']);
+        $this->assertEqualsWithDelta(500.0, $route['distance_m'], 0.0001);
+    }
+
+    /** @test */
     public function it_throws_for_disconnected_graph(): void
     {
         $this->expectException(DisconnectedWaterwayException::class);

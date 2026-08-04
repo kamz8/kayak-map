@@ -16,25 +16,46 @@ class RoutingEngine implements RouterInterface
         protected WaterwayGraphBuilder $graphBuilder,
         protected EdgeSnapper $snapper,
         protected GraphRouter $graphRouter,
+        protected ?GraphCache $graphCache = null,
+        protected ?BrouterGraphRepository $graphRepository = null,
     ) {
+        $this->graphCache ??= new GraphCache();
     }
 
     public function findRoute(RouteRequestData $request): RouteResult
     {
         $bbox = $this->bbox($request);
-        $osm = $this->cache->rememberOsm($request->riverName, $bbox, fn (): array => $this->dataProvider->getWaterwayByName($request->riverName, $bbox));
-        $normalized = $this->normalizer->normalize($osm, $request->riverName);
-        $graphPayload = $this->graphBuilder->build($normalized);
-        $startSnap = $this->snapper->snap($request->start, $graphPayload['edges'], $request->snapToleranceMeters);
-        $endSnap = $this->snapper->snap($request->end, $graphPayload['edges'], $request->snapToleranceMeters);
-        $route = $this->graphRouter->route($graphPayload, $startSnap, $endSnap);
+        $graphVersion = $this->graphRepository?->activeGraphVersion() ?? 'runtime';
+        $graphPayload = $this->graphCache->remember($graphVersion, function () use ($request, $bbox): array {
+            if ($this->graphRepository !== null && $this->graphRepository->activeGraphVersion() !== null) {
+                return $this->graphRepository->activeGraphPayload();
+            }
+
+            $osm = $this->cache->rememberOsm($request->riverName, $bbox, fn (): array => $this->dataProvider->getWaterwayByName($request->riverName, $bbox));
+            $normalized = $this->normalizer->normalize($osm, $request->riverName);
+
+            return $this->graphBuilder->build($normalized);
+        });
+
+        $route = $this->cache->rememberRoute($graphVersion, [
+            'river' => $request->riverName,
+            'start' => $request->start,
+            'end' => $request->end,
+            'snap_tolerance_m' => $request->snapToleranceMeters,
+        ], function () use ($request, $graphPayload): array {
+            $startSnap = $this->snapper->snap($request->start, $graphPayload['edges'], $request->snapToleranceMeters);
+            $endSnap = $this->snapper->snap($request->end, $graphPayload['edges'], $request->snapToleranceMeters);
+            $route = $this->graphRouter->route($graphPayload, $startSnap, $endSnap);
+
+            return ['route' => $route, 'start_snap' => $startSnap->toArray(), 'end_snap' => $endSnap->toArray()];
+        });
 
         return new RouteResult(
-            path: $route['coordinates'],
-            startSnap: $startSnap->toArray(),
-            endSnap: $endSnap->toArray(),
-            distanceMeters: $route['distance_m'],
-            cache: ['osm' => 'miss', 'graph' => 'miss', 'route' => 'miss'],
+            path: $route['route']['coordinates'],
+            startSnap: $route['start_snap'],
+            endSnap: $route['end_snap'],
+            distanceMeters: $route['route']['distance_m'],
+            cache: ['osm' => 'versioned', 'graph' => $graphVersion, 'route' => 'versioned'],
         );
     }
 

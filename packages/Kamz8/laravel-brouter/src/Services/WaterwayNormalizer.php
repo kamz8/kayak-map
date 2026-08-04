@@ -96,6 +96,8 @@ class WaterwayNormalizer
                     'river_name' => $tags['name'] ?? $riverName,
                     'waterway' => $waterway,
                     'source_tags' => $tags,
+                    'is_bidirectional' => ! in_array($tags['oneway'] ?? null, ['yes', '1', 'true'], true),
+                    'is_water_body_crossing' => $this->isWaterBody($tags),
                 ];
             }
         }

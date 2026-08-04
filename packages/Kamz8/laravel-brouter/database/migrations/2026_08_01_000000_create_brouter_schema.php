@@ -54,6 +54,9 @@ return new class extends Migration
             $table->foreignId('from_node_id');
             $table->foreignId('to_node_id');
             $table->string('way_id', 64)->nullable();
+            $table->unsignedInteger('component_id')->default(0);
+            $table->boolean('is_bidirectional')->default(true);
+            $table->boolean('is_water_body_crossing')->default(false);
             $table->geometry('geometry', subtype: 'linestring', srid: 4326);
             $table->double('distance_m');
             $table->jsonb('source_tags');
@@ -69,10 +72,17 @@ return new class extends Migration
             $table->string('osm_id', 64);
             $table->string('feature_type', 64);
             $table->string('name')->nullable();
+            $table->foreignId('nearest_edge_id')->nullable();
+            $table->boolean('is_navigable')->nullable();
+            $table->double('routing_penalty')->default(0);
+            $table->boolean('portage_required')->default(false);
+            $table->string('warning_level', 32)->nullable();
             $table->geometry('geometry', srid: 4326);
             $table->jsonb('source_tags');
+            $table->jsonb('metadata')->nullable();
             $table->timestampsTz();
             $table->unique(['import_id', 'osm_id', 'feature_type']);
+            $table->foreign(['nearest_edge_id', 'import_id'])->references(['id', 'import_id'])->on('waterway_edges')->nullOnDelete();
         });
 
         Schema::connection($this->connection)->create('water_bodies', function (Blueprint $table): void {

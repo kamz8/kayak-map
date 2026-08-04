@@ -32,7 +32,24 @@ class WaterwayNormalizerTest extends TestCase
         $this->assertSame('way:10:0', $normalized['edges'][0]['from_node']);
         $this->assertSame('way:10:1', $normalized['edges'][0]['to_node']);
         $this->assertSame('Wda', $normalized['edges'][0]['river_name']);
+        $this->assertTrue($normalized['edges'][0]['is_bidirectional']);
         $this->assertGreaterThan(0, $normalized['edges'][0]['distance_m']);
+    }
+
+    /** @test */
+    public function it_marks_oneway_edges_as_not_bidirectional(): void
+    {
+        $normalized = (new WaterwayNormalizer())->normalize(['elements' => [[
+            'type' => 'way',
+            'id' => 11,
+            'tags' => ['waterway' => 'river', 'oneway' => 'yes'],
+            'geometry' => [
+                ['lat' => 53.1, 'lon' => 18.1],
+                ['lat' => 53.2, 'lon' => 18.2],
+            ],
+        ]]]);
+
+        $this->assertFalse($normalized['edges'][0]['is_bidirectional']);
     }
 
     /** @test */

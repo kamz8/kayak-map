@@ -2,32 +2,28 @@
 
 namespace Kamz\LaravelBRouter\Tests\Unit\Services;
 
-use Fhaculty\Graph\Graph;
 use Kamz\LaravelBRouter\Services\WaterwayGraphBuilder;
 use Kamz\LaravelBRouter\Tests\TestCase;
 
 class WaterwayGraphBuilderTest extends TestCase
 {
     /** @test */
-    public function it_builds_graph_from_normalized_nodes_and_edges(): void
+    public function it_assigns_connected_component_ids_to_edges(): void
     {
-        $normalized = [
+        $payload = (new WaterwayGraphBuilder())->build([
             'nodes' => [
-                ['id' => 'n1', 'lat' => 53.1, 'lng' => 18.1, 'virtual' => false],
-                ['id' => 'n2', 'lat' => 53.2, 'lng' => 18.2, 'virtual' => false],
-                ['id' => 'n3', 'lat' => 53.3, 'lng' => 18.3, 'virtual' => false],
+                ['id' => 'a', 'lat' => 0.0, 'lng' => 0.0],
+                ['id' => 'b', 'lat' => 0.0, 'lng' => 1.0],
+                ['id' => 'c', 'lat' => 10.0, 'lng' => 10.0],
+                ['id' => 'd', 'lat' => 10.0, 'lng' => 11.0],
             ],
             'edges' => [
-                ['id' => 'e1', 'from_node' => 'n1', 'to_node' => 'n2', 'geometry' => [['lat' => 53.1, 'lng' => 18.1], ['lat' => 53.2, 'lng' => 18.2]], 'distance_m' => 100.0, 'way_id' => '10', 'river_name' => 'Wda', 'waterway' => 'river'],
-                ['id' => 'e2', 'from_node' => 'n2', 'to_node' => 'n3', 'geometry' => [['lat' => 53.2, 'lng' => 18.2], ['lat' => 53.3, 'lng' => 18.3]], 'distance_m' => 120.0, 'way_id' => '10', 'river_name' => 'Wda', 'waterway' => 'river'],
+                ['id' => 'ab', 'from_node' => 'a', 'to_node' => 'b', 'geometry' => [], 'distance_m' => 1.0],
+                ['id' => 'cd', 'from_node' => 'c', 'to_node' => 'd', 'geometry' => [], 'distance_m' => 1.0],
             ],
-        ];
+        ]);
 
-        $payload = (new WaterwayGraphBuilder())->build($normalized);
-
-        $this->assertInstanceOf(Graph::class, $payload['graph']);
-        $this->assertCount(3, $payload['vertices']);
-        $this->assertCount(2, $payload['edges']);
-        $this->assertSame(100.0, $payload['edges']['e1']['distance_m']);
+        $this->assertSame(2, $payload['components']['component_count']);
+        $this->assertNotSame($payload['edges']['ab']['component_id'], $payload['edges']['cd']['component_id']);
     }
 }

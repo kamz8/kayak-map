@@ -65,8 +65,8 @@ class RoutingEngineTest extends TestCase
 
         $this->assertInstanceOf(RouteResult::class, $result);
         $this->assertSame([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0]], $result->path);
-        $this->assertSame('miss', $result->cache['route']);
-        $this->assertSame('miss', $result->cache['osm']);
+        $this->assertSame('versioned', $result->cache['route']);
+        $this->assertSame('runtime', $result->cache['graph']);
         $this->assertGreaterThan(0, $result->distanceMeters);
     }
 }

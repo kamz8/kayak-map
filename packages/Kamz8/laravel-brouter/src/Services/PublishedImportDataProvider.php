@@ -11,12 +11,12 @@ class PublishedImportDataProvider implements DataProviderInterface
 
     public function getWaterwaysInBBox(array $bbox): array
     {
-        return $this->query()->get()->map(fn (object $waterway): array => $this->element($waterway))->all();
+        return ['elements' => $this->query()->get()->map(fn (object $waterway): array => $this->element($waterway))->all()];
     }
 
     public function getWaterwayByName(string $name, ?array $bbox = null): array
     {
-        return $this->query()->where('name', $name)->get()->map(fn (object $waterway): array => $this->element($waterway))->all();
+        return ['elements' => $this->query()->where('name', $name)->get()->map(fn (object $waterway): array => $this->element($waterway))->all()];
     }
 
     private function query(): \Illuminate\Database\Query\Builder

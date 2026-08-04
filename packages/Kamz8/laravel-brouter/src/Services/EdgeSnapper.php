@@ -16,7 +16,12 @@ class EdgeSnapper
                 $projection = $this->projectToSegment($point, $segment[0], $segment[1]);
 
                 if ($best === null || $projection['distance_m'] < $best['distance_m']) {
-                    $best = $projection + ['edge_id' => $edge['id']];
+                    $best = $projection + [
+                        'edge_id' => $edge['id'],
+                        'from_node' => $edge['from_node'],
+                        'to_node' => $edge['to_node'],
+                        'edge_distance_m' => (float) $edge['distance_m'],
+                    ];
                 }
             }
         }
@@ -30,6 +35,10 @@ class EdgeSnapper
             ['lat' => $best['lat'], 'lng' => $best['lng']],
             $best['distance_m'],
             $best['edge_id'],
+            $best['ratio'],
+            $best['edge_distance_m'] * $best['ratio'],
+            $best['from_node'],
+            $best['to_node'],
         );
     }
 
@@ -55,6 +64,7 @@ class EdgeSnapper
             'lat' => $point['lat'] + ($y / $metersPerDegreeLat),
             'lng' => $point['lng'] + ($x / $metersPerDegreeLng),
             'distance_m' => sqrt(($x * $x) + ($y * $y)),
+            'ratio' => $ratio,
         ];
     }
 

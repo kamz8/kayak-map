@@ -4,6 +4,7 @@ namespace Kamz\LaravelBRouter\Services;
 
 use Kamz\LaravelBRouter\DTO\SnapResultData;
 use Kamz\LaravelBRouter\Exceptions\DisconnectedWaterwayException;
+use SplPriorityQueue;
 
 class GraphRouter
 {
@@ -12,9 +13,18 @@ class GraphRouter
         $startEdge = $payload['edges'][$start->edgeId];
         $endEdge = $payload['edges'][$end->edgeId];
 
-        $startNode = $this->nearestEdgeNode($start, $startEdge, $payload['vertices']);
-        $endNode = $this->nearestEdgeNode($end, $endEdge, $payload['vertices']);
-        $result = $this->shortestPath($payload, $startNode, $endNode);
+        if ($start->edgeId === $end->edgeId && $start->position !== null && $end->position !== null) {
+            return [
+                'coordinates' => [
+                    [$start->snapped['lng'], $start->snapped['lat']],
+                    [$end->snapped['lng'], $end->snapped['lat']],
+                ],
+                'distance_m' => abs($end->position - $start->position) * (float) $startEdge['distance_m'],
+            ];
+        }
+
+        $routingPayload = $this->withVirtualSnapNodes($payload, $start, $end, $startEdge, $endEdge);
+        $result = $this->shortestPath($routingPayload, $routingPayload['start_node'], $routingPayload['end_node']);
 
         if ($result === null) {
             throw new DisconnectedWaterwayException('No connected waterway path found.');
@@ -27,13 +37,13 @@ class GraphRouter
     {
         $distances = [$startNode => 0.0];
         $previous = [];
-        $queue = [$startNode => 0.0];
+        $queue = new SplPriorityQueue();
+        $queue->setExtractFlags(SplPriorityQueue::EXTR_DATA);
+        $queue->insert($startNode, 0.0);
         $adjacency = $this->adjacency($payload['edges']);
 
-        while ($queue !== []) {
-            asort($queue);
-            $node = array_key_first($queue);
-            unset($queue[$node]);
+        while (! $queue->isEmpty()) {
+            $node = $queue->extract();
 
             if ($node === $endNode) {
                 break;
@@ -45,7 +55,7 @@ class GraphRouter
                 if (! isset($distances[$neighbor]) || $distance < $distances[$neighbor]) {
                     $distances[$neighbor] = $distance;
                     $previous[$neighbor] = $node;
-                    $queue[$neighbor] = $distance;
+                    $queue->insert($neighbor, -$distance);
                 }
             }
         }
@@ -58,8 +68,8 @@ class GraphRouter
 
         return [
             'coordinates' => array_map(fn (string $node): array => [
-                $payload['vertices'][$node]->getAttribute('lng'),
-                $payload['vertices'][$node]->getAttribute('lat'),
+                $this->node($payload, $node)['lng'],
+                $this->node($payload, $node)['lat'],
             ], $nodes),
             'distance_m' => $distances[$endNode],
         ];
@@ -71,7 +81,9 @@ class GraphRouter
 
         foreach ($edges as $edge) {
             $adjacency[$edge['from_node']][$edge['to_node']] = $edge;
-            $adjacency[$edge['to_node']][$edge['from_node']] = $edge;
+            if (($edge['is_bidirectional'] ?? true) === true) {
+                $adjacency[$edge['to_node']][$edge['from_node']] = $edge;
+            }
         }
 
         return $adjacency;
@@ -90,12 +102,86 @@ class GraphRouter
         return $nodes;
     }
 
-    private function nearestEdgeNode(SnapResultData $snap, array $edge, array $vertices): string
+    private function withVirtualSnapNodes(array $payload, SnapResultData $start, SnapResultData $end, array $startEdge, array $endEdge): array
     {
-        $fromDistance = $this->distanceMeters($snap->snapped, $vertices[$edge['from_node']]->getAttributeBag()->getAttributes());
-        $toDistance = $this->distanceMeters($snap->snapped, $vertices[$edge['to_node']]->getAttributeBag()->getAttributes());
+        $payload['nodes'] ??= $this->nodesFromVertices($payload['vertices'] ?? []);
+        [$payload, $startNode] = $this->attachSnap($payload, $start, $startEdge, 'start');
+        [$payload, $endNode] = $this->attachSnap($payload, $end, $endEdge, 'end');
+        $payload['start_node'] = $startNode;
+        $payload['end_node'] = $endNode;
+
+        return $payload;
+    }
+
+    private function attachSnap(array $payload, SnapResultData $snap, array $edge, string $prefix): array
+    {
+        $position = $snap->position;
+
+        if ($position !== null && $position <= 0.000001) {
+            return [$payload, $edge['from_node']];
+        }
+
+        if ($position !== null && $position >= 0.999999) {
+            return [$payload, $edge['to_node']];
+        }
+
+        if ($position === null) {
+            return [$payload, $this->nearestEdgeNode($snap, $edge, $payload)];
+        }
+
+        $nodeId = "virtual:{$prefix}:{$edge['id']}";
+        $payload['nodes'][$nodeId] = [
+            'id' => $nodeId,
+            'lat' => $snap->snapped['lat'],
+            'lng' => $snap->snapped['lng'],
+            'virtual' => true,
+        ];
+
+        $edgeDistance = (float) $edge['distance_m'];
+        unset($payload['edges'][$edge['id']]);
+        $payload['edges']["{$edge['id']}:{$prefix}:from"] = $this->partialEdge($edge, $edge['from_node'], $nodeId, $edgeDistance * $position);
+        $payload['edges']["{$edge['id']}:{$prefix}:to"] = $this->partialEdge($edge, $nodeId, $edge['to_node'], $edgeDistance * (1 - $position));
+
+        return [$payload, $nodeId];
+    }
+
+    private function partialEdge(array $edge, string $fromNode, string $toNode, float $distanceMeters): array
+    {
+        return array_replace($edge, [
+            'id' => "{$edge['id']}:{$fromNode}:{$toNode}",
+            'from_node' => $fromNode,
+            'to_node' => $toNode,
+            'distance_m' => max(0.0, $distanceMeters),
+            'is_bidirectional' => $edge['is_bidirectional'] ?? true,
+        ]);
+    }
+
+    private function nearestEdgeNode(SnapResultData $snap, array $edge, array $payload): string
+    {
+        $fromDistance = $this->distanceMeters($snap->snapped, $this->node($payload, $edge['from_node']));
+        $toDistance = $this->distanceMeters($snap->snapped, $this->node($payload, $edge['to_node']));
 
         return $fromDistance <= $toDistance ? $edge['from_node'] : $edge['to_node'];
+    }
+
+    private function node(array $payload, string $node): array
+    {
+        if (isset($payload['nodes'][$node])) {
+            return $payload['nodes'][$node];
+        }
+
+        return $payload['vertices'][$node]->getAttributeBag()->getAttributes();
+    }
+
+    private function nodesFromVertices(array $vertices): array
+    {
+        $nodes = [];
+
+        foreach ($vertices as $id => $vertex) {
+            $nodes[$id] = $vertex->getAttributeBag()->getAttributes();
+        }
+
+        return $nodes;
     }
 
     private function distanceMeters(array $first, array $second): float

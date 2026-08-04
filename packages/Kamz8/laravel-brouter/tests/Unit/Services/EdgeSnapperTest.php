@@ -29,6 +29,9 @@ class EdgeSnapperTest extends TestCase
         $this->assertSame('edge-1', $snap->edgeId);
         $this->assertEqualsWithDelta(0.0, $snap->snapped['lat'], 0.0001);
         $this->assertEqualsWithDelta(0.5, $snap->snapped['lng'], 0.0001);
+        $this->assertEqualsWithDelta(0.5, $snap->position, 0.0001);
+        $this->assertSame('n1', $snap->fromNodeId);
+        $this->assertSame('n2', $snap->toNodeId);
         $this->assertGreaterThan(0, $snap->distanceMeters);
     }
 
