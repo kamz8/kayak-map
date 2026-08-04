@@ -18,7 +18,7 @@ SELECT
   e.id,
   e.from_node_id,
   e.to_node_id,
-  e.distance_m,
+  e.distance_m AS edge_distance_m,
   ST_Distance(e.geometry::geography, {$queryPoint}::geography) AS distance_m,
   ST_LineLocatePoint(e.geometry, {$queryPoint}) AS position,
   ST_X(ST_ClosestPoint(e.geometry, {$queryPoint})) AS snapped_lng,
@@ -52,7 +52,7 @@ SQL, [
             (float) $row->distance_m,
             (string) $row->id,
             $position,
-            (float) $row->distance_m * $position,
+            (float) $row->edge_distance_m * $position,
             'db:'.$row->from_node_id,
             'db:'.$row->to_node_id,
         );

@@ -14,7 +14,7 @@ class PrecacheWaterwaysCommandTest extends TestCase
     public function command_is_registered()
     {
         $this->assertTrue(
-            Artisan::has('brouter:precache')
+            array_key_exists('brouter:precache', Artisan::all())
         );
     }
 

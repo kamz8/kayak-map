@@ -18,6 +18,7 @@ class RoutingEngine implements RouterInterface
         protected GraphRouter $graphRouter,
         protected ?GraphCache $graphCache = null,
         protected ?BrouterGraphRepository $graphRepository = null,
+        protected ?PostgisEdgeSnapper $postgisSnapper = null,
     ) {
         $this->graphCache ??= new GraphCache();
     }
@@ -37,14 +38,21 @@ class RoutingEngine implements RouterInterface
             return $this->graphBuilder->build($normalized);
         });
 
+        $usesPersistedGraph = $this->graphRepository !== null && $this->graphRepository->activeGraphVersion() !== null;
+
         $route = $this->cache->rememberRoute($graphVersion, [
             'river' => $request->riverName,
             'start' => $request->start,
             'end' => $request->end,
             'snap_tolerance_m' => $request->snapToleranceMeters,
-        ], function () use ($request, $graphPayload): array {
-            $startSnap = $this->snapper->snap($request->start, $graphPayload['edges'], $request->snapToleranceMeters);
-            $endSnap = $this->snapper->snap($request->end, $graphPayload['edges'], $request->snapToleranceMeters);
+        ], function () use ($request, $graphPayload, $usesPersistedGraph): array {
+            if ($usesPersistedGraph && $this->postgisSnapper !== null) {
+                $startSnap = $this->postgisSnapper->snap($request->start, $request->snapToleranceMeters);
+                $endSnap = $this->postgisSnapper->snap($request->end, $request->snapToleranceMeters);
+            } else {
+                $startSnap = $this->snapper->snap($request->start, $graphPayload['edges'], $request->snapToleranceMeters);
+                $endSnap = $this->snapper->snap($request->end, $graphPayload['edges'], $request->snapToleranceMeters);
+            }
             $route = $this->graphRouter->route($graphPayload, $startSnap, $endSnap);
 
             return ['route' => $route, 'start_snap' => $startSnap->toArray(), 'end_snap' => $endSnap->toArray()];
