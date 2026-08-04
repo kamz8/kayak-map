@@ -5,6 +5,7 @@ namespace Kamz\LaravelBRouter\Tests\Unit\Services;
 use Kamz\LaravelBRouter\Contracts\DataProviderInterface;
 use Kamz\LaravelBRouter\DTO\RouteRequestData;
 use Kamz\LaravelBRouter\Models\RouteResult;
+use Kamz\LaravelBRouter\Services\BrouterGraphRepository;
 use Kamz\LaravelBRouter\Services\EdgeSnapper;
 use Kamz\LaravelBRouter\Services\GraphRouter;
 use Kamz\LaravelBRouter\Services\RouteCache;
@@ -68,5 +69,73 @@ class RoutingEngineTest extends TestCase
         $this->assertSame('versioned', $result->cache['route']);
         $this->assertSame('runtime', $result->cache['graph']);
         $this->assertGreaterThan(0, $result->distanceMeters);
+    }
+
+    /** @test */
+    public function it_falls_back_to_runtime_routing_when_no_published_import_covers_the_requested_points(): void
+    {
+        config()->set('brouter.cache.enabled', false);
+        config()->set('brouter.routing.bbox_buffer_km', 1);
+
+        $provider = new class implements DataProviderInterface
+        {
+            public bool $called = false;
+
+            public function getWaterwaysInBBox(array $bbox): array
+            {
+                return [];
+            }
+
+            public function getWaterwayByName(string $name, ?array $bbox = null): array
+            {
+                $this->called = true;
+
+                return [
+                    'elements' => [[
+                        'type' => 'way',
+                        'id' => 10,
+                        'tags' => ['waterway' => 'river', 'name' => $name],
+                        'geometry' => [
+                            ['lat' => 0.0, 'lon' => 0.0],
+                            ['lat' => 0.0, 'lon' => 1.0],
+                            ['lat' => 0.0, 'lon' => 2.0],
+                        ],
+                    ]],
+                ];
+            }
+        };
+
+        $graphRepository = new class extends BrouterGraphRepository
+        {
+            public function activeGraphForRoute(array $start, array $end): ?array
+            {
+                return null;
+            }
+
+            public function activeGraphPayload(?int $importId = null): array
+            {
+                throw new \RuntimeException('Persistent graph should not be loaded for uncovered route points.');
+            }
+        };
+
+        $engine = new RoutingEngine(
+            $provider,
+            new RouteCache(),
+            new WaterwayNormalizer(),
+            new WaterwayGraphBuilder(),
+            new EdgeSnapper(),
+            new GraphRouter(),
+            graphRepository: $graphRepository,
+        );
+
+        $result = $engine->findRoute(new RouteRequestData(
+            riverName: 'Test River',
+            start: ['lat' => 0.0, 'lng' => 0.0],
+            end: ['lat' => 0.0, 'lng' => 2.0],
+            snapToleranceMeters: 100,
+        ));
+
+        $this->assertTrue($provider->called);
+        $this->assertSame('runtime', $result->cache['graph']);
     }
 }

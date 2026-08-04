@@ -16,6 +16,11 @@ services:
             DB_DATABASE: ${DB_DATABASE}
             DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
+            BROUTER_DB_HOST: brouter-db
+            BROUTER_DB_PORT: 5432
+            BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+            BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+            BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
             REDIS_HOST: redis
             REDIS_PASSWORD: null
             REDIS_PORT: 6379
@@ -25,12 +30,14 @@ services:
             PHP_POST_MAX_SIZE: 100M
         volumes:
             - .:/var/www/html:cached
+            - ./packages/Kamz8/laravel-brouter:/var/www/html/vendor/kamz8/laravel-brouter:cached
             - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
             - ./node_modules:/var/www/html/node_modules:cached
             - laravel-storage:/var/www/html/storage
             - ./storage:/var/www/html/storage
         depends_on:
             - db
+            - brouter-db
             - redis
         networks:
             - laravel
@@ -134,6 +141,23 @@ services:
         networks:
             - laravel
 
+    brouter-db:
+        image: postgis/postgis:16-3.4
+        container_name: brouter-postgis
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${BROUTER_DB_DATABASE:-brouter}
+            POSTGRES_USER: ${BROUTER_DB_USERNAME:-brouter}
+            POSTGRES_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
+        ports:
+            - '5433:5432'
+        volumes:
+            - brouter_data:/var/lib/postgresql/data
+        networks:
+            laravel:
+                aliases:
+                    - brouter-db
+
     redis:
         image: redis:latest
         container_name: redis
@@ -158,16 +182,23 @@ services:
             DB_DATABASE: ${DB_DATABASE}
             DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
+            BROUTER_DB_HOST: brouter-db
+            BROUTER_DB_PORT: 5432
+            BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
+            BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
+            BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
             REDIS_HOST: redis
             REDIS_PASSWORD: null
             REDIS_PORT: 6379
             QUEUE_CONNECTION: redis
         volumes:
             - .:/var/www/html:cached
+            - ./packages/Kamz8/laravel-brouter:/var/www/html/vendor/kamz8/laravel-brouter:cached
             - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
             - laravel-storage:/var/www/html/storage
         depends_on:
             - app
+            - brouter-db
             - redis
         networks:
             - laravel
@@ -233,6 +264,7 @@ services:
 volumes:
     kayak-app:
     db_data:
+    brouter_data:
     vendor:
     node_modules:
     # Optimized Vite volumes for better performance

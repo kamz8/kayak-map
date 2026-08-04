@@ -21,7 +21,32 @@ class BrouterGraphRepository
         return $graph?->version;
     }
 
-    public function activeGraphPayload(): array
+    /**
+     * @return array{import_id: int, version: string}|null
+     */
+    public function activeGraphForRoute(array $start, array $end): ?array
+    {
+        $graph = DB::connection(self::CONNECTION)->table('graphs')
+            ->join('imports', 'imports.id', '=', 'graphs.import_id')
+            ->where('imports.status', 'published')
+            ->where('imports.is_active', true)
+            ->whereRaw('ST_Covers(imports.bbox, ST_SetSRID(ST_MakePoint(?, ?), 4326))', [$start['lng'], $start['lat']])
+            ->whereRaw('ST_Covers(imports.bbox, ST_SetSRID(ST_MakePoint(?, ?), 4326))', [$end['lng'], $end['lat']])
+            ->orderByDesc('graphs.built_at')
+            ->select(['graphs.import_id', 'graphs.version'])
+            ->first();
+
+        if ($graph === null) {
+            return null;
+        }
+
+        return [
+            'import_id' => (int) $graph->import_id,
+            'version' => (string) $graph->version,
+        ];
+    }
+
+    public function activeGraphPayload(?int $importId = null): array
     {
         $rows = DB::connection(self::CONNECTION)->table('waterway_edges')
             ->join('imports', 'imports.id', '=', 'waterway_edges.import_id')
@@ -29,6 +54,7 @@ class BrouterGraphRepository
             ->join('waterway_nodes as to_node', 'to_node.id', '=', 'waterway_edges.to_node_id')
             ->where('imports.status', 'published')
             ->where('imports.is_active', true)
+            ->when($importId !== null, fn ($query) => $query->where('waterway_edges.import_id', $importId))
             ->select([
                 'waterway_edges.id',
                 'waterway_edges.distance_m',

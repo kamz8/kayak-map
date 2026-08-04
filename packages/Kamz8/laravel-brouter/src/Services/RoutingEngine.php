@@ -26,10 +26,11 @@ class RoutingEngine implements RouterInterface
     public function findRoute(RouteRequestData $request): RouteResult
     {
         $bbox = $this->bbox($request);
-        $graphVersion = $this->graphRepository?->activeGraphVersion() ?? 'runtime';
-        $graphPayload = $this->graphCache->remember($graphVersion, function () use ($request, $bbox): array {
-            if ($this->graphRepository !== null && $this->graphRepository->activeGraphVersion() !== null) {
-                return $this->graphRepository->activeGraphPayload();
+        $activeGraph = $this->graphRepository?->activeGraphForRoute($request->start, $request->end);
+        $graphVersion = $activeGraph['version'] ?? 'runtime';
+        $graphPayload = $this->graphCache->remember($graphVersion, function () use ($request, $bbox, $activeGraph): array {
+            if ($this->graphRepository !== null && $activeGraph !== null) {
+                return $this->graphRepository->activeGraphPayload($activeGraph['import_id']);
             }
 
             $osm = $this->cache->rememberOsm($request->riverName, $bbox, fn (): array => $this->dataProvider->getWaterwayByName($request->riverName, $bbox));
@@ -38,17 +39,17 @@ class RoutingEngine implements RouterInterface
             return $this->graphBuilder->build($normalized);
         });
 
-        $usesPersistedGraph = $this->graphRepository !== null && $this->graphRepository->activeGraphVersion() !== null;
+        $usesPersistedGraph = $activeGraph !== null;
 
         $route = $this->cache->rememberRoute($graphVersion, [
             'river' => $request->riverName,
             'start' => $request->start,
             'end' => $request->end,
             'snap_tolerance_m' => $request->snapToleranceMeters,
-        ], function () use ($request, $graphPayload, $usesPersistedGraph): array {
+        ], function () use ($request, $graphPayload, $usesPersistedGraph, $activeGraph): array {
             if ($usesPersistedGraph && $this->postgisSnapper !== null) {
-                $startSnap = $this->postgisSnapper->snap($request->start, $request->snapToleranceMeters);
-                $endSnap = $this->postgisSnapper->snap($request->end, $request->snapToleranceMeters);
+                $startSnap = $this->postgisSnapper->snap($request->start, $request->snapToleranceMeters, $activeGraph['import_id']);
+                $endSnap = $this->postgisSnapper->snap($request->end, $request->snapToleranceMeters, $activeGraph['import_id']);
             } else {
                 $startSnap = $this->snapper->snap($request->start, $graphPayload['edges'], $request->snapToleranceMeters);
                 $endSnap = $this->snapper->snap($request->end, $graphPayload['edges'], $request->snapToleranceMeters);
