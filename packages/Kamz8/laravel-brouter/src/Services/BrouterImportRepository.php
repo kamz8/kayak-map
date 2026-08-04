@@ -17,7 +17,7 @@ class BrouterImportRepository implements ImportRepositoryInterface
             'status' => 'staging',
             'is_active' => false,
             'bbox' => DB::raw(sprintf(
-                "ST_MakeEnvelope(%s, %s, %s, %s, 4326)",
+                'ST_MakeEnvelope(%s, %s, %s, %s, 4326)',
                 $bbox['west'],
                 $bbox['south'],
                 $bbox['east'],
@@ -203,7 +203,7 @@ class BrouterImportRepository implements ImportRepositoryInterface
 
     private function pointWkt(float $lat, float $lng): string
     {
-        return sprintf("ST_SetSRID(ST_Point(%F, %F), 4326)", $lng, $lat);
+        return sprintf('ST_SetSRID(ST_Point(%F, %F), 4326)', $lng, $lat);
     }
 
     private function lineWkt(array $geometry): string
@@ -219,7 +219,7 @@ class BrouterImportRepository implements ImportRepositoryInterface
     private function featureWkt(array $geometry): string
     {
         if (count($geometry) === 1) {
-            return $this->pointWkt((float) $geometry[0]['lat'], (float) $geometry[0]['lon']);
+            return $this->pointWkt((float) $geometry[0]['lat'], $this->longitude($geometry[0]));
         }
 
         return $this->lineWkt($geometry);
@@ -227,7 +227,16 @@ class BrouterImportRepository implements ImportRepositoryInterface
 
     private function coordinates(array $geometry): string
     {
-        return implode(',', array_map(fn (array $point): string => sprintf('%F %F', $point['lon'], $point['lat']), $geometry));
+        return implode(',', array_map(fn (array $point): string => sprintf('%F %F', $this->longitude($point), $point['lat']), $geometry));
+    }
+
+    private function longitude(array $point): float
+    {
+        if (! isset($point['lon']) && ! isset($point['lng'])) {
+            throw new RuntimeException('Geometry point must contain lon or lng.');
+        }
+
+        return (float) ($point['lon'] ?? $point['lng']);
     }
 
     private function isClosed(array $geometry): bool

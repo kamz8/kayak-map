@@ -1,11 +1,14 @@
 <?php
+
 // tests/Unit/Facades/BRouterFacadeTest.php
 
 namespace Kamz\LaravelBRouter\Tests\Unit\Facades;
 
-use Tests\TestCase;
-use Kamz\LaravelBRouter\Facades\BRouter;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
+use Kamz\LaravelBRouter\DTO\RouteRequestData;
+use Kamz\LaravelBRouter\Facades\BRouter;
+use Kamz\LaravelBRouter\Models\RouteResult;
+use Tests\TestCase;
 
 class BRouterFacadeTest extends TestCase
 {
@@ -22,15 +25,16 @@ class BRouterFacadeTest extends TestCase
     {
         BRouter::shouldReceive('findRoute')
             ->once()
-            ->with([16.989449, 51.136986], [16.977333, 51.144048], 'river')
-            ->andReturn(['test' => 'data']);
+            ->withArgs(fn (RouteRequestData $request): bool => $request->riverName === 'river')
+            ->andReturn(new RouteResult(path: [[16.989449, 51.136986]]));
 
-        $result = BRouter::findRoute(
-            [16.989449, 51.136986],
-            [16.977333, 51.144048],
-            'river'
-        );
+        $result = BRouter::findRoute(new RouteRequestData(
+            riverName: 'river',
+            start: ['lat' => 51.136986, 'lng' => 16.989449],
+            end: ['lat' => 51.144048, 'lng' => 16.977333],
+        ));
 
-        $this->assertEquals(['test' => 'data'], $result);
+        $this->assertInstanceOf(RouteResult::class, $result);
+        $this->assertSame([[16.989449, 51.136986]], $result->path);
     }
 }

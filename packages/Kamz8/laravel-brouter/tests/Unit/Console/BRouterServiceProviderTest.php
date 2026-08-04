@@ -1,10 +1,11 @@
 <?php
-// tests/Unit/BRouterServiceProviderTest.php
 
-namespace Kamz\LaravelBRouter\Tests\Unit;
+// tests/Unit/Console/BRouterServiceProviderTest.php
 
-use Kamz\LaravelBRouter\Tests\TestCase;
+namespace Kamz\LaravelBRouter\Tests\Unit\Console;
+
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
+use Kamz\LaravelBRouter\Tests\TestCase;
 
 class BRouterServiceProviderTest extends TestCase
 {

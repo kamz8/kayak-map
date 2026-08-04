@@ -6,6 +6,7 @@ use App\Models\Trail;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
 use Kamz\LaravelBRouter\DTO\RouteRequestData;
+use Kamz\LaravelBRouter\Exceptions\SnapDistanceExceededException;
 use Kamz\LaravelBRouter\Models\RouteResult;
 use Tests\TestCase;
 
@@ -115,8 +116,36 @@ class RouteApiFeatureTest extends TestCase
     }
 
     /** @test */
+    public function it_returns_unprocessable_when_river_route_points_are_outside_snap_tolerance(): void
+    {
+        $trail = Trail::factory()->create();
+
+        app()->instance(RouterInterface::class, new class implements RouterInterface
+        {
+            public function findRoute(RouteRequestData $request): RouteResult
+            {
+                throw new SnapDistanceExceededException('No waterway edge found within snap tolerance.');
+            }
+        });
+
+        $response = $this->postJson("/api/v1/dashboard/trails/{$trail->id}/river-route", [
+            'start' => ['lat' => 52.09, 'lng' => 15.91],
+            'end' => ['lat' => 52.60, 'lng' => 15.47],
+            'snap_tolerance_m' => 150,
+        ], $this->headers);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('error.code', 'SNAP_DISTANCE_EXCEEDED')
+            ->assertJsonPath('error.message', 'No waterway edge found within snap tolerance.');
+    }
+
+    /** @test */
     public function it_generates_a_widawa_river_route_with_the_production_routing_stack(): void
     {
+        if (! filter_var(getenv('BROUTER_PRODUCTION_ROUTING_TEST'), FILTER_VALIDATE_BOOLEAN)) {
+            $this->markTestSkipped('Set BROUTER_PRODUCTION_ROUTING_TEST=1 to run the production BRouter integration test.');
+        }
+
         config()->set('brouter.cache.store', 'array');
 
         $trail = Trail::factory()->create([

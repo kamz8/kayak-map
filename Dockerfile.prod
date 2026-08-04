@@ -7,7 +7,7 @@ COPY package*.json ./
 COPY vite.config.js ./
 COPY resources/js ./resources/js
 COPY resources/css ./resources/css
-RUN npm ci && npm run build
+RUN npm ci --legacy-peer-deps && npm run build
 
 # Etap composer
 FROM composer:latest as composer
@@ -39,6 +39,7 @@ RUN apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libwebp-dev \
+    libpq-dev \
     chromium \
     supervisor \
     netcat-openbsd \
@@ -56,6 +57,7 @@ RUN apt-get install -y \
         --with-webp \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
         zip \
         gd \
         bcmath \

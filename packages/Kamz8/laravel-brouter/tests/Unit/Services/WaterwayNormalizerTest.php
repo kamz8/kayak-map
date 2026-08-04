@@ -23,7 +23,7 @@ class WaterwayNormalizerTest extends TestCase
             ]],
         ];
 
-        $normalized = (new WaterwayNormalizer())->normalize($data, 'Wda');
+        $normalized = (new WaterwayNormalizer)->normalize($data, 'Wda');
 
         $this->assertCount(3, $normalized['nodes']);
         $this->assertCount(2, $normalized['edges']);
@@ -39,7 +39,7 @@ class WaterwayNormalizerTest extends TestCase
     /** @test */
     public function it_marks_oneway_edges_as_not_bidirectional(): void
     {
-        $normalized = (new WaterwayNormalizer())->normalize(['elements' => [[
+        $normalized = (new WaterwayNormalizer)->normalize(['elements' => [[
             'type' => 'way',
             'id' => 11,
             'tags' => ['waterway' => 'river', 'oneway' => 'yes'],
@@ -50,6 +50,37 @@ class WaterwayNormalizerTest extends TestCase
         ]]]);
 
         $this->assertFalse($normalized['edges'][0]['is_bidirectional']);
+    }
+
+    /** @test */
+    public function it_ignores_feature_nodes_without_coordinates(): void
+    {
+        $normalized = (new WaterwayNormalizer)->normalize(['elements' => [[
+            'type' => 'node',
+            'id' => 12,
+            'tags' => ['barrier' => 'weir'],
+        ]]]);
+
+        $this->assertSame([], $normalized['nodes']);
+        $this->assertSame([], $normalized['features']);
+    }
+
+    /** @test */
+    public function it_ignores_geometry_points_without_coordinates(): void
+    {
+        $normalized = (new WaterwayNormalizer)->normalize(['elements' => [[
+            'type' => 'way',
+            'id' => 13,
+            'tags' => ['waterway' => 'river'],
+            'geometry' => [
+                ['lat' => 53.1, 'lon' => 18.1],
+                ['lat' => 53.15],
+                ['lat' => 53.2, 'lon' => 18.2],
+            ],
+        ]]]);
+
+        $this->assertCount(2, $normalized['nodes']);
+        $this->assertCount(1, $normalized['edges']);
     }
 
     /** @test */
@@ -79,7 +110,7 @@ class WaterwayNormalizerTest extends TestCase
             ],
         ];
 
-        $normalized = (new WaterwayNormalizer())->normalize($data);
+        $normalized = (new WaterwayNormalizer)->normalize($data);
 
         $this->assertSame($tags, $normalized['waterways'][0]['source_tags']);
         $this->assertSame(['barrier' => 'dam', 'custom' => 'yes'], $normalized['features'][0]['source_tags']);

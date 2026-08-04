@@ -61,6 +61,7 @@ return new class extends Migration
             $table->double('distance_m');
             $table->jsonb('source_tags');
             $table->timestampsTz();
+            $table->unique(['id', 'import_id']);
             $table->foreign(['waterway_id', 'import_id'])->references(['id', 'import_id'])->on('waterways')->nullOnDelete();
             $table->foreign(['from_node_id', 'import_id'])->references(['id', 'import_id'])->on('waterway_nodes')->cascadeOnDelete();
             $table->foreign(['to_node_id', 'import_id'])->references(['id', 'import_id'])->on('waterway_nodes')->cascadeOnDelete();
@@ -106,6 +107,7 @@ return new class extends Migration
             $table->jsonb('metadata')->nullable();
             $table->timestampTz('built_at')->nullable();
             $table->timestampsTz();
+            $table->unique(['id', 'import_id']);
             $table->unique(['import_id', 'version']);
         });
 
@@ -128,6 +130,7 @@ return new class extends Migration
         $connection->statement('CREATE INDEX waterways_geometry_gist_idx ON waterways USING gist (geometry)');
         $connection->statement('CREATE INDEX waterway_nodes_geometry_gist_idx ON waterway_nodes USING gist (geometry)');
         $connection->statement('CREATE INDEX waterway_edges_geometry_gist_idx ON waterway_edges USING gist (geometry)');
+        $connection->statement('CREATE INDEX waterway_edges_geography_gist_idx ON waterway_edges USING gist ((geometry::geography))');
         $connection->statement('CREATE INDEX waterway_features_geometry_gist_idx ON waterway_features USING gist (geometry)');
         $connection->statement('CREATE INDEX water_bodies_geometry_gist_idx ON water_bodies USING gist (geometry)');
         $connection->statement('CREATE INDEX routes_geometry_gist_idx ON routes USING gist (geometry)');

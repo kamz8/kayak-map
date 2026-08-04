@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libwebp-dev \
     libxpm-dev \
+    libpq-dev \
     libmagickwand-dev \
     && docker-php-ext-configure gd \
         --with-freetype \
@@ -22,6 +23,7 @@ RUN apt-get update && apt-get install -y \
         --with-xpm \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
         zip \
         gd \
     && pecl install redis \
@@ -41,7 +43,7 @@ ENV VITE_API_URL=${VITE_API_URL}
 COPY composer.* package*.json ./
 COPY packages ./packages
 RUN composer install --no-scripts --no-autoloader --no-dev \
-    && npm ci
+    && npm ci --legacy-peer-deps
 COPY . .
 RUN npm run build \
     && composer dump-autoload --optimize --no-dev --no-scripts
@@ -58,6 +60,7 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libwebp-dev \
     libxpm-dev \
+    libpq-dev \
     curl \
     unzip \
     chromium \
@@ -69,6 +72,7 @@ RUN apt-get update && apt-get install -y \
         --with-xpm \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
         zip \
         gd \
         bcmath \
