@@ -79,7 +79,6 @@ export default defineConfig({
         hmr: {
             ...(isDocker ? {
                 host: 'kayak-map.test',
-                protocol: 'wss',
                 clientPort: 443,
                 path: '/_vite/ws',
             } : {
@@ -90,8 +89,8 @@ export default defineConfig({
         watch: {
             usePolling: isDocker,
             ...(isDocker ? {
-                interval: 1000,
-                binaryInterval: 2000,
+                interval: 300,
+                binaryInterval: 1000,
             } : {}),
         },
         proxy: {

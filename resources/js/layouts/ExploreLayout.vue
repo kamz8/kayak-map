@@ -8,19 +8,19 @@
     </v-app-bar>
 
     <!-- Sidebar Panel -->
-    <v-navigation-drawer v-model="drawer" app clipped width="400" elevation="2" class="d-flex flex-column">
+    <v-navigation-drawer v-model="drawer" app clipped :width="drawerWidth" elevation="2">
         <router-view name="sidebar"></router-view>
-        <v-btn
-            icon
-            @click="toggleDrawer"
-            class="drawer-toggle-btn d-none d-sm-inline-block d-md-inline-block d-lg-inline-block"
-            size="s"
-
-        >
-            <v-icon>{{ drawer ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
-        </v-btn>
-
     </v-navigation-drawer>
+
+    <!-- Drawer toggle button — poza drawerem żeby overflow:hidden go nie przycinał -->
+    <v-btn
+        icon
+        @click="toggleDrawer"
+        class="drawer-toggle-btn d-none d-sm-inline-block d-md-inline-block d-lg-inline-block"
+        size="s"
+    >
+        <v-icon>{{ drawer ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
+    </v-btn>
 
     <!-- Main Content -->
     <v-main app class="flex-grow-1">
@@ -44,9 +44,10 @@ export default {
         Navbar,
     },
     setup() {
-        const {name} = useDisplay()
+        const {name, width} = useDisplay()
         return {
-            name
+            name,
+            displayWidth: width,
         }
     },
     data() {
@@ -60,10 +61,24 @@ export default {
         },
         mainContainerStyle() {
             const appBarHeight = this.hasToolbar ? 66 : 0
-            return `height: calc(100vh - 64px - ${appBarHeight}px);`
+            return `height: calc(100vh - 64px - ${appBarHeight}px); overflow: hidden; position: relative;`
         },
         mapToggleBtnText() {
             return (this.drawer) ? "Mapa" : 'Lista'
+        },
+        isMobile() {
+            return ['xs', 'sm'].includes(this.name)
+        },
+        drawerWidth() {
+            return this.isMobile ? this.displayWidth : 400
+        },
+        toggleBtnLeft() {
+            if (this.isMobile) return '0px'
+            return this.drawer ? '400px' : '0px'
+        },
+        toggleBtnTop() {
+            const appBarHeight = this.hasToolbar ? 66 : 0
+            return `${64 + appBarHeight + 10}px`
         },
     },
     methods: {
@@ -90,17 +105,17 @@ export default {
 }
 
 .drawer-toggle-btn {
-    position: absolute;
-    top: 10px;
-    right: -25px;
-    z-index: 1000;
-    background-color: white;
-    border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    border-bottom-left-radius: 0;
-    border-top-left-radius: 0;
-
+    position: fixed !important;
+    top: v-bind(toggleBtnTop);
+    left: v-bind(toggleBtnLeft);
+    z-index: 1006;
+    background-color: white !important;
+    border-radius: 50% !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
     height: 2em !important;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.6, 1);
 }
 .mapToggleButton {
     position: absolute;
@@ -110,7 +125,40 @@ export default {
     z-index: 1005;
 }
 
-html {
-    overflow: initial;
+:deep(.v-navigation-drawer__content) {
+    overflow: hidden;
+}
+
+
+</style>
+
+<style>
+html,
+body {
+    overflow: hidden;
+    height: 100%;
+}
+
+.v-navigation-drawer .v-virtual-scroll {
+    scrollbar-width: auto;
+    scrollbar-color: #9e9e9e transparent;
+}
+
+.v-navigation-drawer .v-virtual-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+
+.v-navigation-drawer .v-virtual-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.v-navigation-drawer .v-virtual-scroll::-webkit-scrollbar-thumb {
+    background: #9e9e9e;
+    border-radius: 100px;
+    transition: background 0.2s ease;
+}
+
+.v-navigation-drawer .v-virtual-scroll::-webkit-scrollbar-thumb:hover {
+    background: #757575;
 }
 </style>

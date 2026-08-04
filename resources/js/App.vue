@@ -78,6 +78,6 @@ export default {
 
 <style>
 html{
-    overflow: inherit;
+    //overflow: inherit;
 }
 </style>

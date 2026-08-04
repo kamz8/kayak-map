@@ -16,12 +16,11 @@
                 :weight="4"
                 :opacity="0.8"
             />
-            <!--  Start stop marker-->
-            <l-marker :lat-lng="startPoint" >
+
+            <l-marker :lat-lng="startPoint">
                 <l-icon class="start-icon">
                     <v-icon size="34" class="icon-with-stroke" color="green darken-5">mdi-map-marker-circle</v-icon>
                 </l-icon>
-                <mini-popup lat-lang="startPoint" text="Początek"/>
                 <l-popup :options="miniPopupOptions">
                     <mini-popup :lat-lang="startPoint" :text="'Początek'"/>
                 </l-popup>
@@ -37,18 +36,13 @@
                             <v-col cols="12" class="pa-2">
                                 <span class="font-weight-bold">Koniec</span>
                                 <v-spacer></v-spacer>
-                                <span style="line-height: 1.8em" class="text-grey-darken-2">{{
-                                        endPoint[0]
-                                    }}, {{ endPoint[1] }}</span>
+                                <span style="line-height: 1.8em" class="text-grey-darken-2">{{ endPoint[0] }}, {{ endPoint[1] }}</span>
                             </v-col>
                         </v-row>
                     </v-card>
-
-
                 </l-popup>
             </l-marker>
 
-            <!-- Trail Points -->
             <l-marker
                 v-for="point in validTrailPoints"
                 :key="point.id"
@@ -65,16 +59,10 @@
                     <v-card class="point-popup" width="300" max-height="120" outlined>
                         <v-row no-gutters>
                             <v-col cols="4">
-                                <v-img
-                                    :src="placeholderImage"
-                                    height="100%"
-                                    width="100"
-                                    cover
-                                >
+                                <v-img :src="placeholderImage" height="100%" width="100" cover>
                                     <template v-slot:placeholder>
                                         <v-row class="fill-height ma-0" align="center" justify="center">
-                                            <v-progress-circular indeterminate
-                                                                 color="grey-lighten-5"></v-progress-circular>
+                                            <v-progress-circular indeterminate color="grey-lighten-5"/>
                                         </v-row>
                                     </template>
                                 </v-img>
@@ -87,59 +75,38 @@
                                             {{ point.point_type_key }}
                                         </v-chip>
                                     </v-card-title>
-                                    <v-card-text v-if="point.description" class="pa-0">
-                                        {{ point.description }}
-                                    </v-card-text>
-                                    <v-card-text v-else class="pa-0 pt-3 text-subtitle-2">
-                                        Brak opisu dla punktu
-                                    </v-card-text>
+                                    <v-card-text v-if="point.description" class="pa-0">{{ point.description }}</v-card-text>
+                                    <v-card-text v-else class="pa-0 pt-3 text-subtitle-2">Brak opisu dla punktu</v-card-text>
                                 </v-card-item>
                             </v-col>
                         </v-row>
                     </v-card>
                 </l-popup>
             </l-marker>
-            <!--map controls-->
-            <div class="map-controls top-right-controls">
-                <div class="layer-control" @mouseenter="showLayerOptions = true" @mouseleave="showLayerOptions = false">
-                    <v-btn icon="mdi-layers" density="comfortable" class="main-button" v-tooltip="'Warstwy mapy'"/>
-                    <transition name="fade">
-                        <div v-if="showLayerOptions" class="layer-options">
-                            <v-btn icon="mdi-map" class="layer-button" @click="setTileLayer('default')"
-                                   v-tooltip="'Mapa domyślna'"/>
-                            <v-btn icon="mdi-terrain" class="layer-button" @click="setTileLayer('terrain')"
-                                   v-tooltip="'Mapa terenu'"/>
-                            <v-btn icon="mdi-satellite-variant" class="layer-button" @click="setTileLayer('satellite')"
-                                   v-tooltip="'Mapa satelitarna'"/>
-                        </div>
-                    </transition>
-                </div>
-            </div>
-            <div class="map-controls bottom-right-controls">
-                <v-btn icon="mdi-plus" density="comfortable" class="control-button" @click="zoomIn"
-                       v-tooltip="'Przybliż'"/>
-                <v-btn icon="mdi-minus" density="comfortable" class="control-button" @click="zoomOut"
-                       v-tooltip="'Oddal'"/>
-                <v-btn icon="mdi-crosshairs-gps" density="comfortable" class="control-button" @click="locate"
-                       v-tooltip="'Zlokalizuj mnie'"/>
-            </div>
         </l-map>
 
-
+        <MapControls
+            @change-layer="setTileLayer"
+            @zoom-in="zoomIn"
+            @zoom-out="zoomOut"
+            @locate="locate"
+        />
     </div>
 </template>
 
 <script>
-import {LMap, LTileLayer, LPolyline, LMarker, LIcon, LPopup} from '@vue-leaflet/vue-leaflet'
+import { LMap, LTileLayer, LPolyline, LMarker, LIcon, LPopup } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
-import {mapGetters, mapState, mapActions} from 'vuex'
-import MiniPopup from "@/modules/trails/components/Map/MiniPopup.vue";
-import MapMixin from "@/mixins/MapMixin.js";
+import { mapGetters, mapState, mapActions } from 'vuex'
+import MiniPopup from "@/modules/trails/components/Map/MiniPopup.vue"
+import MapControls from "@/modules/trails/components/Map/MapControls.vue"
+import MapMixin from "@/mixins/MapMixin.js"
 
 export default {
     name: 'SingleTrailMap',
     components: {
         MiniPopup,
+        MapControls,
         LPopup,
         LMap,
         LTileLayer,
@@ -157,15 +124,14 @@ export default {
     data() {
         return {
             zoom: 12,
-            mapCenter: [52.237049, 21.017532], // Default center (Warsaw, Poland)
+            mapCenter: [52.237049, 21.017532],
             url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             attribution: '© OpenStreetMap contributors',
-            trailColor: '#4682B4', // Steel Blue color from your color scheme
+            trailColor: '#4682B4',
             showLayerOptions: false,
             popupOptions: {
                 closeButton: false,
                 className: 'custom-popup'
-
             },
             miniPopupOptions: {
                 closeButton: false,
@@ -187,25 +153,21 @@ export default {
                 : null;
         },
         trailPath() {
-            if (!this.currentTrail || !this.currentTrail.river_track) {
-                console.warn('Invalid or missing river_track data');
-                return [];
-            }
-
-            return this.convertCoordinates(this.currentTrail.river_track.track_points?.coordinates)
+            const coordinates = this.currentTrail?.river_track?.track_points?.coordinates;
+            if (!Array.isArray(coordinates)) return [];
+            return this.convertCoordinates(coordinates);
         },
-
         isValidStartPoint() {
-            return this.startPoint !== null
+            return this.startPoint !== null;
         },
         isValidEndPoint() {
-            return this.endPoint !== null
+            return this.endPoint !== null;
         },
         trailLength() {
-            return this.currentTrail?.trail_length || 0
+            return this.currentTrail?.trail_length || 0;
         },
         trailPoints() {
-            return this.currentTrail?.points || []
+            return this.currentTrail?.points || [];
         },
         validTrailPoints() {
             return this.trailPoints.filter(point =>
@@ -213,166 +175,108 @@ export default {
             );
         }
     },
+    watch: {
+        currentTrail: {
+            handler() {
+                this.$nextTick(this.fitMapToTrail);
+            },
+            immediate: true,
+            deep: true
+        },
+        selectedPointId(newPointId) {
+            if (!newPointId) return;
+            const point = this.trailPoints.find(p => p.id === newPointId);
+            if (point && this.isValidLatLng(parseFloat(point.lat), parseFloat(point.lng))) {
+                this.moveToPoint({
+                    lat: parseFloat(point.lat),
+                    lng: parseFloat(point.lng),
+                    zoom: 16
+                });
+            }
+        }
+    },
     methods: {
-        ...mapActions('trails', ['selectPoint', 'clearSelectedPoint']),
+        ...mapActions('trails', ['selectPoint']),
         onMapReady(mapInstance) {
-            this.mapInstance = mapInstance
-            this.fitMapToTrail()
+            this.mapInstance = mapInstance;
+            this.fitMapToTrail();
         },
         fitMapToTrail() {
-            if (this.isValidStartPoint) {
-                this.mapCenter = [...this.startPoint]
-                if (this.trailPath.length > 1 && this.mapInstance) {
-                    const bounds = this.calculateBounds()
-                    if (bounds) {
-                        this.mapInstance.fitBounds(bounds, {padding: [50, 50]})
-                        this.zoom = this.mapInstance.getZoom()
-                    }
-                } else {
-                    this.zoom = this.calculateZoomFromTrailLength()
+            if (!this.isValidStartPoint) return;
+            this.mapCenter = [...this.startPoint];
+            if (this.trailPath.length > 1 && this.mapInstance) {
+                const bounds = this.calculateBounds();
+                if (bounds) {
+                    this.mapInstance.fitBounds(bounds, { padding: [50, 50] });
+                    this.zoom = this.mapInstance.getZoom();
                 }
-
-                if (this.mapInstance) {
-                    this.mapInstance.panTo(this.mapCenter)
-                }
+            } else {
+                this.zoom = this.calculateZoomFromTrailLength();
             }
+            this.mapInstance?.panTo(this.mapCenter);
         },
         calculateBounds() {
-            if (this.trailPath.length < 2) return null
+            if (this.trailPath.length < 2) return null;
             return this.trailPath.reduce(
                 (bounds, point) => bounds.extend(point),
                 window.L.latLngBounds(this.trailPath[0], this.trailPath[1])
-            )
+            );
         },
-
         calculateZoomFromTrailLength() {
-            if (this.trailLength < 1000) return 18
-            if (this.trailLength < 2000) return 14
-            if (this.trailLength < 5000) return 13
-            if (this.trailLength < 20000) return 11
-            if (this.trailLength < 50000) return 9
-            return 7
+            if (this.trailLength < 1000) return 18;
+            if (this.trailLength < 2000) return 14;
+            if (this.trailLength < 5000) return 13;
+            if (this.trailLength < 20000) return 11;
+            if (this.trailLength < 50000) return 9;
+            return 7;
         },
-        getPointIcon(pointType) {
-            switch (pointType) {
-                case 'Pole namiotowe':
-                case 'Miejsce biwakowania':
-                    return 'mdi-tent'
-                case 'Przeszkoda':
-                case 'Niebezpieczeństwo':
-                case 'uwaga':
-                    return 'mdi-alert'
-                case 'Jaz':
-                    return 'mdi-water'
-                case 'most':
-                    return 'mdi-bridge'
-                case 'przenoska':
-                    return 'mdi-arrow-up-down'
-                case 'ujście':
-                    return 'mdi-call-split'
-                case 'sklep':
-                    return 'mdi-store'
-                case 'Inny':
-                case 'Other':
-                default:
-                    return 'mdi-map-marker'
-            }
-        },
-        getPointColor(pointType) {
-            switch (pointType) {
-                case 'Pole namiotowe':
-                case 'Miejsce biwakowania':
-                    return 'green'
-                case 'Przeszkoda':
-                case 'Niebezpieczeństwo':
-                case 'uwaga':
-                    return 'red'
-                case 'Jaz':
-                    return 'blue'
-                case 'most':
-                    return 'brown'
-                case 'przenoska':
-                    return 'orange'
-                case 'ujście':
-                    return 'purple'
-                case 'sklep':
-                    return 'amber'
-                case 'Inny':
-                case 'Other':
-                default:
-                    return 'teal'
-            }
-        },
-        moveToPoint(pointData) {
-            if (!this.mapInstance || !pointData) return;
-
-            const { lat, lng, zoom = 16 } = pointData;
-
-            if (this.isValidLatLng(lat, lng)) {
-                this.mapCenter = [lat, lng]; // Update center first
-                this.zoom = zoom;
-                this.mapInstance.setView([lat, lng], zoom);
-            }
+        moveToPoint({ lat, lng, zoom = 16 }) {
+            if (!this.mapInstance || !this.isValidLatLng(lat, lng)) return;
+            this.mapCenter = [lat, lng];
+            this.zoom = zoom;
+            this.mapInstance.setView([lat, lng], zoom);
         },
         onPointMarkerClick(point) {
-            // Update Vuex state for bidirectional sync
             this.selectPoint(point);
         },
-        getPointMarkerClass(point) {
-            // Add visual classes based on point type
-            return `point-${point.point_type_key}`;
-        },
         zoomIn() {
-            if (this.$refs.map) {
-                this.$refs.map.leafletObject.zoomIn()
-            }
+            this.$refs.map?.leafletObject?.zoomIn();
         },
         zoomOut() {
-            if (this.$refs.map) {
-                this.$refs.map.leafletObject.zoomOut()
-            }
+            this.$refs.map?.leafletObject?.zoomOut();
         },
         async locate() {
-            if ("geolocation" in navigator) {
-                try {
-                    const position = await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0
-                        })
-                    })
-
-                    const {latitude, longitude} = position.coords
-
-                    if (isFinite(latitude) && isFinite(longitude)) {
-                        this.mapCenter = [latitude, longitude]
-                        this.zoom = 10
-                    } else {
-                        console.error("Received invalid coordinates:", {latitude, longitude})
-                    }
-                } catch (err) {
-                    console.error("Geolocation error:", err.message)
-                    // You might want to show an error message to the user here
+            if (!("geolocation" in navigator)) return;
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+                const { latitude, longitude } = position.coords;
+                if (isFinite(latitude) && isFinite(longitude)) {
+                    this.mapCenter = [latitude, longitude];
+                    this.zoom = 10;
                 }
-            } else {
-                console.error("Geolocation is not available")
-                // You might want to show an error message to the user here
+            } catch {
+                // geolocation unavailable or denied
             }
         },
         setTileLayer(layer) {
             switch (layer) {
                 case 'terrain':
-                    this.url = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
-                    this.attribution = 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)'
-                    break
+                    this.url = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+                    this.attribution = 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)';
+                    break;
                 case 'satellite':
-                    this.url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-                    this.attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                    break
+                    this.url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+                    this.attribution = 'Tiles &copy; Esri';
+                    break;
                 default:
-                    this.url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-                    this.attribution = '© OpenStreetMap contributors'
+                    this.url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                    this.attribution = '© OpenStreetMap contributors';
             }
         },
         isValidLatLng(lat, lng) {
@@ -381,33 +285,7 @@ export default {
                 lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 &&
                 lat !== -1.0 && lng !== -1.0;
         }
-    },
-    watch: {
-        currentTrail: {
-            handler(newTrail) {
-                this.$nextTick(this.fitMapToTrail)
-            },
-            immediate: true,
-            deep: true
-        },
-        // Watch for selectedPointId changes from sidebar clicks
-        selectedPointId: {
-            handler(newPointId) {
-                if (newPointId) {
-                    const point = this.trailPoints.find(p => p.id === newPointId);
-                    if (point && this.isValidLatLng(parseFloat(point.lat), parseFloat(point.lng))) {
-                        this.moveToPoint({
-                            lat: parseFloat(point.lat),
-                            lng: parseFloat(point.lng),
-                            zoom: 16,
-                            point: point
-                        });
-                    }
-                }
-            },
-            immediate: false
-        }
-    },
+    }
 }
 </script>
 
@@ -418,58 +296,9 @@ export default {
     width: 100%;
 }
 
-.map-controls {
-    position: absolute;
-    z-index: 999;
-}
-
-.top-right-controls {
-    top: 20px;
-    right: 20px;
-}
-
-.bottom-right-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    bottom: 20px;
-    right: 20px;
-}
-
-.layer-control {
-    position: relative;
-}
-
-.main-button,
-.layer-button,
-.control-button {
-    border-radius: 50% !important;
-    width: 40px !important;
-    height: 40px !important;
-    background-color: white !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
-.layer-options {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.fade-enter-active, .fade-leave-active {
-    transition: opacity 0.3s, transform 0.3s;
-}
-
-.fade-enter-from, .fade-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
-}
-
-.start-icon, .end-icon {
+.start-icon,
+.end-icon,
+.point-icon {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -478,17 +307,8 @@ export default {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.error-message {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    background-color: #f8d7da;
-    color: #721c24;
-    font-size: 16px;
-    padding: 20px;
-    text-align: center;
+.icon-with-stroke {
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 
 .point-popup {
@@ -512,27 +332,6 @@ export default {
     display: none;
 }
 
-.start-icon, .end-icon, .point-icon {
-    background-color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.point-popup {
-    min-width: 200px;
-}
-
-.point-popup h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-}
-
-.point-popup p {
-    margin: 4px 0;
-}
-
 :deep(.mini-popup .leaflet-popup .leaflet-popup-content-wrapper) {
     padding: 0;
     overflow: hidden;
@@ -548,14 +347,5 @@ export default {
 
 :deep(.mini-popup .leaflet-popup-tip-container) {
     display: none;
-}
-/* Point marker styling - minimal changes */
-:deep(.point-marker.selected-marker) {
-    transform: scale(1.2);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.icon-with-stroke {
-    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 </style>
