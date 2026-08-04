@@ -14,7 +14,7 @@ class RiverService
     public function __construct()
     {
         $this->client = new Client([
-            'base_uri' => 'https://overpass-api.de/api/',
+            'base_uri' => str_replace('/interpreter', '/', config('overpass.endpoint')),
             'timeout'  => 10.0,
         ]);
     }

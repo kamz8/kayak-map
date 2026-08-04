@@ -39,7 +39,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'overpass' => [
-        'endpoint' => env('OVERPASS_ENDPOINT', 'https://overpass-api.de/api/interpreter'),
+        'endpoint' => env('OVERPASS_ENDPOINT', 'https://overpass.kumi.systems/api/interpreter'),
         'timeout' => 60,
         'retries' => 3,
         'feature_tags' => [

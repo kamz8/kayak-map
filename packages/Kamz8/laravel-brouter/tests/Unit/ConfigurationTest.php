@@ -28,6 +28,7 @@ class ConfigurationTest extends TestCase
         $this->assertTrue($config['cache']['enabled']);
         $this->assertEquals(60 * 60 * 24 * 30, $config['cache']['osm_ttl']);
         $this->assertEquals(500, $config['routing']['max_snap_distance']);
+        $this->assertEquals('https://overpass.kumi.systems/api/interpreter', $config['overpass']['endpoint']);
     }
 
     /** @test */

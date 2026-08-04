@@ -21,6 +21,8 @@ services:
             BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
             BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
             BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
+            OVERPASS_API_ENDPOINT: ${OVERPASS_API_ENDPOINT:-https://overpass.kumi.systems/api/interpreter}
+            OVERPASS_ENDPOINT: ${OVERPASS_ENDPOINT:-https://overpass.kumi.systems/api/interpreter}
             REDIS_HOST: redis
             REDIS_PASSWORD: null
             REDIS_PORT: 6379
@@ -187,6 +189,8 @@ services:
             BROUTER_DB_DATABASE: ${BROUTER_DB_DATABASE:-brouter}
             BROUTER_DB_USERNAME: ${BROUTER_DB_USERNAME:-brouter}
             BROUTER_DB_PASSWORD: ${BROUTER_DB_PASSWORD:-brouter}
+            OVERPASS_API_ENDPOINT: ${OVERPASS_API_ENDPOINT:-https://overpass.kumi.systems/api/interpreter}
+            OVERPASS_ENDPOINT: ${OVERPASS_ENDPOINT:-https://overpass.kumi.systems/api/interpreter}
             REDIS_HOST: redis
             REDIS_PASSWORD: null
             REDIS_PORT: 6379
