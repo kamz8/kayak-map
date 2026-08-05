@@ -177,4 +177,29 @@ class RouteApiFeatureTest extends TestCase
         $this->assertGreaterThan(2, count($response->json('data.path')));
         $this->assertGreaterThan(0, $response->json('data.distance_m'));
     }
+
+    /** @test */
+    public function it_generates_a_real_odra_route_through_the_pgrouting_stack(): void
+    {
+        $trail = Trail::factory()->create([
+            'river_name' => 'Odra',
+            'start_lat' => 51.0631726,
+            'start_lng' => 17.1618532,
+            'end_lat' => 51.049888,
+            'end_lng' => 17.22134,
+        ]);
+
+        $response = $this->postJson("/api/v1/dashboard/trails/{$trail->id}/snap-river", [
+            'snap_tolerance_m' => 100,
+        ], $this->headers);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.cache.engine', 'pgrouting');
+        $response->assertJsonPath('data.cache.algorithm', 'astar');
+        $response->assertJsonPath('data.cache.graph', fn ($graph): bool => is_string($graph) && $graph !== '');
+        $response->assertJsonPath('data.start_snap.distance_m', fn ($distance): bool => $distance < 100);
+        $response->assertJsonPath('data.end_snap.distance_m', fn ($distance): bool => $distance < 100);
+        $this->assertGreaterThan(0, $response->json('data.distance_m'));
+        $this->assertGreaterThan(2, count($response->json('data.path')));
+    }
 }
