@@ -30,6 +30,10 @@ Route::prefix('/dashboard')
             ->name('dashboard.trails.change-status');
         Route::post('trails/{trail}/river-route', TrailRiverRouteController::class)
             ->name('dashboard.trails.river-route');
+        Route::post('trails/{trail}/snap-river', [TrailRiverRouteController::class, 'snap'])
+            ->name('dashboard.trails.snap-river');
+        Route::post('trails/{trail}/auto-route', [TrailRiverRouteController::class, 'auto'])
+            ->name('dashboard.trails.auto-route');
         Route::get('trails/{trail}', [TrailController::class, 'show'])
             ->name('dashboard.trails.show');
         Route::put('trails/{trail}', [TrailController::class, 'update'])

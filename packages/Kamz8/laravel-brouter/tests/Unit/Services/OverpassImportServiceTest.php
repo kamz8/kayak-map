@@ -66,6 +66,29 @@ class OverpassImportServiceTest extends TestCase
             $this->assertNull($repository->publishedImportId);
         }
     }
+
+    /** @test */
+    public function it_can_leave_an_import_temporary_for_immediate_routing(): void
+    {
+        $repository = new RecordingImportRepository();
+        $provider = new class implements ImportDataProviderInterface
+        {
+            public function getImportData(array $bbox): array
+            {
+                return ['elements' => [['type' => 'way', 'id' => 1, 'tags' => ['waterway' => 'river'], 'geometry' => [
+                    ['lat' => 51.0, 'lon' => 16.0],
+                    ['lat' => 51.1, 'lon' => 16.1],
+                ]]]];
+            }
+        };
+
+        $service = new OverpassImportService($provider, $repository, new WaterwayNormalizer(), new WaterwayGraphBuilder());
+        $result = $service->importTemporary(['south' => 51.0, 'west' => 16.0, 'north' => 52.0, 'east' => 17.0]);
+
+        $this->assertSame('temporary', $result['status']);
+        $this->assertSame(['staging', 'importing', 'temporary'], $repository->statuses);
+        $this->assertNull($repository->publishedImportId);
+    }
 }
 
 class RecordingImportRepository implements ImportRepositoryInterface

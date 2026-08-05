@@ -8,45 +8,73 @@ class BrouterGraphRepository
 {
     private const CONNECTION = 'brouter';
 
-    public function activeGraphVersion(): ?string
+    public function activeGraphVersion(?array $bbox = null): ?string
     {
-        $graph = DB::connection(self::CONNECTION)->table('graphs')
-            ->join('imports', 'imports.id', '=', 'graphs.import_id')
-            ->where('imports.status', 'published')
-            ->where('imports.is_active', true)
-            ->orderByDesc('graphs.built_at')
-            ->select('graphs.version')
-            ->first();
-
-        return $graph?->version;
+        return $this->publishedGraph($bbox)?->version;
     }
 
-    /**
-     * @return array{import_id: int, version: string}|null
-     */
-    public function activeGraphForRoute(array $start, array $end): ?array
+    public function activeGraphImportId(?array $bbox = null): ?int
     {
-        $graph = DB::connection(self::CONNECTION)->table('graphs')
+        $graph = $this->publishedGraph($bbox);
+
+        return $graph === null ? null : (int) $graph->import_id;
+    }
+
+    public function activeGraphVersionForRiver(string $riverName, ?array $bbox = null): ?string
+    {
+        return $this->publishedGraphForRiver($riverName, $bbox)?->version;
+    }
+
+    public function activeGraphImportIdForRiver(string $riverName, ?array $bbox = null): ?int
+    {
+        $graph = $this->publishedGraphForRiver($riverName, $bbox);
+
+        return $graph === null ? null : (int) $graph->import_id;
+    }
+
+    private function publishedGraph(?array $bbox): ?object
+    {
+        $query = DB::connection(self::CONNECTION)->table('graphs')
             ->join('imports', 'imports.id', '=', 'graphs.import_id')
             ->where('imports.status', 'published')
-            ->where('imports.is_active', true)
-            ->whereRaw('ST_Covers(imports.bbox, ST_SetSRID(ST_MakePoint(?, ?), 4326))', [$start['lng'], $start['lat']])
-            ->whereRaw('ST_Covers(imports.bbox, ST_SetSRID(ST_MakePoint(?, ?), 4326))', [$end['lng'], $end['lat']])
             ->orderByDesc('graphs.built_at')
-            ->select(['graphs.import_id', 'graphs.version'])
-            ->first();
+            ->select(['graphs.version', 'graphs.import_id']);
 
-        if ($graph === null) {
-            return null;
+        if ($bbox === null) {
+            $query->where('imports.is_active', true);
+        } else {
+            $query->whereRaw(
+                'ST_Intersects(imports.bbox, ST_MakeEnvelope(?, ?, ?, ?, 4326))',
+                [$bbox['west'], $bbox['south'], $bbox['east'], $bbox['north']]
+            )->orderByDesc('imports.is_active');
         }
 
-        return [
-            'import_id' => (int) $graph->import_id,
-            'version' => (string) $graph->version,
-        ];
+        return $query->first();
     }
 
-    public function activeGraphPayload(?int $importId = null): array
+    private function publishedGraphForRiver(string $riverName, ?array $bbox): ?object
+    {
+        $query = DB::connection(self::CONNECTION)->table('graphs')
+            ->join('imports', 'imports.id', '=', 'graphs.import_id')
+            ->where('imports.status', 'published')
+            ->whereRaw(
+                "lower(coalesce(imports.metadata->>'name', imports.metadata->'metadata'->>'name')) = lower(?)",
+                [$riverName]
+            )
+            ->orderByDesc('graphs.built_at')
+            ->select(['graphs.version', 'graphs.import_id']);
+
+        if ($bbox !== null) {
+            $query->whereRaw(
+                'ST_Intersects(imports.bbox, ST_MakeEnvelope(?, ?, ?, ?, 4326))',
+                [$bbox['west'], $bbox['south'], $bbox['east'], $bbox['north']]
+            );
+        }
+
+        return $query->first();
+    }
+
+    public function activeGraphPayload(): array
     {
         $rows = DB::connection(self::CONNECTION)->table('waterway_edges')
             ->join('imports', 'imports.id', '=', 'waterway_edges.import_id')
@@ -54,7 +82,6 @@ class BrouterGraphRepository
             ->join('waterway_nodes as to_node', 'to_node.id', '=', 'waterway_edges.to_node_id')
             ->where('imports.status', 'published')
             ->where('imports.is_active', true)
-            ->when($importId !== null, fn ($query) => $query->where('waterway_edges.import_id', $importId))
             ->select([
                 'waterway_edges.id',
                 'waterway_edges.distance_m',

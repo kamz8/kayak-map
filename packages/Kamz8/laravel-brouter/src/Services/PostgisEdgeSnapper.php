@@ -10,10 +10,9 @@ class PostgisEdgeSnapper
 {
     private const CONNECTION = 'brouter';
 
-    public function snap(array $point, float $maxDistanceMeters, ?int $importId = null): SnapResultData
+    public function snap(array $point, float $maxDistanceMeters): SnapResultData
     {
         $queryPoint = 'ST_SetSRID(ST_MakePoint(?, ?), 4326)';
-        $importFilter = $importId === null ? '' : ' AND e.import_id = ?';
         $row = DB::connection(self::CONNECTION)->selectOne(<<<SQL
 SELECT
   e.id,
@@ -28,7 +27,6 @@ FROM waterway_edges e
 JOIN imports i ON i.id = e.import_id
 WHERE i.status = 'published'
   AND i.is_active = true
-  {$importFilter}
   AND ST_DWithin(e.geometry::geography, {$queryPoint}::geography, ?)
 ORDER BY e.geometry <-> {$queryPoint}
 LIMIT 1
@@ -38,7 +36,6 @@ SQL, [
             $point['lng'], $point['lat'],
             $point['lng'], $point['lat'],
             $point['lng'], $point['lat'],
-            ...($importId === null ? [] : [$importId]),
             $maxDistanceMeters,
             $point['lng'], $point['lat'],
         ]);

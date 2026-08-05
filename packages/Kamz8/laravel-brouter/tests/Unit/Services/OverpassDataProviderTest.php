@@ -62,6 +62,31 @@ class OverpassDataProviderTest extends TestCase
     }
 
     /** @test */
+    public function it_fetches_way_only_data_for_a_named_import_corridor(): void
+    {
+        config()->set('overpass.endpoint', 'https://overpass.test/api/interpreter');
+
+        Http::fake([
+            'overpass.test/*' => Http::response(['elements' => []], 200),
+        ]);
+
+        (new OverpassDataProvider())->getNamedImportData('Obra', [
+            'south' => 52.0,
+            'west' => 15.0,
+            'north' => 52.6,
+            'east' => 16.0,
+        ]);
+
+        Http::assertSent(function ($request): bool {
+            $query = $request['data'];
+
+            return str_contains($query, 'way["waterway"]["name"="Obra"]')
+                && ! str_contains($query, 'relation["waterway"]')
+                && str_contains($query, '(52,15,52.6,16)');
+        });
+    }
+
+    /** @test */
     public function it_fetches_all_import_features_and_preserves_the_bbox(): void
     {
         config()->set('overpass.endpoint', 'https://overpass.test/api/interpreter');

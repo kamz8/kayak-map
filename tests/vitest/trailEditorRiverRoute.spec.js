@@ -35,12 +35,32 @@ describe('Trail editor river route preview', () => {
       snapToleranceMeters: 250
     })
 
-    expect(apiClient.post).toHaveBeenCalledWith('/dashboard/trails/42/river-route', {
-      start: { lat: 53.1, lng: 18.1 },
-      end: { lat: 53.2, lng: 18.2 },
-      snap_tolerance_m: 250
+    expect(apiClient.post).toHaveBeenCalledWith('/dashboard/trails/42/snap-river', {
+        start: { lat: 53.1, lng: 18.1 },
+        end: { lat: 53.2, lng: 18.2 },
+        snap_tolerance_m: 250,
+        mode: 'snap'
     })
     expect(result.distance_m).toBe(123)
+    expect(trailEditorModule.getters[GETTERS.ROUTE_PREVIEW_COORDINATES](state)).toEqual([[53.1, 18.1], [53.2, 18.2]])
+  })
+
+  it('generates a complete auto route preview', async () => {
+    apiClient.post.mockResolvedValue({
+      data: {
+        data: {
+          path: [[18.1, 53.1], [18.2, 53.2]],
+          distance_m: 123,
+          routing: { engine: 'pgrouting', algorithm: 'astar' }
+        }
+      }
+    })
+
+    const commit = (type, payload) => trailEditorModule.mutations[type](state, payload)
+    const result = await trailEditorModule.actions[ACTIONS.GENERATE_AUTO_RIVER_ROUTE]({ state, commit })
+
+    expect(apiClient.post).toHaveBeenCalledWith('/dashboard/trails/42/auto-route', { mode: 'auto' })
+    expect(result.routing.algorithm).toBe('astar')
     expect(trailEditorModule.getters[GETTERS.ROUTE_PREVIEW_COORDINATES](state)).toEqual([[53.1, 18.1], [53.2, 18.2]])
   })
 

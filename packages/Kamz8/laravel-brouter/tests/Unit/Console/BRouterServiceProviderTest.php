@@ -1,13 +1,12 @@
 <?php
-
 // tests/Unit/Console/BRouterServiceProviderTest.php
 
 namespace Kamz\LaravelBRouter\Tests\Unit\Console;
 
-use Kamz\LaravelBRouter\Contracts\RouterInterface;
 use Kamz\LaravelBRouter\Tests\TestCase;
+use Kamz\LaravelBRouter\Contracts\RouterInterface;
 
-class BRouterServiceProviderTest extends TestCase
+class BRouterConsoleServiceProviderTest extends TestCase
 {
     /** @test */
     public function it_registers_router_service()

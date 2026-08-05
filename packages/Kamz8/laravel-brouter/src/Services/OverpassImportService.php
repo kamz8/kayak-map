@@ -18,11 +18,21 @@ class OverpassImportService
 
     public function import(array $bbox, array $metadata = []): array
     {
+        return $this->runImport($bbox, $metadata, false);
+    }
+
+    public function importTemporary(array $bbox, array $metadata = []): array
+    {
+        return $this->runImport($bbox, $metadata, true);
+    }
+
+    private function runImport(array $bbox, array $metadata, bool $temporary): array
+    {
         $importId = $this->repository->create($bbox, $metadata);
 
         try {
             $this->repository->setStatus($importId, 'importing');
-            $raw = $this->dataProvider->getImportData($bbox);
+            $raw = $this->rawImportData($bbox, $metadata);
             $normalized = $this->normalizer->normalize($raw, (string) ($metadata['name'] ?? ''));
             $graphPayload = $this->graphBuilder->build($normalized);
             $normalized['edges'] = array_values(array_map(
@@ -32,6 +42,13 @@ class OverpassImportService
             $normalized['components'] = $graphPayload['components'];
             $counts = $this->repository->persist($importId, $normalized, $raw);
             $this->repository->buildGraph($importId, $normalized);
+
+            if ($temporary) {
+                $this->repository->setStatus($importId, 'temporary');
+
+                return ['import_id' => $importId, 'status' => 'temporary'] + $counts;
+            }
+
             $this->repository->setStatus($importId, 'validating');
             $this->repository->validate($importId);
             $this->repository->publish($importId, $counts + ['metadata' => $metadata]);
@@ -42,5 +59,14 @@ class OverpassImportService
 
             throw $exception;
         }
+    }
+
+    private function rawImportData(array $bbox, array $metadata): array
+    {
+        if (isset($metadata['name']) && method_exists($this->dataProvider, 'getNamedImportData')) {
+            return $this->dataProvider->getNamedImportData((string) $metadata['name'], $bbox);
+        }
+
+        return $this->dataProvider->getImportData($bbox);
     }
 }

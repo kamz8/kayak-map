@@ -364,6 +364,7 @@ export const ACTIONS = {
     LOAD_TRAIL: 'loadTrail',
     SAVE_TRACK: 'saveTrack',
     GENERATE_RIVER_ROUTE: 'generateRiverRoute',
+    GENERATE_AUTO_RIVER_ROUTE: 'generateAutoRiverRoute',
     APPLY_ROUTE_PREVIEW: 'applyRoutePreview',
     CLEAR_ROUTE_PREVIEW: 'clearRoutePreview',
     FETCH_POINT_TYPES: 'fetchPointTypes',
@@ -564,7 +565,27 @@ const actions = {
             payload.snap_tolerance_m = options.snapToleranceMeters
         }
 
-        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/river-route`, payload)
+        payload.mode = 'snap'
+        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/snap-river`, payload)
+        const routeData = response.data.data
+        const coordinates = routeData.path.map(([lng, lat]) => [lat, lng])
+
+        commit(MUTATIONS.SET_ROUTE_PREVIEW, {
+            coordinates,
+            meta: routeData
+        })
+
+        return routeData
+    },
+
+    async [ACTIONS.GENERATE_AUTO_RIVER_ROUTE]({ state, commit }) {
+        if (!state.trailId) {
+            throw new Error('Trail must be loaded before generating a river route')
+        }
+
+        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/auto-route`, {
+            mode: 'auto'
+        })
         const routeData = response.data.data
         const coordinates = routeData.path.map(([lng, lat]) => [lat, lng])
 
@@ -591,10 +612,11 @@ const actions = {
         }
 
         const lastPoint = currentCoords[currentCoords.length - 1]
-        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/river-route`, {
+        const response = await apiClient.post(`/dashboard/trails/${state.trailId}/snap-river`, {
             start: { lat: lastPoint[0], lng: lastPoint[1] },
             end: { lat, lng },
-            snap_tolerance_m: 150
+            snap_tolerance_m: 150,
+            mode: 'snap'
         })
 
         const newPoints = response.data.data.path.map(([lngVal, latVal]) => [latVal, lngVal])

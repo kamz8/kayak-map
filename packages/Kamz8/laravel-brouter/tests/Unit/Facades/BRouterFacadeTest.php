@@ -1,14 +1,13 @@
 <?php
-
 // tests/Unit/Facades/BRouterFacadeTest.php
 
 namespace Kamz\LaravelBRouter\Tests\Unit\Facades;
 
+use Tests\TestCase;
+use Kamz\LaravelBRouter\Facades\BRouter;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
 use Kamz\LaravelBRouter\DTO\RouteRequestData;
-use Kamz\LaravelBRouter\Facades\BRouter;
 use Kamz\LaravelBRouter\Models\RouteResult;
-use Tests\TestCase;
 
 class BRouterFacadeTest extends TestCase
 {

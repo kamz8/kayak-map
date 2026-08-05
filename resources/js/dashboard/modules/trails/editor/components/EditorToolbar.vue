@@ -75,6 +75,23 @@
                     </template>
                 </v-tooltip>
 
+                <v-tooltip text="Znajdź całą rzekę (A)" location="bottom">
+                    <template #activator="{ props }">
+                        <v-btn
+                            v-bind="props"
+                            size="x-small"
+                            density="comfortable"
+                            variant="flat"
+                            :disabled="!startPoint || !endPoint || isSnapping"
+                            :loading="isSnapping"
+                            @click="handleAutoRoute"
+                            class="tool-button ui-interactive"
+                        >
+                            <v-icon>mdi-river</v-icon>
+                        </v-btn>
+                    </template>
+                </v-tooltip>
+
                 <!-- Clear Track -->
                 <v-tooltip text="Usuń trasę" location="bottom">
                     <template #activator="{ props }">
@@ -357,6 +374,7 @@ export default {
             saveTrack: trailEditorActions.SAVE_TRACK,
             clearAllFeatures: trailEditorActions.CLEAR_ALL_FEATURES,
             generateRiverRoute: trailEditorActions.GENERATE_RIVER_ROUTE,
+            generateAutoRiverRoute: trailEditorActions.GENERATE_AUTO_RIVER_ROUTE,
             applyRoutePreview: trailEditorActions.APPLY_ROUTE_PREVIEW,
             clearRoutePreview: trailEditorActions.CLEAR_ROUTE_PREVIEW
         }),
@@ -406,6 +424,24 @@ export default {
             } catch (error) {
                 console.error('Snap error:', error)
                 this.$notify('Nie udało się wygenerować trasy: ' + error.message, 'error')
+            } finally {
+                this.isSnapping = false
+            }
+        },
+
+        async handleAutoRoute() {
+            this.isSnapping = true
+
+            try {
+                await this.generateAutoRiverRoute()
+                this.$notify('Wygenerowano pełny przebieg rzeki', 'success')
+            } catch (error) {
+                const apiError = error.response?.data?.error
+                const message = apiError
+                    ? `${apiError.message} (${apiError.suggested_action ?? ''})`
+                    : error.message
+
+                this.$notify('Nie udało się wygenerować rzeki: ' + message, 'error')
             } finally {
                 this.isSnapping = false
             }

@@ -157,7 +157,9 @@ services:
       - laravel
 
   brouter-db:
-    image: postgis/postgis:16-3.4
+    build:
+      context: ./docker/brouter-postgis
+    image: kayak-brouter-postgis
     container_name: brouter-postgis
     restart: unless-stopped
     environment:
@@ -235,6 +237,7 @@ services:
 volumes:
   db_data:
   brouter_db_data:
+    name: brouter-postgis_brouter_db_data
   laravel-storage:
     driver: local
   # High-performance volumes for Vite

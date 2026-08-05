@@ -14,6 +14,8 @@ class GenerateRiverRouteRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'mode' => ['sometimes', 'string', 'in:snap,auto'],
+            'river_name' => ['sometimes', 'string', 'max:160'],
             'start' => ['sometimes', 'array'],
             'start.lat' => ['required_with:start', 'numeric', 'between:-90,90'],
             'start.lng' => ['required_with:start', 'numeric', 'between:-180,180'],

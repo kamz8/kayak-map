@@ -31,6 +31,20 @@ class OverpassDataProvider implements DataProviderInterface, ImportDataProviderI
         return $this->fetch($this->buildNamedWaterwayQuery($name, $bbox));
     }
 
+    public function getNamedImportData(string $name, array $bbox): array
+    {
+        $bboxString = $this->formatBbox($this->validatedBbox($bbox));
+        $escapedName = str_replace('"', '\\"', $name);
+
+        return $this->fetch(<<<OVERPASS
+[out:json][timeout:60];
+(
+  way["waterway"]["name"="{$escapedName}"]({$bboxString});
+);
+out geom;
+OVERPASS);
+    }
+
     private function fetch(string $query): array
     {
         try {

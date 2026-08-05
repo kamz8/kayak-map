@@ -24,6 +24,12 @@ class RouteResult
                 'distance_m' => $this->distanceMeters,
                 'warnings' => $this->warnings,
                 'cache' => $this->cache,
+                'routing' => [
+                    'engine' => $this->cache['engine'] ?? 'pgrouting',
+                    'algorithm' => $this->cache['algorithm'] ?? 'astar',
+                ],
+                'graph' => $this->cache['graph'] ?? null,
+                'indexing' => $this->cache['indexing'] ?? ['status' => 'published'],
             ],
         ];
     }

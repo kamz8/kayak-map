@@ -130,7 +130,6 @@ return new class extends Migration
         $connection->statement('CREATE INDEX waterways_geometry_gist_idx ON waterways USING gist (geometry)');
         $connection->statement('CREATE INDEX waterway_nodes_geometry_gist_idx ON waterway_nodes USING gist (geometry)');
         $connection->statement('CREATE INDEX waterway_edges_geometry_gist_idx ON waterway_edges USING gist (geometry)');
-        $connection->statement('CREATE INDEX waterway_edges_geography_gist_idx ON waterway_edges USING gist ((geometry::geography))');
         $connection->statement('CREATE INDEX waterway_features_geometry_gist_idx ON waterway_features USING gist (geometry)');
         $connection->statement('CREATE INDEX water_bodies_geometry_gist_idx ON water_bodies USING gist (geometry)');
         $connection->statement('CREATE INDEX routes_geometry_gist_idx ON routes USING gist (geometry)');

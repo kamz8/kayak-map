@@ -12,6 +12,7 @@ class RouteRequestData
         public array $end,
         public float $snapToleranceMeters = 500.0,
         public bool $simplify = true,
+        public string $mode = 'snap',
     ) {
     }
 
@@ -29,6 +30,7 @@ class RouteRequestData
             end: self::normalizePoint($data['end']),
             snapToleranceMeters: (float) ($data['snap_tolerance_m'] ?? 500),
             simplify: (bool) ($data['simplify'] ?? true),
+            mode: (string) ($data['mode'] ?? 'snap'),
         );
     }
 

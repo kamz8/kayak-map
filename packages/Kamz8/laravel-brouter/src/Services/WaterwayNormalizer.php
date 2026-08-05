@@ -19,10 +19,9 @@ class WaterwayNormalizer
 
             if ($type === 'node') {
                 $this->addNode($nodes, (string) ($element['id'] ?? ''), $element['lat'] ?? null, $element['lon'] ?? null, $tags, $nodeIdsByCoordinate);
-                if ($this->isFeature($tags) && is_numeric($element['lat'] ?? null) && is_numeric($element['lon'] ?? null)) {
+                if ($this->isFeature($tags)) {
                     $features[] = $this->feature($element, $tags, [['lat' => $element['lat'], 'lon' => $element['lon']]]);
                 }
-
                 continue;
             }
 
@@ -134,7 +133,7 @@ class WaterwayNormalizer
     private function elementGeometry(array $element): array
     {
         if ($element['type'] === 'way') {
-            return $this->validGeometry($element['geometry'] ?? []);
+            return array_values($element['geometry'] ?? []);
         }
 
         $geometry = [];
@@ -146,15 +145,7 @@ class WaterwayNormalizer
             }
         }
 
-        return $this->validGeometry($geometry);
-    }
-
-    private function validGeometry(array $geometry): array
-    {
-        return array_values(array_filter(
-            $geometry,
-            static fn (array $point): bool => is_numeric($point['lat'] ?? null) && is_numeric($point['lon'] ?? null),
-        ));
+        return $geometry;
     }
 
     private function isFeature(array $tags): bool

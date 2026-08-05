@@ -6,12 +6,15 @@ use Illuminate\Support\ServiceProvider;
 use Kamz\LaravelBRouter\Contracts\DataProviderInterface;
 use Kamz\LaravelBRouter\Contracts\ImportRepositoryInterface;
 use Kamz\LaravelBRouter\Contracts\ImportDataProviderInterface;
+use Kamz\LaravelBRouter\Console\ImportRiverCatalogCommand;
 use Kamz\LaravelBRouter\Console\PrecacheWaterwaysCommand;
 use Kamz\LaravelBRouter\Console\BenchmarkBRouterCommand;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
 use Kamz\LaravelBRouter\Services\BrouterImportRepository;
 use Kamz\LaravelBRouter\Services\OverpassDataProvider;
 use Kamz\LaravelBRouter\Services\PublishedImportDataProvider;
+use Kamz\LaravelBRouter\Services\PgRoutingService;
+use Kamz\LaravelBRouter\Services\RiverMicroGraphService;
 use Kamz\LaravelBRouter\Services\RoutingEngine;
 
 class BRouterServiceProvider extends ServiceProvider
@@ -21,10 +24,15 @@ class BRouterServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/brouter.php', 'brouter'
         );
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/river-catalog.php', 'river-catalog'
+        );
 
         $this->app->singleton(DataProviderInterface::class, PublishedImportDataProvider::class);
         $this->app->singleton(ImportDataProviderInterface::class, OverpassDataProvider::class);
         $this->app->singleton(ImportRepositoryInterface::class, BrouterImportRepository::class);
+        $this->app->singleton(PgRoutingService::class);
+        $this->app->singleton(RiverMicroGraphService::class);
         $this->app->singleton(RouterInterface::class, RoutingEngine::class);
 
         $this->app->alias(RouterInterface::class, 'brouter');
@@ -32,7 +40,7 @@ class BRouterServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->commands([PrecacheWaterwaysCommand::class, BenchmarkBRouterCommand::class]);
+        $this->commands([PrecacheWaterwaysCommand::class, BenchmarkBRouterCommand::class, ImportRiverCatalogCommand::class]);
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Publish config

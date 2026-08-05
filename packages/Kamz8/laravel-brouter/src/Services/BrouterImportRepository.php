@@ -17,7 +17,7 @@ class BrouterImportRepository implements ImportRepositoryInterface
             'status' => 'staging',
             'is_active' => false,
             'bbox' => DB::raw(sprintf(
-                'ST_MakeEnvelope(%s, %s, %s, %s, 4326)',
+                "ST_MakeEnvelope(%s, %s, %s, %s, 4326)",
                 $bbox['west'],
                 $bbox['south'],
                 $bbox['east'],
@@ -84,12 +84,16 @@ class BrouterImportRepository implements ImportRepositoryInterface
                     'waterway_id' => $waterwayIds[$edge['way_id']] ?? null,
                     'from_node_id' => $nodeIds[$edge['from_node']],
                     'to_node_id' => $nodeIds[$edge['to_node']],
+                    'source' => $nodeIds[$edge['from_node']],
+                    'target' => $nodeIds[$edge['to_node']],
                     'way_id' => $edge['way_id'],
                     'component_id' => (int) ($edge['component_id'] ?? 0),
                     'is_bidirectional' => (bool) ($edge['is_bidirectional'] ?? true),
                     'is_water_body_crossing' => (bool) ($edge['is_water_body_crossing'] ?? false),
                     'geometry' => DB::raw($this->lineWkt($edge['geometry'])),
                     'distance_m' => $edge['distance_m'],
+                    'cost' => (float) $edge['distance_m'],
+                    'reverse_cost' => ($edge['is_bidirectional'] ?? true) ? (float) $edge['distance_m'] : -1.0,
                     'source_tags' => json_encode($edge['source_tags'] ?? [], JSON_THROW_ON_ERROR),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -198,12 +202,33 @@ class BrouterImportRepository implements ImportRepositoryInterface
                 'published_at' => now(),
                 'updated_at' => now(),
             ]);
+            if ($connection->getSchemaBuilder()->hasTable('graph_tiles')) {
+                $connection->table('graph_tiles')->where('import_id', $importId)->update([
+                    'status' => 'published',
+                    'updated_at' => now(),
+                ]);
+
+                if (isset($metadata['river_key']) && ! $connection->table('graph_tiles')->where('import_id', $importId)->exists()) {
+                    $connection->statement(<<<'SQL'
+INSERT INTO graph_tiles (river_key, country_code, import_id, bbox_hash, version, status, bbox, metadata, created_at, updated_at)
+SELECT ?, ?, id, ?, version, 'published', bbox, ?::jsonb, NOW(), NOW()
+FROM imports
+WHERE id = ?
+SQL, [
+                        $metadata['river_key'],
+                        $metadata['country_code'] ?? null,
+                        hash('sha256', $importId.':'.($metadata['river_key'] ?? 'river')),
+                        json_encode($metadata, JSON_THROW_ON_ERROR),
+                        $importId,
+                    ]);
+                }
+            }
         });
     }
 
     private function pointWkt(float $lat, float $lng): string
     {
-        return sprintf('ST_SetSRID(ST_Point(%F, %F), 4326)', $lng, $lat);
+        return sprintf("ST_SetSRID(ST_Point(%F, %F), 4326)", $lng, $lat);
     }
 
     private function lineWkt(array $geometry): string
@@ -219,7 +244,7 @@ class BrouterImportRepository implements ImportRepositoryInterface
     private function featureWkt(array $geometry): string
     {
         if (count($geometry) === 1) {
-            return $this->pointWkt((float) $geometry[0]['lat'], $this->longitude($geometry[0]));
+            return $this->pointWkt((float) $geometry[0]['lat'], (float) $geometry[0]['lon']);
         }
 
         return $this->lineWkt($geometry);
@@ -227,16 +252,7 @@ class BrouterImportRepository implements ImportRepositoryInterface
 
     private function coordinates(array $geometry): string
     {
-        return implode(',', array_map(fn (array $point): string => sprintf('%F %F', $this->longitude($point), $point['lat']), $geometry));
-    }
-
-    private function longitude(array $point): float
-    {
-        if (! isset($point['lon']) && ! isset($point['lng'])) {
-            throw new RuntimeException('Geometry point must contain lon or lng.');
-        }
-
-        return (float) ($point['lon'] ?? $point['lng']);
+        return implode(',', array_map(fn (array $point): string => sprintf('%F %F', $point['lon'], $point['lat']), $geometry));
     }
 
     private function isClosed(array $geometry): bool

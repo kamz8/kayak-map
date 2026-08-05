@@ -77,7 +77,7 @@ class RiverTrackService
         $query = $this->buildOverpassQuery($riverName, $bbox);
 
         Log::info("Fetching river data for: $riverName");
-        $response = Http::get(config('overpass.endpoint'), [
+        $response = Http::get('https://overpass-api.de/api/interpreter', [
             'data' => $query
         ]);
 
@@ -107,7 +107,7 @@ class RiverTrackService
     private function fetchRiverDataFromOverpass(Trail $trail): Collection
     {
         $query = $this->buildOverpassQuery($trail);
-        $response = Http::get(config('overpass.endpoint'), [
+        $response = Http::get('https://overpass-api.de/api/interpreter', [
             'data' => $query
         ]);
 
