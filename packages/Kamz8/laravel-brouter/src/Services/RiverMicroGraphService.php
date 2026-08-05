@@ -5,6 +5,7 @@ namespace Kamz\LaravelBRouter\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Kamz\LaravelBRouter\Jobs\ImportRiverMicroGraphJob;
 use Kamz\LaravelBRouter\Jobs\IndexRiverMicroGraphJob;
 
 class RiverMicroGraphService
@@ -90,9 +91,15 @@ class RiverMicroGraphService
             $lock->release();
         }
 
+        return $this->registerTemporaryTile($riverKey, $bbox, $result, $metadata);
+    }
+
+    public function registerTemporaryTile(string $riverKey, array $bbox, array $result, array $metadata = []): object
+    {
         $import = DB::connection(self::CONNECTION)->table('imports')->where('id', $result['import_id'])->first();
         $version = (string) ($import->version ?? str()->uuid());
         $bboxHash = hash('sha256', json_encode($bbox, JSON_THROW_ON_ERROR));
+        $riverKey = $this->riverKey($riverKey);
 
         DB::connection(self::CONNECTION)->table('graph_tiles')->insert([
             'river_key' => $riverKey,
@@ -119,6 +126,11 @@ class RiverMicroGraphService
             'status' => 'temporary',
             'river_key' => $riverKey,
         ];
+    }
+
+    public function queueImport(string $riverKey, array $bbox, array $metadata = []): void
+    {
+        ImportRiverMicroGraphJob::dispatch($riverKey, $bbox, $metadata);
     }
 
     public function queueIndexing(object $temporaryTile): void

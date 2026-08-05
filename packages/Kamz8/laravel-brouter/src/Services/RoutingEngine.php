@@ -52,14 +52,12 @@ class RoutingEngine implements RouterInterface
                     throw new NoWaterwayFoundException('No published PostGIS waterway graph covers the requested route.');
                 }
 
-                $temporaryTile = $this->microGraphs->ensureTemporaryTile($request->riverName, $bbox, [
+                $this->microGraphs->queueImport($request->riverName, $bbox, [
                     'name' => $request->riverName,
                     'source' => 'lazy-route',
                 ]);
-                $graphVersion = (string) $temporaryTile->version;
-                $importId = (int) $temporaryTile->import_id;
-                $this->microGraphs->queueIndexing($temporaryTile);
-                $indexing = ['status' => 'queued', 'import_id' => $importId];
+
+                throw new NoWaterwayFoundException('River graph is being imported asynchronously. Retry after indexing completes.');
             }
 
             $result = $this->pgRouting->route($request, $importId);

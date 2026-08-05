@@ -68,7 +68,7 @@
             "type": "path",
             "url": "packages/Kamz8/LaravelOverpass",
             "options": {
-                "symlink": false
+                "symlink": true
             }
 
         },
@@ -76,7 +76,7 @@
             "type": "path",
             "url": "packages/Kamz8/laravel-brouter",
             "options": {
-                "symlink": false
+                "symlink": true
             }
         }
     ],
