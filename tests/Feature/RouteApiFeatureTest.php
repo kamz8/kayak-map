@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Trail;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Kamz\LaravelBRouter\Contracts\RouterInterface;
 use Kamz\LaravelBRouter\DTO\RouteRequestData;
 use Kamz\LaravelBRouter\Models\RouteResult;
@@ -201,5 +202,30 @@ class RouteApiFeatureTest extends TestCase
         $response->assertJsonPath('data.end_snap.distance_m', fn ($distance): bool => $distance < 100);
         $this->assertGreaterThan(0, $response->json('data.distance_m'));
         $this->assertGreaterThan(2, count($response->json('data.path')));
+    }
+
+    /** @test */
+    public function it_generates_a_route_from_a_saved_river_track_when_a_graph_is_unavailable(): void
+    {
+        $trail = Trail::factory()->create([
+            'river_name' => 'Widawa',
+            'start_lat' => 51.0,
+            'start_lng' => 17.0,
+            'end_lat' => 51.02,
+            'end_lng' => 17.02,
+        ]);
+
+        DB::statement(
+            "INSERT INTO river_tracks (trail_id, track_points, created_at, updated_at) VALUES (?, ST_GeomFromText('LINESTRING(17 51, 17.01 51.01, 17.02 51.02)', 4326), NOW(), NOW())",
+            [$trail->id],
+        );
+
+        $response = $this->postJson("/api/v1/dashboard/trails/{$trail->id}/snap-river", [], $this->headers);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.cache.engine', 'saved_track');
+        $response->assertJsonPath('data.cache.algorithm', 'polyline');
+        $this->assertGreaterThan(0, $response->json('data.distance_m'));
+        $this->assertCount(3, $response->json('data.path'));
     }
 }

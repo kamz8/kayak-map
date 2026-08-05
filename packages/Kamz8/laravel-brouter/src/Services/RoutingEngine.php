@@ -57,7 +57,9 @@ class RoutingEngine implements RouterInterface
                     'source' => 'lazy-route',
                 ]);
 
-                throw new NoWaterwayFoundException('River graph is being imported asynchronously. Retry after indexing completes.');
+                return $this->findLegacyRoute($request, $bbox, [
+                    'status' => 'queued',
+                ]);
             }
 
             $result = $this->pgRouting->route($request, $importId);
@@ -71,6 +73,11 @@ class RoutingEngine implements RouterInterface
             );
         }
 
+        return $this->findLegacyRoute($request, $bbox);
+    }
+
+    private function findLegacyRoute(RouteRequestData $request, array $bbox, array $indexing = []): RouteResult
+    {
         $graphVersion = $this->graphRepository?->activeGraphVersion() ?? 'runtime';
         $graphPayload = $this->graphCache->remember($graphVersion, function () use ($request, $bbox): array {
             if ($this->graphRepository !== null && $this->graphRepository->activeGraphVersion() !== null) {
@@ -108,7 +115,13 @@ class RoutingEngine implements RouterInterface
             startSnap: $route['start_snap'],
             endSnap: $route['end_snap'],
             distanceMeters: $route['route']['distance_m'],
-            cache: ['osm' => 'versioned', 'graph' => $graphVersion, 'route' => 'versioned'],
+            cache: [
+                'engine' => 'php',
+                'osm' => 'versioned',
+                'graph' => $graphVersion,
+                'route' => 'versioned',
+                'indexing' => $indexing,
+            ],
         );
     }
 

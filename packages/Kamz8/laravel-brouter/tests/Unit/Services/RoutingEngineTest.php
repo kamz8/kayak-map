@@ -125,7 +125,21 @@ class RoutingEngineTest extends TestCase
             new class implements DataProviderInterface
             {
                 public function getWaterwaysInBBox(array $bbox): array { return []; }
-                public function getWaterwayByName(string $name, ?array $bbox = null): array { return []; }
+
+                public function getWaterwayByName(string $name, ?array $bbox = null): array
+                {
+                    return [
+                        'elements' => [[
+                            'type' => 'way',
+                            'id' => 10,
+                            'tags' => ['waterway' => 'river', 'name' => $name],
+                            'geometry' => [
+                                ['lat' => 51.0, 'lon' => 16.0],
+                                ['lat' => 51.0, 'lon' => 16.1],
+                            ],
+                        ]],
+                    ];
+                }
             },
             new RouteCache(),
             new WaterwayNormalizer(),
@@ -200,7 +214,21 @@ class RoutingEngineTest extends TestCase
             new class implements DataProviderInterface
             {
                 public function getWaterwaysInBBox(array $bbox): array { return []; }
-                public function getWaterwayByName(string $name, ?array $bbox = null): array { return []; }
+
+                public function getWaterwayByName(string $name, ?array $bbox = null): array
+                {
+                    return [
+                        'elements' => [[
+                            'type' => 'way',
+                            'id' => 10,
+                            'tags' => ['waterway' => 'river', 'name' => $name],
+                            'geometry' => [
+                                ['lat' => 51.0, 'lon' => 16.0],
+                                ['lat' => 51.0, 'lon' => 16.1],
+                            ],
+                        ]],
+                    ];
+                }
             },
             new RouteCache(),
             new WaterwayNormalizer(),
@@ -212,75 +240,14 @@ class RoutingEngineTest extends TestCase
             microGraphs: $microGraphs,
         );
 
-        $this->expectException(NoWaterwayFoundException::class);
+        $result = $engine->findRoute(new RouteRequestData(
+            riverName: 'Lithuanian river',
+            start: ['lat' => 51.0, 'lng' => 16.0],
+            end: ['lat' => 51.0, 'lng' => 16.1],
+        ));
 
-        try {
-            $engine->findRoute(new RouteRequestData(
-                riverName: 'Lithuanian river',
-                start: ['lat' => 51.0, 'lng' => 16.0],
-                end: ['lat' => 51.1, 'lng' => 16.1],
-            ));
-        } finally {
-            $this->assertTrue($microGraphs->queued);
-        }
-    }
-
-    /** @test */
-    public function it_does_not_import_overpass_synchronously_for_a_missing_river(): void
-    {
-        $repository = new class extends BrouterGraphRepository
-        {
-            public function activeGraphVersionForRiver(string $riverName, ?array $bbox = null): ?string { return null; }
-            public function activeGraphImportIdForRiver(string $riverName, ?array $bbox = null): ?int { return null; }
-            public function activeGraphVersion(?array $bbox = null): ?string { return null; }
-            public function activeGraphImportId(?array $bbox = null): ?int { return null; }
-        };
-        $microGraphs = new class extends RiverMicroGraphService
-        {
-            public bool $queued = false;
-
-            public function findPublishedTile(string $riverKey, array $start, array $end): ?object
-            {
-                return null;
-            }
-
-            public function ensureTemporaryTile(string $riverKey, array $bbox, array $metadata = []): object
-            {
-                throw new \LogicException('Overpass import must not run in the request.');
-            }
-
-            public function queueImport(string $riverKey, array $bbox, array $metadata = []): void
-            {
-                $this->queued = true;
-            }
-        };
-
-        $engine = new RoutingEngine(
-            new class implements DataProviderInterface
-            {
-                public function getWaterwaysInBBox(array $bbox): array { return []; }
-                public function getWaterwayByName(string $name, ?array $bbox = null): array { return []; }
-            },
-            new RouteCache(),
-            new WaterwayNormalizer(),
-            new WaterwayGraphBuilder(),
-            new EdgeSnapper(),
-            new GraphRouter(),
-            graphRepository: $repository,
-            pgRouting: new PgRoutingService(),
-            microGraphs: $microGraphs,
-        );
-
-        $this->expectException(NoWaterwayFoundException::class);
-
-        try {
-            $engine->findRoute(new RouteRequestData(
-                riverName: 'Widawa',
-                start: ['lat' => 51.27, 'lng' => 17.65],
-                end: ['lat' => 51.17, 'lng' => 17.70],
-            ));
-        } finally {
-            $this->assertTrue($microGraphs->queued);
-        }
+        $this->assertSame([[16.0, 51.0], [16.1, 51.0]], $result->path);
+        $this->assertSame('php', $result->cache['engine']);
+        $this->assertTrue($microGraphs->queued);
     }
 }
